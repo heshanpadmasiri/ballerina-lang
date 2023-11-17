@@ -1443,7 +1443,6 @@ public class NodeCloner extends BLangNodeVisitor {
 
     @Override
     public void visit(BLangLambdaFunction source) {
-
         BLangLambdaFunction clone = new BLangLambdaFunction();
         source.cloneRef = clone;
         clone.function = clone(source.function);
@@ -2350,6 +2349,7 @@ public class NodeCloner extends BLangNodeVisitor {
         clone.objInitFunction = source.objInitFunction;
         clone.interfaceFunction = source.interfaceFunction;
         clone.anonForkName = source.anonForkName;
+        clone.enclosedFunctions = source.enclosedFunctions;
 
         cloneBLangInvokableNode(source, clone);
     }
