@@ -346,7 +346,10 @@ public class BIRGen extends BLangNodeVisitor {
         astPkg.initFunction.accept(this);
         astPkg.startFunction.accept(this);
         astPkg.stopFunction.accept(this);
-        astPkg.functions.forEach(astFunc -> astFunc.accept(this));
+        if (astPkg.functions.stream().anyMatch(fn -> fn.nestedFn)) {
+            throw new AssertionError("nested functions should not be lifted");
+        }
+        astPkg.functions.forEach(func -> func.accept(this));
         astPkg.annotations.forEach(astAnn -> astAnn.accept(this));
         astPkg.services.forEach(service -> service.accept(this));
     }
@@ -570,13 +573,12 @@ public class BIRGen extends BLangNodeVisitor {
     @Override
     public void visit(BLangFunction astFunc) {
         this.currentScope = new BirScope(0, null);
-        BIRFunction birFunc = createBIRFunction(astFunc, false);
-        // TODO: add to package
+        BIRFunction birFunc = createBIRFunction(astFunc, true);
         birFunc.dependentGlobalVars = astFunc.symbol.dependentGlobalVars.stream()
                 .map(varSymbol -> this.globalVarMap.get(varSymbol)).collect(Collectors.toSet());
     }
 
-    private BIRFunction createBIRFunction(BLangFunction astFunc, boolean isClosure) {
+    private BIRFunction createBIRFunction(BLangFunction astFunc, boolean addToBIRTop) {
         this.env.unlockVars.push(new BIRLockDetailsHolder());
         BInvokableType type = astFunc.symbol.getType();
 
@@ -630,7 +632,7 @@ public class BIRGen extends BLangNodeVisitor {
                 + (astFunc.restParam != null ? 1 : 0) + astFunc.paramClosureMap.size();
         if (astFunc.flagSet.contains(Flag.ATTACHED) && typeDefs.containsKey(astFunc.receiver.getBType().tsymbol)) {
             typeDefs.get(astFunc.receiver.getBType().tsymbol).attachedFuncs.add(birFunc);
-        } else if (!isClosure) {
+        } else if (addToBIRTop) {
             // NOTE: if closures we need to get the enclFunction from the parent env not this!
             this.env.enclPkg.functions.add(birFunc);
         }
@@ -847,7 +849,12 @@ public class BIRGen extends BLangNodeVisitor {
         this.env.targetOperand = lhsOp;
         this.env = this.env.createNestedEnv();
         this.currentScope = new BirScope(this.currentScope.id + 1, this.currentScope);
-        enclFunc.enclosedFunctions.add(createBIRFunction(lambdaExpr.function, this.env.parentEnv.enclFunc != null));
+        //pr: We don't run any function how is nested from the top so let's them here
+
+        if (lambdaExpr.function.nestedFn) {
+            // fixme:
+            enclFunc.enclosedFunctions.add(createBIRFunction(lambdaExpr.function, true));
+        }
         this.currentScope = this.currentScope.parent;
         this.env = this.env.parentEnv;
     }

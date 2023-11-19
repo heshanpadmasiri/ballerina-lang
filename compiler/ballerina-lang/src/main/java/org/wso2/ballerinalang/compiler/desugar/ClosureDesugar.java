@@ -213,6 +213,7 @@ public class ClosureDesugar extends BLangNodeVisitor {
     private ClassClosureDesugar classClosureDesugar;
     private int funClosureMapCount = 1;
     private int blockClosureMapCount = 1;
+    private List<BLangFunction> nestedFunctions = new ArrayList<>();
 
     static {
         CLOSURE_MAP_NOT_FOUND = new BVarSymbol(0, new Name("$not$found"), null, null, null, null, VIRTUAL);
@@ -252,6 +253,7 @@ public class ClosureDesugar extends BLangNodeVisitor {
         pkgNode.initFunction = rewrite(pkgNode.initFunction, pkgEnv);
 
         for (BLangFunction bLangFunction : pkgNode.functions) {
+            // pr: we are already ignoring top level closure here
             if (!bLangFunction.flagSet.contains(Flag.LAMBDA)) {
                 rewrite(bLangFunction, pkgEnv);
             }
@@ -264,9 +266,12 @@ public class ClosureDesugar extends BLangNodeVisitor {
         }
 
         // Update function parameters.
-        for (BLangFunction function : pkgNode.functions) {
-            updateFunctionParams(function);
+        if (pkgNode.functions.stream().anyMatch(fn -> fn.nestedFn)) {
+            throw new AssertionError("nested functions should not be lifted");
         }
+        // fixme:
+        pkgNode.functions.forEach(ClosureDesugar::updateFunctionParams);
+        nestedFunctions.forEach(ClosureDesugar::updateFunctionParams);
         for (BLangTypeDefinition typeDef : pkgNode.typeDefinitions) {
             if (typeDef.typeNode.getKind() == NodeKind.RECORD_TYPE) {
                 updateRecordInitFunction(typeDef);
@@ -1418,6 +1423,9 @@ public class ClosureDesugar extends BLangNodeVisitor {
         }
         bLangLambdaFunction.capturedClosureEnv = null;
         result = bLangLambdaFunction;
+        if (bLangLambdaFunction.function.nestedFn) {
+            nestedFunctions.add(bLangLambdaFunction.function);
+        }
     }
 
     private TreeMap<Integer, BVarSymbol> collectClosureMapSymbols(SymbolEnv symbolEnv, BLangInvokableNode enclInvokable,
