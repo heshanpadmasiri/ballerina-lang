@@ -573,12 +573,12 @@ public class BIRGen extends BLangNodeVisitor {
     @Override
     public void visit(BLangFunction astFunc) {
         this.currentScope = new BirScope(0, null);
-        BIRFunction birFunc = createBIRFunction(astFunc, true);
+        BIRFunction birFunc = createBIRFunction(astFunc, false);
         birFunc.dependentGlobalVars = astFunc.symbol.dependentGlobalVars.stream()
                 .map(varSymbol -> this.globalVarMap.get(varSymbol)).collect(Collectors.toSet());
     }
 
-    private BIRFunction createBIRFunction(BLangFunction astFunc, boolean addToBIRTop) {
+    private BIRFunction createBIRFunction(BLangFunction astFunc, boolean isClosure) {
         this.env.unlockVars.push(new BIRLockDetailsHolder());
         BInvokableType type = astFunc.symbol.getType();
 
@@ -631,8 +631,9 @@ public class BIRGen extends BLangNodeVisitor {
         birFunc.argsCount = astFunc.requiredParams.size()
                 + (astFunc.restParam != null ? 1 : 0) + astFunc.paramClosureMap.size();
         if (astFunc.flagSet.contains(Flag.ATTACHED) && typeDefs.containsKey(astFunc.receiver.getBType().tsymbol)) {
+            // NOTE: these functions could have lambdas which need to be added to package
             typeDefs.get(astFunc.receiver.getBType().tsymbol).attachedFuncs.add(birFunc);
-        } else if (addToBIRTop) {
+        } else if (!isClosure) {
             // NOTE: if closures we need to get the enclFunction from the parent env not this!
             this.env.enclPkg.addFunction(birFunc);
         }
@@ -852,8 +853,7 @@ public class BIRGen extends BLangNodeVisitor {
         //pr: We don't run any function how is nested from the top so let's them here
 
         if (lambdaExpr.function.nestedFn) {
-            // fixme:
-            enclFunc.enclosedFunctions.add(createBIRFunction(lambdaExpr.function, true));
+            enclFunc.encloseFunction(createBIRFunction(lambdaExpr.function, true));
         }
         this.currentScope = this.currentScope.parent;
         this.env = this.env.parentEnv;

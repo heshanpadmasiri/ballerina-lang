@@ -53,6 +53,7 @@ public class BIRGenUtils {
         }
         // Re-arrange error entries
         birFunction.errorTable.sort(Comparator.comparingInt(o -> o.trapBB.number));
+        birFunction.getEnclosedFunctions().forEach(BIRGenUtils::rearrangeBasicBlocks);
     }
 
     public static int renumberBasicBlock(int newBBNum, BIRBasicBlock bb) {

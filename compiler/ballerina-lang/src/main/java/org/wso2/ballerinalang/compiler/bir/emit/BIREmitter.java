@@ -94,7 +94,7 @@ public class BIREmitter {
         modStr += emitLBreaks(2);
         modStr += emitGlobalVars(mod.globalVars);
         modStr += emitLBreaks(2);
-        modStr += emitFunctions(mod.getFunctions(), 0);
+        modStr += emitFunctions(mod.getFunctionsLegacy(), 0);
 
         modStr += emitLBreaks(1);
         modStr += "================ Emitting Module ================";

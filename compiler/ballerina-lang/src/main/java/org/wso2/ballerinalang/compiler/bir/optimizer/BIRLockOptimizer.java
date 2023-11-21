@@ -171,6 +171,7 @@ public class BIRLockOptimizer extends BIRVisitor {
     @Override
     public void visit(BIRNode.BIRFunction birFunction) {
         birFunction.basicBlocks.forEach(bb -> bb.accept(this));
+        birFunction.getEnclosedFunctions().forEach(func -> func.accept(this));
     }
 
     @Override

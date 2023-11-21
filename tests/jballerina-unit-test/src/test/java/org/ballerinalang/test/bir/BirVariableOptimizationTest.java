@@ -50,7 +50,7 @@ public class BirVariableOptimizationTest {
 
     @Test(description = "Test the liveness analysis on functions")
     public void testFunctions() {
-        result.getExpectedBIR().getFunctions().forEach(this::assertFunctions);
+        result.getExpectedBIR().getFunctionsRec().forEach(this::assertFunctions);
     }
 
     @Test(description = "Test the liveness analysis on attached functions")

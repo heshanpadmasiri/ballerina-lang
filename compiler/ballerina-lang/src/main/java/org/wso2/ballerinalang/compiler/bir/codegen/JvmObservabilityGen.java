@@ -150,21 +150,10 @@ class JvmObservabilityGen {
      */
     public void instrumentPackage(BIRPackage pkg) {
         initializeTempLocalVariables();
-        for (BIRFunction func : pkg.getFunctions()) {
-            localVarIndex = 0;
-
-            if (ENTRY_POINT_MAIN_METHOD_NAME.equals(func.name.getValue())) {
-                rewriteControlFlowInvocation(func, pkg);
-            }
-            rewriteAsyncInvocations(func, null, pkg);
-            rewriteObservableFunctionInvocations(func, pkg);
-            if (ENTRY_POINT_MAIN_METHOD_NAME.equals(func.name.getValue())) {
-                rewriteObservableFunctionBody(func, pkg, null, func.name.getValue(), null, false, false, true,
-                        false);
-            } else if ((func.flags & Flags.WORKER) == Flags.WORKER) {   // Identifying lambdas generated for workers
-                rewriteObservableFunctionBody(func, pkg, null, func.workerName.getValue(), null, false, false, false,
-                        true);
-            }
+        List<BIRFunction> functions =
+                new ArrayList<>(pkg.getFunctions()); // We are adding functions to package while instrumenting
+        for (BIRFunction func : functions) {
+            instrumentFunction(func, pkg);
         }
         for (BIRNode.BIRServiceDeclaration serviceDecl : pkg.serviceDecls) {
             List<String> attachPoint = serviceDecl.attachPoint;
@@ -218,10 +207,10 @@ class JvmObservabilityGen {
                                                       false, true, false, false);
                     }
                 }
+                func.getEnclosedFunctions().forEach(enclFunc -> instrumentFunction(enclFunc, pkg));
             }
         }
         // Adding initializing instructions for all compile time known constants
-        // TODO: may be this needs to be factored (magic number)
         BIRFunction initFunc = pkg.getFunctions().get(0);
         BIRBasicBlock constInitBB = initFunc.basicBlocks.get(0);
         for (Map.Entry<Object, BIROperand> entry : compileTimeConstants.entrySet()) {
@@ -230,6 +219,23 @@ class JvmObservabilityGen {
                     operand.variableDcl.type, operand);
             constInitBB.instructions.add(constLoadIns);
         }
+    }
+
+    private void instrumentFunction(BIRFunction func, BIRPackage pkg) {
+        localVarIndex = 0;
+        if (ENTRY_POINT_MAIN_METHOD_NAME.equals(func.name.getValue())) {
+            rewriteControlFlowInvocation(func, pkg);
+        }
+        rewriteAsyncInvocations(func, null, pkg);
+        rewriteObservableFunctionInvocations(func, pkg);
+        if (ENTRY_POINT_MAIN_METHOD_NAME.equals(func.name.getValue())) {
+            rewriteObservableFunctionBody(func, pkg, null, func.name.getValue(), null, false, false, true,
+                    false);
+        } else if ((func.flags & Flags.WORKER) == Flags.WORKER) {   // Identifying lambdas generated for workers
+            rewriteObservableFunctionBody(func, pkg, null, func.workerName.getValue(), null, false, false, false,
+                    true);
+        }
+        func.getEnclosedFunctions().forEach(enclFunc -> instrumentFunction(enclFunc, pkg));
     }
 
     /**
@@ -333,7 +339,9 @@ class JvmObservabilityGen {
         List<BIRFunction> scopeFunctionsList;
         if (attachedTypeDef == null) {
             functionOwner = packageCache.getSymbol(currentPkgId);
-            scopeFunctionsList = pkg.getFunctions();
+            // pr: TODO:
+            // scopeFunctionsList = pkg.getFunctionsLegacy();
+            scopeFunctionsList = null;
         } else {
             functionOwner = attachedTypeDef.type.tsymbol;
             scopeFunctionsList = attachedTypeDef.attachedFuncs;
@@ -365,7 +373,7 @@ class JvmObservabilityGen {
             BIRFunction desugaredFunc = new BIRFunction(asyncCallIns.pos, lambdaName, 0, bInvokableType,
                     func.workerName, 0, VIRTUAL);
             desugaredFunc.receiver = func.receiver;
-            // FIXME:
+            // pr:
             if (attachedTypeDef == null) {
                 pkg.addFunction(desugaredFunc);
             } else {

@@ -71,6 +71,7 @@ import org.wso2.ballerinalang.compiler.util.TypeTags;
 import org.wso2.ballerinalang.compiler.util.Unifier;
 import org.wso2.ballerinalang.util.Flags;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,6 +79,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 
 import static org.ballerinalang.model.symbols.SymbolOrigin.VIRTUAL;
@@ -444,7 +446,8 @@ public class JvmPackageGen {
      * @param isEntry          is entry module flag
      * @return The map of javaClass records on given source file name
      */
-    private Map<String, JavaClass> generateClassNameLinking(BIRPackage module, String initClass, boolean isEntry) {
+    private Map<String, JavaClass> generateClassNameLinking(BIRPackage module, List<BIRFunction> functions,
+                                                            String initClass, boolean isEntry) {
 
         Map<String, JavaClass> jvmClassMap = new HashMap<>();
 
@@ -452,8 +455,7 @@ public class JvmPackageGen {
         linkGlobalVars(module, initClass, isEntry);
 
         // link module functions with class names
-
-        linkModuleFunctions(module, initClass, isEntry, jvmClassMap);
+        linkModuleFunctions(module.packageID, functions, initClass, isEntry, jvmClassMap);
 
         // link module stop function that will be generated
         linkModuleFunction(module.packageID, initClass, MODULE_STOP_METHOD);
@@ -525,10 +527,39 @@ public class JvmPackageGen {
                            getFunctionWrapper(moduleStopFunction, packageID, initClass));
     }
 
-    private void linkModuleFunctions(BIRPackage birPackage, String initClass, boolean isEntry,
+    private static void recursivelyAccumulateFunctions(Queue<BIRFunction> remaining, List<BIRFunction> accumulator) {
+        if (remaining.isEmpty()) {
+            return;
+        }
+        BIRFunction func = remaining.poll();
+        accumulator.add(func);
+        remaining.addAll(func.getEnclosedFunctions());
+    }
+
+    private static List<BIRFunction> getLambdasAttachedToTypeDefns(BIRPackage birPackage) {
+        List<BIRFunction> lambdas = new ArrayList<>();
+        for (BIRTypeDefinition typeDef : birPackage.typeDefs) {
+            for (BIRFunction func : typeDef.attachedFuncs) {
+                lambdas.addAll(func.getEnclosedFunctions());
+            }
+        }
+        return lambdas;
+    }
+
+    // TODO: factor this out to birPackage may be
+    private static List<BIRFunction> packageFunctions(BIRPackage birPackage) {
+        Queue<BIRFunction> remainingFunctions = new ArrayDeque<>(birPackage.getFunctions());
+        remainingFunctions.addAll(getLambdasAttachedToTypeDefns(birPackage));
+        List<BIRFunction> functions = new ArrayList<>();
+        while (!remainingFunctions.isEmpty()) {
+            recursivelyAccumulateFunctions(remainingFunctions, functions);
+        }
+        return functions;
+    }
+
+    private void linkModuleFunctions(PackageID packageID, List<BIRFunction> functions, String initClass,
+                                     boolean isEntry,
                                      Map<String, JavaClass> jvmClassMap) {
-        // filter out functions.
-        List<BIRFunction> functions = birPackage.getFunctions();
         if (functions.isEmpty()) {
             return;
         }
@@ -541,7 +572,6 @@ public class JvmPackageGen {
         String functionName = Utils.encodeFunctionIdentifier(initFunc.name.value);
         JavaClass klass = new JavaClass(initFunc.pos.lineRange().fileName());
         klass.functions.add(0, initFunc);
-        PackageID packageID = birPackage.packageID;
         jvmClassMap.put(initClass, klass);
         String pkgName = JvmCodeGenUtil.getPackageName(packageID);
         birFunctionMap.put(pkgName + functionName, getFunctionWrapper(initFunc, packageID, initClass));
@@ -720,7 +750,8 @@ public class JvmPackageGen {
         }
         String moduleInitClass = JvmCodeGenUtil.getModuleLevelClassName(module.packageID, MODULE_INIT_CLASS_NAME);
         String typesClass = getModuleLevelClassName(module.packageID, MODULE_TYPES_CLASS_NAME);
-        Map<String, JavaClass> jvmClassMapping = generateClassNameLinking(module, moduleInitClass, isEntry);
+        List<BIRFunction> functions = module.getFunctionsRec();
+        Map<String, JavaClass> jvmClassMapping = generateClassNameLinking(module, functions, moduleInitClass, isEntry);
 
         if (!isEntry) {
             return null;
@@ -769,8 +800,7 @@ public class JvmPackageGen {
         generateModuleClasses(module, jarEntries, moduleInitClass, typesClass, jvmTypeGen, jvmCastGen, jvmConstantsGen,
                 jvmClassMapping, flattenedModuleImports, serviceEPAvailable, mainFunc, testExecuteFunc);
 
-        // pr: fixme
-        List<BIRNode.BIRFunction> sortedFunctions = new ArrayList<>(module.getFunctions());
+        List<BIRNode.BIRFunction> sortedFunctions = new ArrayList<>(functions);
         sortedFunctions.sort(NAME_HASH_COMPARATOR);
         jvmMethodsSplitter.generateMethods(jarEntries, jvmCastGen, sortedFunctions);
         jvmConstantsGen.generateConstants(jarEntries);

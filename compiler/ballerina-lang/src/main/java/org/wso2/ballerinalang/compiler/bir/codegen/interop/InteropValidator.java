@@ -165,8 +165,8 @@ public class InteropValidator {
                 } catch (JInteropException e) {
                     dlog.error(func.pos, e.getCode(), e.getMessage());
                 }
-                optionalTypeDef.attachedFuncs = jAttachedFuncs;
             }
+            optionalTypeDef.attachedFuncs = jAttachedFuncs;
         }
     }
 
@@ -206,7 +206,11 @@ public class InteropValidator {
         if (isExternFunc(birFunc)) {
             InteropValidationRequest jInteropValidationReq = getInteropAnnotValue(birFunc);
             if (jInteropValidationReq != null) {
-                return createJInteropFunction(jInteropValidationReq, birFunc, classLoader);
+                BIRNode.BIRFunction newFunc = createJInteropFunction(jInteropValidationReq, birFunc, classLoader);
+                birFunc.getEnclosedFunctions().forEach(func -> {
+                    newFunc.encloseFunction(getBirFunction(func, classLoader));
+                });
+                return newFunc;
             }
         }
         return birFunc;

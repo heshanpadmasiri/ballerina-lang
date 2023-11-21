@@ -107,7 +107,7 @@ public class CodeGenerator {
             typeDef.annotAttachments = null;
         }
         bir.importedGlobalVarsDummyVarDcls.clear();
-        for (BIRNode.BIRFunction function : bir.functions) {
+        for (BIRNode.BIRFunction function : bir.getFunctions()) {
             cleanUpBirFunction(function);
         }
         bir.annotations.clear();
@@ -128,5 +128,6 @@ public class CodeGenerator {
         function.dependentGlobalVars = null;
         function.pathParams = null;
         function.restPathParam = null;
+        function.getEnclosedFunctions().forEach(CodeGenerator::cleanUpBirFunction);
     }
 }

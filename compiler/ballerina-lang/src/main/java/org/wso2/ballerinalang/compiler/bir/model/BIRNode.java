@@ -28,10 +28,13 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.NamedNode;
 import org.wso2.ballerinalang.compiler.util.Name;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -90,22 +93,62 @@ public abstract class BIRNode {
             visitor.visit(this);
         }
 
-        public List<BIRFunction> getFunctions() {
+        // Same behavior as we had previously
+        public List<BIRFunction> getFunctionsLegacy() {
+            LinkedHashSet<BIRFunction> functions = new LinkedHashSet<>();
+            for (BIRFunction function : this.functions) {
+                functions.add(function);
+                functions.addAll(function.getEnclosedFunctionsRec());
+            }
+            for (BIRTypeDefinition typeDef : this.typeDefs) {
+                for (BIRFunction attachedFn : typeDef.attachedFuncs) {
+                    functions.addAll(attachedFn.getEnclosedFunctionsRec());
+                }
+            }
             // We need to make sure nobody is modifying the returned list
-            return Collections.unmodifiableList(functions);
+            return functions.stream().toList();
+        }
+
+        public List<BIRFunction> getFunctionsRec() {
+            Queue<BIRFunction> remainingFunctions = new ArrayDeque<>(getFunctions());
+            remainingFunctions.addAll(getLambdasAttachedToTypeDefns());
+            List<BIRFunction> functions = new ArrayList<>();
+            while (!remainingFunctions.isEmpty()) {
+                recursivelyAccumulateFunctions(remainingFunctions, functions);
+            }
+            return functions;
+        }
+
+        private static void recursivelyAccumulateFunctions(Queue<BIRFunction> remaining,
+                                                           List<BIRFunction> accumulator) {
+            if (remaining.isEmpty()) {
+                return;
+            }
+            BIRFunction func = remaining.poll();
+            accumulator.add(func);
+            remaining.addAll(func.getEnclosedFunctions());
+        }
+
+        private List<BIRFunction> getLambdasAttachedToTypeDefns() {
+            List<BIRFunction> lambdas = new ArrayList<>();
+            for (BIRTypeDefinition typeDef : this.typeDefs) {
+                for (BIRFunction func : typeDef.attachedFuncs) {
+                    lambdas.addAll(func.getEnclosedFunctions());
+                }
+            }
+            return lambdas;
+        }
+
+        public List<BIRFunction> getFunctions() {
+            return Collections.unmodifiableList(this.functions);
         }
 
         public void addFunction(BIRFunction function) {
             this.functions.add(function);
-            // this.addFunctions(function.enclosedFunctions);
         }
 
         public void addFunctions(List<BIRFunction> functions) {
             functions.forEach(this::addFunction);
-        }
-
-        public void clearFunctions() {
-            this.functions.clear();
         }
 
         public void setFunctions(List<BIRFunction> functions) {
@@ -396,7 +439,7 @@ public abstract class BIRNode {
         
         public List<BType> pathSegmentTypeList;
 
-        public List<BIRFunction> enclosedFunctions = new ArrayList<>();
+        private List<BIRFunction> enclosedFunctions = new ArrayList<>();
 
         public BIRFunction(Location pos, Name name, Name originalName, long flags, SymbolOrigin origin,
                            BInvokableType type, List<BIRParameter> requiredParams, BIRVariableDcl receiver,
@@ -476,6 +519,24 @@ public abstract class BIRNode {
         public Name getName() {
             return name;
         }
+
+        public void encloseFunction(BIRFunction function) {
+            this.enclosedFunctions.add(function);
+        }
+
+        public List<BIRFunction> getEnclosedFunctions() {
+            return Collections.unmodifiableList(this.enclosedFunctions);
+        }
+
+        // This returns all the nested functions not just immediate children
+        public List<BIRFunction> getEnclosedFunctionsRec() {
+            List<BIRFunction> enclosedFunctions = new ArrayList<>();
+            for (BIRFunction function : this.enclosedFunctions) {
+                enclosedFunctions.add(function);
+                enclosedFunctions.addAll(function.getEnclosedFunctionsRec());
+            }
+            return enclosedFunctions;
+        }
     }
 
     /**
@@ -534,6 +595,7 @@ public abstract class BIRNode {
          */
         public Name internalName;
 
+        // TODO: when codegenning these we should also code gen lambdas
         public List<BIRFunction> attachedFuncs;
 
         public long flags;

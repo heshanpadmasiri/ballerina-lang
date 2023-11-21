@@ -80,6 +80,8 @@ public class BIRBasicBlockOptimizer extends BIRVisitor {
         resetEndBasicBlock(birFunction, removableGOTOBasicBlocks);
         birFunction.basicBlocks.removeAll(removableGOTOBasicBlocks);
         BIRGenUtils.rearrangeBasicBlocks(birFunction);
+
+        birFunction.getEnclosedFunctions().forEach(func -> func.accept(this));
     }
 
     // Basic block vs it's predecessors map

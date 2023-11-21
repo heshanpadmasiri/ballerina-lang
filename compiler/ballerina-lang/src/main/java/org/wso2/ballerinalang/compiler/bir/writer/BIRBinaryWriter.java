@@ -75,7 +75,7 @@ public class BIRBinaryWriter {
         // Write type def bodies
         writeTypeDefBodies(birbuf, typeWriter, birPackage.typeDefs);
         // Write functions
-        writeFunctions(birbuf, typeWriter, birPackage.getFunctions());
+        writeFunctions(birbuf, typeWriter, birPackage.getFunctionsLegacy());
         // Write annotations
         writeAnnotations(birbuf, typeWriter, birPackage.annotations);
         // Write service declarations

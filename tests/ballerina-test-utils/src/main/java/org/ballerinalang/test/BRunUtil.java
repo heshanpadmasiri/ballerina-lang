@@ -248,7 +248,7 @@ public class BRunUtil {
     private static BIRNode.BIRFunction getInvokedFunction(CompileResult compileResult, String functionName) {
         checkAndNotifyCompilationErrors(compileResult);
         BIRNode.BIRPackage birPackage = compileResult.defaultModuleBIR();
-        for (BIRNode.BIRFunction function : birPackage.getFunctions()) {
+        for (BIRNode.BIRFunction function : birPackage.getFunctionsRec()) {
             if (functionName.equals(function.name.value)) {
                 return function;
             }
