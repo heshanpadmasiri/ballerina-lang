@@ -634,7 +634,7 @@ public class BIRGen extends BLangNodeVisitor {
             typeDefs.get(astFunc.receiver.getBType().tsymbol).attachedFuncs.add(birFunc);
         } else if (addToBIRTop) {
             // NOTE: if closures we need to get the enclFunction from the parent env not this!
-            this.env.enclPkg.functions.add(birFunc);
+            this.env.enclPkg.addFunction(birFunc);
         }
 
         this.env.enclFunc = birFunc;

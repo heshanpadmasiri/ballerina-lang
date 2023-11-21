@@ -29,6 +29,7 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.NamedNode;
 import org.wso2.ballerinalang.compiler.util.Name;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,7 +60,7 @@ public abstract class BIRNode {
         public final List<BIRTypeDefinition> typeDefs;
         public final List<BIRGlobalVariableDcl> globalVars;
         public final Set<BIRGlobalVariableDcl> importedGlobalVarsDummyVarDcls;
-        public final List<BIRFunction> functions;
+        private final List<BIRFunction> functions;
         public final List<BIRAnnotation> annotations;
         public final List<BIRConstant> constants;
         public final List<BIRServiceDeclaration> serviceDecls;
@@ -87,6 +88,29 @@ public abstract class BIRNode {
         @Override
         public void accept(BIRVisitor visitor) {
             visitor.visit(this);
+        }
+
+        public List<BIRFunction> getFunctions() {
+            // We need to make sure nobody is modifying the returned list
+            return Collections.unmodifiableList(functions);
+        }
+
+        public void addFunction(BIRFunction function) {
+            this.functions.add(function);
+            // this.addFunctions(function.enclosedFunctions);
+        }
+
+        public void addFunctions(List<BIRFunction> functions) {
+            functions.forEach(this::addFunction);
+        }
+
+        public void clearFunctions() {
+            this.functions.clear();
+        }
+
+        public void setFunctions(List<BIRFunction> functions) {
+            this.functions.clear();
+            this.addFunctions(functions);
         }
     }
 

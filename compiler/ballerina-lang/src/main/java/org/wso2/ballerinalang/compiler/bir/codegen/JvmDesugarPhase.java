@@ -148,7 +148,7 @@ public class JvmDesugarPhase {
         encodePackageIdentifiers(module.packageID, encodedVsInitialIds);
         encodeGlobalVariableIdentifiers(module.globalVars, encodedVsInitialIds);
         encodeImportedGlobalVariableIdentifiers(module.importedGlobalVarsDummyVarDcls, encodedVsInitialIds);
-        encodeFunctionIdentifiers(module.functions, encodedVsInitialIds);
+        encodeFunctionIdentifiers(module.getFunctions(), encodedVsInitialIds);
         encodeTypeDefIdentifiers(module.typeDefs, encodedVsInitialIds);
         return encodedVsInitialIds;
     }
@@ -195,6 +195,7 @@ public class JvmDesugarPhase {
 
     private static void encodeFunctionIdentifiers(List<BIRFunction> functions,
                                                   HashMap<String, String> encodedVsInitialIds) {
+        // pr: maybe we can use the nested functions to get the child functions here (this needs to become recursive per function)
         for (BIRFunction function : functions) {
             function.name = Names.fromString(encodeFunctionIdentifier(function.name.value, encodedVsInitialIds));
             for (BIRNode.BIRVariableDcl localVar : function.localVars) {
@@ -264,7 +265,7 @@ public class JvmDesugarPhase {
                                                 HashMap<String, String> encodedVsInitialIds) {
         replaceEncodedPackageIdentifiers(module.packageID, encodedVsInitialIds);
         replaceEncodedGlobalVariableIdentifiers(module.globalVars, encodedVsInitialIds);
-        replaceEncodedFunctionIdentifiers(module.functions, encodedVsInitialIds);
+        replaceEncodedFunctionIdentifiers(module.getFunctions(), encodedVsInitialIds);
         replaceEncodedTypeDefIdentifiers(module.typeDefs, encodedVsInitialIds);
     }
 

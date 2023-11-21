@@ -150,9 +150,8 @@ class JvmObservabilityGen {
      */
     public void instrumentPackage(BIRPackage pkg) {
         initializeTempLocalVariables();
-        for (int i = 0; i < pkg.functions.size(); i++) {
+        for (BIRFunction func : pkg.getFunctions()) {
             localVarIndex = 0;
-            BIRFunction func = pkg.functions.get(i);
 
             if (ENTRY_POINT_MAIN_METHOD_NAME.equals(func.name.getValue())) {
                 rewriteControlFlowInvocation(func, pkg);
@@ -222,7 +221,8 @@ class JvmObservabilityGen {
             }
         }
         // Adding initializing instructions for all compile time known constants
-        BIRFunction initFunc = pkg.functions.get(0);
+        // TODO: may be this needs to be factored (magic number)
+        BIRFunction initFunc = pkg.getFunctions().get(0);
         BIRBasicBlock constInitBB = initFunc.basicBlocks.get(0);
         for (Map.Entry<Object, BIROperand> entry : compileTimeConstants.entrySet()) {
             BIROperand operand = entry.getValue();
@@ -333,7 +333,7 @@ class JvmObservabilityGen {
         List<BIRFunction> scopeFunctionsList;
         if (attachedTypeDef == null) {
             functionOwner = packageCache.getSymbol(currentPkgId);
-            scopeFunctionsList = pkg.functions;
+            scopeFunctionsList = pkg.getFunctions();
         } else {
             functionOwner = attachedTypeDef.type.tsymbol;
             scopeFunctionsList = attachedTypeDef.attachedFuncs;
@@ -365,7 +365,12 @@ class JvmObservabilityGen {
             BIRFunction desugaredFunc = new BIRFunction(asyncCallIns.pos, lambdaName, 0, bInvokableType,
                     func.workerName, 0, VIRTUAL);
             desugaredFunc.receiver = func.receiver;
-            scopeFunctionsList.add(desugaredFunc);
+            // FIXME:
+            if (attachedTypeDef == null) {
+                pkg.addFunction(desugaredFunc);
+            } else {
+                scopeFunctionsList.add(desugaredFunc);
+            }
 
             // Creating the return variable
             BIRVariableDcl funcReturnVariableDcl = new BIRVariableDcl(returnType,

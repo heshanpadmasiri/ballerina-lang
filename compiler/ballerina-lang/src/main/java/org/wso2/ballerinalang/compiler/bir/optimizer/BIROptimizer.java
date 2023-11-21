@@ -102,7 +102,7 @@ public class BIROptimizer {
         @Override
         public void visit(BIRPackage birPackage) {
             birPackage.typeDefs.forEach(tDef -> tDef.accept(this));
-            birPackage.functions.forEach(func -> func.accept(this));
+            birPackage.getFunctions().forEach(func -> func.accept(this));
         }
 
         @Override
@@ -227,7 +227,7 @@ public class BIROptimizer {
         @Override
         public void visit(BIRPackage birPackage) {
             birPackage.typeDefs.forEach(tDef ->  this.optimizeNode(tDef, this.env));
-            birPackage.functions.forEach(func -> this.optimizeNode(func, this.env));
+            birPackage.getFunctions().forEach(func -> this.optimizeNode(func, this.env));
         }
 
         public void optimizeNode(BIRNode node, OptimizerEnv env) {

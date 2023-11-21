@@ -62,7 +62,7 @@ public class ExternalMethodGen {
 
     public static void injectDefaultParamInits(BIRPackage module, InitMethodGen initMethodGen) {
         // filter out functions.
-        List<BIRFunction> functions = module.functions;
+        List<BIRFunction> functions = module.getFunctions();
         if (!functions.isEmpty()) {
             int funcSize = functions.size();
             int count = 3;

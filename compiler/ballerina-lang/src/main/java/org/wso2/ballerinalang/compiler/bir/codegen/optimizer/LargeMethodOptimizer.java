@@ -101,7 +101,7 @@ public class LargeMethodOptimizer {
         splitTempVarNum = 0;
 
         List<BIRFunction> newlyAddedBIRFunctions = new ArrayList<>();
-        for (BIRFunction function : birPkg.functions) {
+        for (BIRFunction function : birPkg.getFunctions()) {
             if (hasLessInstructionCount(function)) {
                 continue;
             }
@@ -117,7 +117,7 @@ public class LargeMethodOptimizer {
                 newlyAddedBIRFunctions.addAll(newBIRFunctions);
             }
         }
-        birPkg.functions.addAll(newlyAddedBIRFunctions);
+        birPkg.addFunctions(newlyAddedBIRFunctions);
     }
 
     private boolean hasLessInstructionCount(BIRFunction birFunction) {

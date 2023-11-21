@@ -86,6 +86,7 @@ public class CodeGenerator {
         final JvmPackageGen jvmPackageGen = new JvmPackageGen(symbolTable, packageCache, dlog, types);
 
         //Rewrite identifier names with encoding special characters
+        // pr: this needs to handle nested closures
         HashMap<String, String> originalIdentifierMap = JvmDesugarPhase.encodeModuleIdentifiers(packageSymbol.bir);
 
         // TODO Get-rid of the following assignment

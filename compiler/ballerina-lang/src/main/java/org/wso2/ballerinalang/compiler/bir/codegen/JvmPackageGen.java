@@ -346,7 +346,7 @@ public class JvmPackageGen {
             func = findFunction(typeDef.attachedFuncs, funcName);
         } else if (parentNode instanceof BIRPackage) {
             BIRPackage pkg = (BIRPackage) parentNode;
-            func = findFunction(pkg.functions, funcName);
+            func = findFunction(pkg.getFunctions(), funcName);
         } else {
             // some generated functions will not have bir function
             return null;
@@ -528,7 +528,7 @@ public class JvmPackageGen {
     private void linkModuleFunctions(BIRPackage birPackage, String initClass, boolean isEntry,
                                      Map<String, JavaClass> jvmClassMap) {
         // filter out functions.
-        List<BIRFunction> functions = birPackage.functions;
+        List<BIRFunction> functions = birPackage.getFunctions();
         if (functions.isEmpty()) {
             return;
         }
@@ -769,7 +769,8 @@ public class JvmPackageGen {
         generateModuleClasses(module, jarEntries, moduleInitClass, typesClass, jvmTypeGen, jvmCastGen, jvmConstantsGen,
                 jvmClassMapping, flattenedModuleImports, serviceEPAvailable, mainFunc, testExecuteFunc);
 
-        List<BIRNode.BIRFunction> sortedFunctions = new ArrayList<>(module.functions);
+        // pr: fixme
+        List<BIRNode.BIRFunction> sortedFunctions = new ArrayList<>(module.getFunctions());
         sortedFunctions.sort(NAME_HASH_COMPARATOR);
         jvmMethodsSplitter.generateMethods(jarEntries, jvmCastGen, sortedFunctions);
         jvmConstantsGen.generateConstants(jarEntries);
@@ -802,7 +803,7 @@ public class JvmPackageGen {
 
     private BIRFunction getFunction(BIRPackage module, String funcName) {
         BIRFunction function = null;
-        for (BIRFunction birFunc : module.functions) {
+        for (BIRFunction birFunc : module.getFunctions()) {
             if (birFunc.name.value.equals(funcName)) {
                 function = birFunc;
                 break;

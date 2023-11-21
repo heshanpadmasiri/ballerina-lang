@@ -40,7 +40,7 @@ public class BIRGenUtils {
                 rearrangeBasicBlocks(birFunction);
             }
         }
-        for (BIRNode.BIRFunction birFunction : birPackage.functions) {
+        for (BIRNode.BIRFunction birFunction : birPackage.getFunctions()) {
             rearrangeBasicBlocks(birFunction);
         }
     }

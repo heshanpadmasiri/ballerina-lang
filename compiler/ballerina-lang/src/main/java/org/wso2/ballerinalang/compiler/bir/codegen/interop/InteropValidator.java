@@ -142,7 +142,7 @@ public class InteropValidator {
 
     private void validateModuleFunctions(BIRNode.BIRPackage module, ClassLoader classLoader) {
         // filter out functions.
-        List<BIRNode.BIRFunction> functions = module.functions;
+        List<BIRNode.BIRFunction> functions = module.getFunctions();
         List<BIRNode.BIRFunction> jBirFunctions = new ArrayList<>(functions.size());
         for (BIRNode.BIRFunction func : functions) {
             try {
@@ -151,8 +151,7 @@ public class InteropValidator {
                 dlog.error(func.pos, e.getCode(), e.getMessage());
             }
         }
-        module.functions.clear();
-        module.functions.addAll(jBirFunctions);
+        module.setFunctions(jBirFunctions);
     }
 
     private void validateTypeAttachedFunctions(BIRNode.BIRPackage module, ClassLoader classLoader) {

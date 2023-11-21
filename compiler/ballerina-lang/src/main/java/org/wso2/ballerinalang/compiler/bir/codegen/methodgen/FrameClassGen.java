@@ -47,7 +47,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.methodgen.MethodGen.ST
 public class FrameClassGen {
 
     public void generateFrameClasses(BIRNode.BIRPackage pkg, Map<String, byte[]> pkgEntries) {
-        pkg.functions.forEach(
+        pkg.getFunctions().forEach(
                 func -> generateFrameClassForFunction(pkg.packageID, func, pkgEntries, null));
 
         for (BIRNode.BIRTypeDefinition typeDef : pkg.typeDefs) {
