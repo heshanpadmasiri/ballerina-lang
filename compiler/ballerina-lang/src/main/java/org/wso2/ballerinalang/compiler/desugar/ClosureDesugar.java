@@ -1421,11 +1421,12 @@ public class ClosureDesugar extends BLangNodeVisitor {
             bLangLambdaFunction.enclMapSymbols = collectClosureMapSymbols(symbolEnv, enclInvokable, isWorker);
             enclInvokable.encloseFunction(bLangLambdaFunction);
         }
-        bLangLambdaFunction.capturedClosureEnv = null;
-        result = bLangLambdaFunction;
+        // TODO: remove this with above when all the lambda liftings are removed
         if (bLangLambdaFunction.function.nestedFn) {
             nestedFunctions.add(bLangLambdaFunction.function);
         }
+        bLangLambdaFunction.capturedClosureEnv = null;
+        result = bLangLambdaFunction;
     }
 
     private TreeMap<Integer, BVarSymbol> collectClosureMapSymbols(SymbolEnv symbolEnv, BLangInvokableNode enclInvokable,

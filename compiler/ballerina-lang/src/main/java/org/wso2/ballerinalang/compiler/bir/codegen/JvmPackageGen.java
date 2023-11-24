@@ -71,7 +71,6 @@ import org.wso2.ballerinalang.compiler.util.TypeTags;
 import org.wso2.ballerinalang.compiler.util.Unifier;
 import org.wso2.ballerinalang.util.Flags;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,7 +78,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 
 import static org.ballerinalang.model.symbols.SymbolOrigin.VIRTUAL;
@@ -446,8 +444,7 @@ public class JvmPackageGen {
      * @param isEntry          is entry module flag
      * @return The map of javaClass records on given source file name
      */
-    private Map<String, JavaClass> generateClassNameLinking(BIRPackage module, List<BIRFunction> functions,
-                                                            String initClass, boolean isEntry) {
+    private Map<String, JavaClass> generateClassNameLinking(BIRPackage module, String initClass, boolean isEntry) {
 
         Map<String, JavaClass> jvmClassMap = new HashMap<>();
 
@@ -455,7 +452,7 @@ public class JvmPackageGen {
         linkGlobalVars(module, initClass, isEntry);
 
         // link module functions with class names
-        linkModuleFunctions(module.packageID, functions, initClass, isEntry, jvmClassMap);
+        linkModuleFunctions(module.packageID, module.getFunctions(), initClass, isEntry, jvmClassMap);
 
         // link module stop function that will be generated
         linkModuleFunction(module.packageID, initClass, MODULE_STOP_METHOD);
@@ -464,7 +461,7 @@ public class JvmPackageGen {
         linkModuleFunction(module.packageID, initClass, MODULE_EXECUTE_METHOD);
 
         // link typedef - object attached native functions
-        linkTypeDefinitions(module, isEntry);
+        linkTypeDefinitions(module, jvmClassMap, isEntry);
 
         return jvmClassMap;
     }
@@ -488,8 +485,7 @@ public class JvmPackageGen {
         globalVarClassMap.put(pkgName + LOCK_STORE_VAR_NAME, initClass);
     }
 
-
-    private void linkTypeDefinitions(BIRPackage module, boolean isEntry) {
+    private void linkTypeDefinitions(BIRPackage module, Map<String, JavaClass> jvmClassMap, boolean isEntry) {
         List<BIRTypeDefinition> typeDefs = module.typeDefs;
 
         for (BIRTypeDefinition optionalTypeDef : typeDefs) {
@@ -504,8 +500,8 @@ public class JvmPackageGen {
             for (BIRFunction func : attachedFuncs) {
 
                 // link the bir function for lookup
-                String functionName = func.name.value;
-                String lookupKey = typeName + "." + functionName;
+                String birFuncName = func.name.value;
+                String lookupKey = typeName + "." + birFuncName;
                 String pkgName = JvmCodeGenUtil.getPackageName(module.packageID);
                 String className = JvmValueGen.getTypeValueClassName(pkgName, typeName);
                 try {
@@ -515,6 +511,9 @@ public class JvmPackageGen {
                 } catch (JInteropException e) {
                     dlog.error(func.pos, e.getCode(), e.getMessage());
                 }
+
+                func.getEnclosedFunctions().forEach(
+                        enclFunc -> linkFunction(enclFunc, module.packageID, pkgName, jvmClassMap, isEntry));
             }
         }
     }
@@ -525,36 +524,6 @@ public class JvmPackageGen {
                                                         VIRTUAL);
         birFunctionMap.put(JvmCodeGenUtil.getPackageName(packageID) + funcName,
                            getFunctionWrapper(moduleStopFunction, packageID, initClass));
-    }
-
-    private static void recursivelyAccumulateFunctions(Queue<BIRFunction> remaining, List<BIRFunction> accumulator) {
-        if (remaining.isEmpty()) {
-            return;
-        }
-        BIRFunction func = remaining.poll();
-        accumulator.add(func);
-        remaining.addAll(func.getEnclosedFunctions());
-    }
-
-    private static List<BIRFunction> getLambdasAttachedToTypeDefns(BIRPackage birPackage) {
-        List<BIRFunction> lambdas = new ArrayList<>();
-        for (BIRTypeDefinition typeDef : birPackage.typeDefs) {
-            for (BIRFunction func : typeDef.attachedFuncs) {
-                lambdas.addAll(func.getEnclosedFunctions());
-            }
-        }
-        return lambdas;
-    }
-
-    // TODO: factor this out to birPackage may be
-    private static List<BIRFunction> packageFunctions(BIRPackage birPackage) {
-        Queue<BIRFunction> remainingFunctions = new ArrayDeque<>(birPackage.getFunctions());
-        remainingFunctions.addAll(getLambdasAttachedToTypeDefns(birPackage));
-        List<BIRFunction> functions = new ArrayList<>();
-        while (!remainingFunctions.isEmpty()) {
-            recursivelyAccumulateFunctions(remainingFunctions, functions);
-        }
-        return functions;
     }
 
     private void linkModuleFunctions(PackageID packageID, List<BIRFunction> functions, String initClass,
@@ -596,40 +565,40 @@ public class JvmPackageGen {
             BIRFunction birFunc = functions.get(count);
             count = count + 1;
             // link the bir function for lookup
-            String birFuncName = birFunc.name.value;
-            String balFileName;
-            if (birFunc.pos == null) {
-                balFileName = MODULE_INIT_CLASS_NAME;
+            linkFunction(birFunc, packageID, pkgName, jvmClassMap, isEntry);
+        }
+    }
+
+    private void linkFunction(BIRNode.BIRFunction birFunc, PackageID packageID, String pkgName,
+                              Map<String, JavaClass> jvmClassMap, boolean isEntry) {
+
+        String balFileName = birFunc.pos == null ? MODULE_INIT_CLASS_NAME : birFunc.pos.lineRange().fileName();
+        String cleanedBalFileName = balFileName;
+        if (!birFunc.name.value.startsWith(MethodGenUtils.encodeModuleSpecialFuncName(".<test"))) {
+            // skip removing `.bal` from generated file names. otherwise `.<testinit>` brakes because,
+            // it's "file name" may end in `.bal` due to module. see #27201
+            cleanedBalFileName = JvmCodeGenUtil.cleanupPathSeparators(balFileName);
+        }
+        String className = getModuleLevelClassName(packageID, cleanedBalFileName);
+        if (!JvmCodeGenUtil.isBallerinaBuiltinModule(packageID.orgName.value, packageID.name.value)) {
+            JavaClass javaClass = jvmClassMap.get(className);
+            if (javaClass != null) {
+                javaClass.functions.add(birFunc);
             } else {
-                balFileName = birFunc.pos.lineRange().fileName();
-            }
-
-            String cleanedBalFileName = balFileName;
-            if (!birFunc.name.value.startsWith(MethodGenUtils.encodeModuleSpecialFuncName(".<test"))) {
-                // skip removing `.bal` from generated file names. otherwise `.<testinit>` brakes because,
-                // it's "file name" may end in `.bal` due to module. see #27201
-                cleanedBalFileName = JvmCodeGenUtil.cleanupPathSeparators(balFileName);
-            }
-            String birModuleClassName = getModuleLevelClassName(packageID, cleanedBalFileName);
-
-            if (!JvmCodeGenUtil.isBallerinaBuiltinModule(packageID.orgName.value, packageID.name.value)) {
-                JavaClass javaClass = jvmClassMap.get(birModuleClassName);
-                if (javaClass != null) {
-                    javaClass.functions.add(birFunc);
-                } else {
-                    klass = new JavaClass(balFileName);
-                    klass.functions.add(0, birFunc);
-                    jvmClassMap.put(birModuleClassName, klass);
-                }
-            }
-            try {
-                BIRFunctionWrapper birFuncWrapperOrError = getBirFunctionWrapper(isEntry, packageID, birFunc,
-                                                                                 birModuleClassName);
-                birFunctionMap.put(pkgName + birFuncName, birFuncWrapperOrError);
-            } catch (JInteropException e) {
-                dlog.error(birFunc.pos, e.getCode(), e.getMessage());
+                JavaClass klass = new JavaClass(balFileName);
+                klass.functions.add(0, birFunc);
+                jvmClassMap.put(className, klass);
             }
         }
+        try {
+            BIRFunctionWrapper birFuncWrapperOrError = getBirFunctionWrapper(isEntry, packageID, birFunc,
+                    className);
+            birFunctionMap.put(pkgName + birFunc.name.value, birFuncWrapperOrError);
+        } catch (JInteropException e) {
+            dlog.error(birFunc.pos, e.getCode(), e.getMessage());
+        }
+        birFunc.getEnclosedFunctions()
+                .forEach(enclFunc -> linkFunction(enclFunc, packageID, pkgName, jvmClassMap, isEntry));
     }
 
     private BIRFunctionWrapper getBirFunctionWrapper(boolean isEntry, PackageID packageID,
@@ -750,8 +719,7 @@ public class JvmPackageGen {
         }
         String moduleInitClass = JvmCodeGenUtil.getModuleLevelClassName(module.packageID, MODULE_INIT_CLASS_NAME);
         String typesClass = getModuleLevelClassName(module.packageID, MODULE_TYPES_CLASS_NAME);
-        List<BIRFunction> functions = module.getFunctionsRec();
-        Map<String, JavaClass> jvmClassMapping = generateClassNameLinking(module, functions, moduleInitClass, isEntry);
+        Map<String, JavaClass> jvmClassMapping = generateClassNameLinking(module, moduleInitClass, isEntry);
 
         if (!isEntry) {
             return null;
@@ -800,7 +768,11 @@ public class JvmPackageGen {
         generateModuleClasses(module, jarEntries, moduleInitClass, typesClass, jvmTypeGen, jvmCastGen, jvmConstantsGen,
                 jvmClassMapping, flattenedModuleImports, serviceEPAvailable, mainFunc, testExecuteFunc);
 
-        List<BIRNode.BIRFunction> sortedFunctions = new ArrayList<>(functions);
+        List<BIRFunction> sortedFunctions = new ArrayList<>();
+        BIRPackage.BIRFunctionIterator it = module.getFunctionIterator();
+        while (it.hasNext()) {
+            sortedFunctions.add(it.next());
+        }
         sortedFunctions.sort(NAME_HASH_COMPARATOR);
         jvmMethodsSplitter.generateMethods(jarEntries, jvmCastGen, sortedFunctions);
         jvmConstantsGen.generateConstants(jarEntries);

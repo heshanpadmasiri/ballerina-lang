@@ -32,7 +32,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
@@ -92,38 +94,13 @@ public abstract class BIRNode {
             visitor.visit(this);
         }
 
-        public List<BIRFunction> getFunctionsRec() {
-            Queue<BIRFunction> remainingFunctions = new ArrayDeque<>(getFunctions());
-            remainingFunctions.addAll(getLambdasAttachedToTypeDefns());
-            List<BIRFunction> functions = new ArrayList<>();
-            while (!remainingFunctions.isEmpty()) {
-                recursivelyAccumulateFunctions(remainingFunctions, functions);
-            }
-            return functions;
-        }
-
-        private static void recursivelyAccumulateFunctions(Queue<BIRFunction> remaining,
-                                                           List<BIRFunction> accumulator) {
-            if (remaining.isEmpty()) {
-                return;
-            }
-            BIRFunction func = remaining.poll();
-            accumulator.add(func);
-            remaining.addAll(func.getEnclosedFunctions());
-        }
-
-        private List<BIRFunction> getLambdasAttachedToTypeDefns() {
-            List<BIRFunction> lambdas = new ArrayList<>();
-            for (BIRTypeDefinition typeDef : this.typeDefs) {
-                for (BIRFunction func : typeDef.attachedFuncs) {
-                    lambdas.addAll(func.getEnclosedFunctions());
-                }
-            }
-            return lambdas;
-        }
-
         public List<BIRFunction> getFunctions() {
             return Collections.unmodifiableList(this.functions);
+        }
+
+        // Get all (except those attached to type definitions) the functions defined with in a module including enclosed functions
+        public BIRFunctionIterator getFunctionIterator() {
+            return new BIRFunctionIterator(this);
         }
 
         public void addFunction(BIRFunction function) {
@@ -137,6 +114,35 @@ public abstract class BIRNode {
         public void setFunctions(List<BIRFunction> functions) {
             this.functions.clear();
             this.addFunctions(functions);
+        }
+
+        public static class BIRFunctionIterator implements Iterator<BIRFunction> {
+
+            private final Queue<BIRFunction> remainingFunctions;
+
+            // To get the function iterator use the getFunctionIterator() method in package.
+            private BIRFunctionIterator(BIRPackage pkg) {
+                this.remainingFunctions = new ArrayDeque<>(pkg.getFunctions());
+                // TODO: this is to allow the iterator to work with the old implementation. Remove this once lambdas
+                //  enclosed in attached functions are treated as attached to type definitions.
+                pkg.typeDefs.stream().flatMap(td -> td.attachedFuncs.stream())
+                        .forEach(attachedFn -> this.remainingFunctions.addAll(attachedFn.getEnclosedFunctions()));
+            }
+
+            @Override
+            public boolean hasNext() {
+                return !remainingFunctions.isEmpty();
+            }
+
+            @Override
+            public BIRFunction next() {
+                BIRFunction func = remainingFunctions.poll();
+                if (func == null) {
+                    throw new NoSuchElementException("No more functions available");
+                }
+                remainingFunctions.addAll(func.getEnclosedFunctions());
+                return func;
+            }
         }
     }
 
@@ -422,7 +428,7 @@ public abstract class BIRNode {
         
         public List<BType> pathSegmentTypeList;
 
-        private List<BIRFunction> enclosedFunctions = new ArrayList<>();
+        private final List<BIRFunction> enclosedFunctions = new ArrayList<>();
 
         public BIRFunction(Location pos, Name name, Name originalName, long flags, SymbolOrigin origin,
                            BInvokableType type, List<BIRParameter> requiredParams, BIRVariableDcl receiver,
@@ -509,16 +515,6 @@ public abstract class BIRNode {
 
         public List<BIRFunction> getEnclosedFunctions() {
             return Collections.unmodifiableList(this.enclosedFunctions);
-        }
-
-        // This returns all the nested functions not just immediate children
-        public List<BIRFunction> getEnclosedFunctionsRec() {
-            List<BIRFunction> enclosedFunctions = new ArrayList<>();
-            for (BIRFunction function : this.enclosedFunctions) {
-                enclosedFunctions.add(function);
-                enclosedFunctions.addAll(function.getEnclosedFunctionsRec());
-            }
-            return enclosedFunctions;
         }
     }
 

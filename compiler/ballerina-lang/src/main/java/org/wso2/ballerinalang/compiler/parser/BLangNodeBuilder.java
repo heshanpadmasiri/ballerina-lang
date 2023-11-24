@@ -1624,16 +1624,11 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
     }
 
     private boolean isNestedInFunction(Node node) {
-        List<Node> parents = new ArrayList<>();
         NonTerminalNode parent = node.parent();
         while (parent != null) {
             if (parent instanceof FunctionDefinitionNode) {
                 return true;
             }
-            if (parents.contains(parent)) {
-                throw new AssertionError("Cycle detected");
-            }
-            parents.add(parent);
             parent = parent.parent();
         }
         return false;
@@ -1662,9 +1657,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
 
         setFunctionQualifiers(bLFunction, anonFuncExprNode.qualifierList());
 
-        // pr: TODO: figure out what is depending on this (HERE -> BIRGen)
         if (!isNestedInFunction(anonFuncExprNode)) {
-            // pr: this could happen when we assign a lambda to a module level const
             addToTop(bLFunction);
         }
 
