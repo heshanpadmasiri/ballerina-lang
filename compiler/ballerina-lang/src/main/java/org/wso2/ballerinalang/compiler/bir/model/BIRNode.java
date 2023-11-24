@@ -32,7 +32,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -91,22 +90,6 @@ public abstract class BIRNode {
         @Override
         public void accept(BIRVisitor visitor) {
             visitor.visit(this);
-        }
-
-        // Same behavior as we had previously
-        public List<BIRFunction> getFunctionsLegacy() {
-            LinkedHashSet<BIRFunction> functions = new LinkedHashSet<>();
-            for (BIRFunction function : this.functions) {
-                functions.add(function);
-                functions.addAll(function.getEnclosedFunctionsRec());
-            }
-            for (BIRTypeDefinition typeDef : this.typeDefs) {
-                for (BIRFunction attachedFn : typeDef.attachedFuncs) {
-                    functions.addAll(attachedFn.getEnclosedFunctionsRec());
-                }
-            }
-            // We need to make sure nobody is modifying the returned list
-            return functions.stream().toList();
         }
 
         public List<BIRFunction> getFunctionsRec() {

@@ -25,6 +25,7 @@ import org.wso2.ballerinalang.compiler.util.CompilerOptions;
 
 import java.io.PrintStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.wso2.ballerinalang.compiler.bir.emit.EmitterUtils.emitBasicBlockRef;
 import static org.wso2.ballerinalang.compiler.bir.emit.EmitterUtils.emitFlags;
@@ -71,6 +72,9 @@ public class BIREmitter {
     }
 
     public void emit(BIRNode.BIRPackage birPackage) {
+        // pr:
+        dumpBIR = (birPackage.packageID.sourceRoot != null &&
+                birPackage.packageID.sourceRoot.endsWith("closure-debug.bal")) || dumpBIR;
         if (dumpBIR) {
             console.println(emitModule(birPackage));
         }
@@ -94,7 +98,7 @@ public class BIREmitter {
         modStr += emitLBreaks(2);
         modStr += emitGlobalVars(mod.globalVars);
         modStr += emitLBreaks(2);
-        modStr += emitFunctions(mod.getFunctionsLegacy(), 0);
+        modStr += emitFunctions(mod.getFunctions(), 0);
 
         modStr += emitLBreaks(1);
         modStr += "================ Emitting Module ================";
@@ -217,6 +221,12 @@ public class BIREmitter {
         funcString += emitErrorEntries(func.errorTable, tabs + 1);
         funcString += emitLBreaks(1);
         funcString += emitTabs(tabs);
+        if (!func.getEnclosedFunctions().isEmpty()) {
+            funcString += emitLBreaks(1);
+            funcString += func.getEnclosedFunctions().stream()
+                    .map(enclFunc -> emitFunction(enclFunc, tabs + 1) + emitLBreaks(1))
+                    .collect(Collectors.joining());
+        }
         funcString += "}";
         return funcString;
     }
