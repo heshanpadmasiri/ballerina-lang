@@ -69,6 +69,7 @@ public class BIRBasicBlockOptimizer extends BIRVisitor {
 
     @Override
     public void visit(BIRNode.BIRFunction birFunction) {
+        birFunction.getEnclosedFunctions().forEach(func -> func.accept(this));
         BIRGenUtils.rearrangeBasicBlocks(birFunction);
         BIROptimizer.OptimizerEnv funcEnv = new BIROptimizer.OptimizerEnv();
 
@@ -80,8 +81,6 @@ public class BIRBasicBlockOptimizer extends BIRVisitor {
         resetEndBasicBlock(birFunction, removableGOTOBasicBlocks);
         birFunction.basicBlocks.removeAll(removableGOTOBasicBlocks);
         BIRGenUtils.rearrangeBasicBlocks(birFunction);
-
-        birFunction.getEnclosedFunctions().forEach(func -> func.accept(this));
     }
 
     // Basic block vs it's predecessors map

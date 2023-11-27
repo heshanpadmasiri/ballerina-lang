@@ -112,6 +112,7 @@ public class BIROptimizer {
 
         @Override
         public void visit(BIRFunction birFunction) {
+            birFunction.getEnclosedFunctions().forEach(func -> func.accept(this));
             for (BIRErrorEntry errorEntry : birFunction.errorTable) {
                 addErrorTableDependency(errorEntry);
             }
@@ -138,7 +139,6 @@ public class BIROptimizer {
             this.tempVarUpdateInstructions.clear();
             this.errorEntries.clear();
             birFunction.localVars = newLocalVars;
-            birFunction.getEnclosedFunctions().forEach(func -> func.accept(this));
         }
 
         @Override
@@ -261,6 +261,7 @@ public class BIROptimizer {
 
         @Override
         public void visit(BIRFunction birFunction) {
+            birFunction.getEnclosedFunctions().forEach(func -> func.accept(this));
             OptimizerEnv funcOpEnv = new OptimizerEnv();
             birFunction.basicBlocks.forEach(bb -> this.optimizeNode(bb, funcOpEnv));
 
@@ -275,7 +276,6 @@ public class BIROptimizer {
             reuseTempVariables(birFunction.localVars, funcOpEnv.tempVarsList, replaceableVarSet);
             // Remove vars from frames which are only visible inside a given basic block
             optimizeFrameVars(birFunction.localVars, funcOpEnv.basicBlockTempVars, replaceableVarSet);
-            birFunction.getEnclosedFunctions().forEach(func -> func.accept(this));
         }
 
         private void reuseTempVariables(List<BIRVariableDcl> localVars, List<BIROperand> tempVarsList,
