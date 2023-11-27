@@ -27,7 +27,6 @@ import java.util.List;
 
 public interface EnclosingFunction {
 
-    // pr: maybe using the interface is sufficient here
     void encloseFunction(BLangLambdaFunction lambdaFunction);
 
     List<BLangLambdaFunction> getEnclosingFunctions();

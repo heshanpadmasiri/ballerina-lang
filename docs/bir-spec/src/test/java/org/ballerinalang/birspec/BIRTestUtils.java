@@ -116,11 +116,7 @@ class BIRTestUtils {
 
     private static void assertFunctions(BIRNode.BIRPackage expectedBIR, Bir.Module birModule,
                                         ArrayList<Bir.ConstantPoolEntry> constantPoolEntries) {
-        BIRNode.BIRPackage.BIRFunctionIterator it = expectedBIR.getFunctionIterator(f);
-        List<BIRNode.BIRFunction> expectedFunctions = new ArrayList<>();
-        while (it.hasNext()) {
-            expectedFunctions.add(it.next());
-        }
+        List<BIRNode.BIRFunction> expectedFunctions = expectedBIR.getFunctions();
         ArrayList<Bir.Function> actualFunctions = birModule.functions();
         Assert.assertEquals(birModule.functionCount(), expectedFunctions.size());
 

@@ -1623,7 +1623,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
         return externFunctionBodyNode;
     }
 
-    private boolean isNestedInFunction(Node node) {
+    private boolean isEnclosed(Node node) {
         NonTerminalNode parent = node.parent();
         while (parent != null) {
             if (parent instanceof FunctionDefinitionNode) {
@@ -1653,11 +1653,11 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
 
         bLFunction.addFlag(Flag.LAMBDA);
         bLFunction.addFlag(Flag.ANONYMOUS);
-        bLFunction.nestedFn = isNestedInFunction(anonFuncExprNode);
+        bLFunction.enclosed = isEnclosed(anonFuncExprNode);
 
         setFunctionQualifiers(bLFunction, anonFuncExprNode.qualifierList());
 
-        if (!isNestedInFunction(anonFuncExprNode)) {
+        if (!isEnclosed(anonFuncExprNode)) {
             addToTop(bLFunction);
         }
 

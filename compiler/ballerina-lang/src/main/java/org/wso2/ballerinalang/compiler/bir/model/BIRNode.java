@@ -28,14 +28,10 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.NamedNode;
 import org.wso2.ballerinalang.compiler.util.Name;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -64,12 +60,12 @@ public abstract class BIRNode {
         public final List<BIRTypeDefinition> typeDefs;
         public final List<BIRGlobalVariableDcl> globalVars;
         public final Set<BIRGlobalVariableDcl> importedGlobalVarsDummyVarDcls;
-        private final List<BIRFunction> functions;
         public final List<BIRAnnotation> annotations;
         public final List<BIRConstant> constants;
         public final List<BIRServiceDeclaration> serviceDecls;
         public boolean isListenerAvailable;
 
+        private final List<BIRFunction> functions;
         public BIRPackage(Location pos, Name org, Name pkgName, Name name, Name version,
                           Name sourceFileName, String sourceRoot, boolean skipTest) {
             this(pos, org, pkgName, name, version, sourceFileName, sourceRoot, skipTest, false);
@@ -98,11 +94,6 @@ public abstract class BIRNode {
             return Collections.unmodifiableList(this.functions);
         }
 
-        // Get all (except those attached to type definitions) the functions defined with in a module including enclosed functions
-        public BIRFunctionIterator getFunctionIterator() {
-            return new BIRFunctionIterator(this);
-        }
-
         public void addFunction(BIRFunction function) {
             this.functions.add(function);
         }
@@ -114,35 +105,6 @@ public abstract class BIRNode {
         public void setFunctions(List<BIRFunction> functions) {
             this.functions.clear();
             this.addFunctions(functions);
-        }
-
-        public static class BIRFunctionIterator implements Iterator<BIRFunction> {
-
-            private final Queue<BIRFunction> remainingFunctions;
-
-            // To get the function iterator use the getFunctionIterator() method in package.
-            private BIRFunctionIterator(BIRPackage pkg) {
-                this.remainingFunctions = new ArrayDeque<>(pkg.getFunctions());
-                // TODO: this is to allow the iterator to work with the old implementation. Remove this once lambdas
-                //  enclosed in attached functions are treated as attached to type definitions.
-                pkg.typeDefs.stream().flatMap(td -> td.attachedFuncs.stream())
-                        .forEach(attachedFn -> this.remainingFunctions.addAll(attachedFn.getEnclosedFunctions()));
-            }
-
-            @Override
-            public boolean hasNext() {
-                return !remainingFunctions.isEmpty();
-            }
-
-            @Override
-            public BIRFunction next() {
-                BIRFunction func = remainingFunctions.poll();
-                if (func == null) {
-                    throw new NoSuchElementException("No more functions available");
-                }
-                remainingFunctions.addAll(func.getEnclosedFunctions());
-                return func;
-            }
         }
     }
 
@@ -574,7 +536,6 @@ public abstract class BIRNode {
          */
         public Name internalName;
 
-        // TODO: when codegenning these we should also code gen lambdas
         public List<BIRFunction> attachedFuncs;
 
         public long flags;

@@ -67,7 +67,7 @@ public class BLangFunction extends BLangInvokableNode implements FunctionNode, E
     public String anonForkName;
     public boolean mapSymbolUpdated;
 
-    public boolean nestedFn = false;
+    public boolean enclosed = false;
     public List<BLangLambdaFunction> enclosedFunctions = new ArrayList<>();
 
     public SimpleVariableNode getReceiver() {

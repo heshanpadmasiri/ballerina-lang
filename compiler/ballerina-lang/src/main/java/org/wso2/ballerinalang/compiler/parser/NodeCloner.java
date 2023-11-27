@@ -2350,7 +2350,7 @@ public class NodeCloner extends BLangNodeVisitor {
         clone.interfaceFunction = source.interfaceFunction;
         clone.anonForkName = source.anonForkName;
         clone.enclosedFunctions = cloneList(source.enclosedFunctions);
-        clone.nestedFn = source.nestedFn;
+        clone.enclosed = source.enclosed;
 
         cloneBLangInvokableNode(source, clone);
     }

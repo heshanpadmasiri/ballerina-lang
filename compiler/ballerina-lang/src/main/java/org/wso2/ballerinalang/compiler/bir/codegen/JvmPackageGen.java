@@ -452,7 +452,7 @@ public class JvmPackageGen {
         linkGlobalVars(module, initClass, isEntry);
 
         // link module functions with class names
-        linkModuleFunctions(module.packageID, module.getFunctions(), initClass, isEntry, jvmClassMap);
+        linkModuleFunctions(module, initClass, isEntry, jvmClassMap);
 
         // link module stop function that will be generated
         linkModuleFunction(module.packageID, initClass, MODULE_STOP_METHOD);
@@ -500,8 +500,8 @@ public class JvmPackageGen {
             for (BIRFunction func : attachedFuncs) {
 
                 // link the bir function for lookup
-                String birFuncName = func.name.value;
-                String lookupKey = typeName + "." + birFuncName;
+                String functionName = func.name.value;
+                String lookupKey = typeName + "." + functionName;
                 String pkgName = JvmCodeGenUtil.getPackageName(module.packageID);
                 String className = JvmValueGen.getTypeValueClassName(pkgName, typeName);
                 try {
@@ -526,9 +526,9 @@ public class JvmPackageGen {
                            getFunctionWrapper(moduleStopFunction, packageID, initClass));
     }
 
-    private void linkModuleFunctions(PackageID packageID, List<BIRFunction> functions, String initClass,
-                                     boolean isEntry,
+    private void linkModuleFunctions(BIRPackage birPackage, String initClass, boolean isEntry,
                                      Map<String, JavaClass> jvmClassMap) {
+        List<BIRFunction> functions = birPackage.getFunctions();
         if (functions.isEmpty()) {
             return;
         }
@@ -541,6 +541,7 @@ public class JvmPackageGen {
         String functionName = Utils.encodeFunctionIdentifier(initFunc.name.value);
         JavaClass klass = new JavaClass(initFunc.pos.lineRange().fileName());
         klass.functions.add(0, initFunc);
+        PackageID packageID = birPackage.packageID;
         jvmClassMap.put(initClass, klass);
         String pkgName = JvmCodeGenUtil.getPackageName(packageID);
         birFunctionMap.put(pkgName + functionName, getFunctionWrapper(initFunc, packageID, initClass));
@@ -768,11 +769,7 @@ public class JvmPackageGen {
         generateModuleClasses(module, jarEntries, moduleInitClass, typesClass, jvmTypeGen, jvmCastGen, jvmConstantsGen,
                 jvmClassMapping, flattenedModuleImports, serviceEPAvailable, mainFunc, testExecuteFunc);
 
-        List<BIRFunction> sortedFunctions = new ArrayList<>();
-        BIRPackage.BIRFunctionIterator it = module.getFunctionIterator();
-        while (it.hasNext()) {
-            sortedFunctions.add(it.next());
-        }
+        List<BIRFunction> sortedFunctions = new ArrayList<>(module.getFunctions());
         sortedFunctions.sort(NAME_HASH_COMPARATOR);
         jvmMethodsSplitter.generateMethods(jarEntries, jvmCastGen, sortedFunctions);
         jvmConstantsGen.generateConstants(jarEntries);

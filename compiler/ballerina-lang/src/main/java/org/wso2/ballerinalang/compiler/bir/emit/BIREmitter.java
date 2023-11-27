@@ -72,9 +72,6 @@ public class BIREmitter {
     }
 
     public void emit(BIRNode.BIRPackage birPackage) {
-        // pr:
-        dumpBIR = (birPackage.packageID.sourceRoot != null &&
-                birPackage.packageID.sourceRoot.endsWith("closure-debug.bal")) || dumpBIR;
         if (dumpBIR) {
             console.println(emitModule(birPackage));
         }

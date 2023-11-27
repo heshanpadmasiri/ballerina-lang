@@ -248,11 +248,9 @@ public class BRunUtil {
     private static BIRNode.BIRFunction getInvokedFunction(CompileResult compileResult, String functionName) {
         checkAndNotifyCompilationErrors(compileResult);
         BIRNode.BIRPackage birPackage = compileResult.defaultModuleBIR();
-        BIRNode.BIRPackage.BIRFunctionIterator it = birPackage.getFunctionIterator();
-        while (it.hasNext()) {
-            BIRNode.BIRFunction func = it.next();
-            if (func.name.value.equals(functionName)) {
-                return func;
+        for (BIRNode.BIRFunction function : birPackage.getFunctions()) {
+            if (functionName.equals(function.name.value)) {
+                return function;
             }
         }
         throw new RuntimeException("Function '" + functionName + "' is not defined");

@@ -346,9 +346,6 @@ public class BIRGen extends BLangNodeVisitor {
         astPkg.initFunction.accept(this);
         astPkg.startFunction.accept(this);
         astPkg.stopFunction.accept(this);
-        if (astPkg.functions.stream().anyMatch(fn -> fn.nestedFn)) {
-            throw new AssertionError("nested functions should not be lifted");
-        }
         astPkg.functions.forEach(func -> func.accept(this));
         astPkg.annotations.forEach(astAnn -> astAnn.accept(this));
         astPkg.services.forEach(service -> service.accept(this));
@@ -574,8 +571,6 @@ public class BIRGen extends BLangNodeVisitor {
     public void visit(BLangFunction astFunc) {
         this.currentScope = new BirScope(0, null);
         BIRFunction birFunc = createBIRFunction(astFunc, false);
-        birFunc.dependentGlobalVars = astFunc.symbol.dependentGlobalVars.stream()
-                .map(varSymbol -> this.globalVarMap.get(varSymbol)).collect(Collectors.toSet());
     }
 
     private BIRFunction createBIRFunction(BLangFunction astFunc, boolean isClosure) {
@@ -631,10 +626,8 @@ public class BIRGen extends BLangNodeVisitor {
         birFunc.argsCount = astFunc.requiredParams.size()
                 + (astFunc.restParam != null ? 1 : 0) + astFunc.paramClosureMap.size();
         if (astFunc.flagSet.contains(Flag.ATTACHED) && typeDefs.containsKey(astFunc.receiver.getBType().tsymbol)) {
-            // NOTE: these functions could have lambdas which need to be added to package
             typeDefs.get(astFunc.receiver.getBType().tsymbol).attachedFuncs.add(birFunc);
         } else if (!isClosure) {
-            // NOTE: if closures we need to get the enclFunction from the parent env not this!
             this.env.enclPkg.addFunction(birFunc);
         }
 
@@ -717,6 +710,8 @@ public class BIRGen extends BLangNodeVisitor {
             enclBB.terminator = new BIRTerminator.GOTO(null, this.env.returnBB, this.currentScope);
         }
         this.env.clear();
+        birFunc.dependentGlobalVars = astFunc.symbol.dependentGlobalVars.stream()
+                .map(varSymbol -> this.globalVarMap.get(varSymbol)).collect(Collectors.toSet());
         return birFunc;
     }
     
@@ -850,9 +845,7 @@ public class BIRGen extends BLangNodeVisitor {
         this.env.targetOperand = lhsOp;
         this.env = this.env.createNestedEnv();
         this.currentScope = new BirScope(this.currentScope.id + 1, this.currentScope);
-        //pr: We don't run any function how is nested from the top so let's them here
-
-        if (lambdaExpr.function.nestedFn) {
+        if (lambdaExpr.function.enclosed) {
             enclFunc.encloseFunction(createBIRFunction(lambdaExpr.function, true));
         }
         this.currentScope = this.currentScope.parent;

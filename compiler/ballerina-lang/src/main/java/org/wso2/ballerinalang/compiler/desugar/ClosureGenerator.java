@@ -247,9 +247,6 @@ public class ClosureGenerator extends BLangNodeVisitor {
         for (int i = 0; i < pkgNode.functions.size(); i++) {
             BLangFunction bLangFunction = pkgNode.functions.get(i);
             if (!bLangFunction.flagSet.contains(Flag.LAMBDA)) {
-                if (bLangFunction.nestedFn) {
-                    throw new AssertionError("unexpected");
-                }
                 rewrite(bLangFunction, pkgEnv);
             }
         }

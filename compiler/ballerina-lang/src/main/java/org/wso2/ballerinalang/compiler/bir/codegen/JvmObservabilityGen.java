@@ -336,15 +336,10 @@ class JvmObservabilityGen {
         PackageID currentPkgId = new PackageID(org, module, module, packageID.version, packageID.sourceFileName,
                 packageID.sourceRoot, packageID.isTestPkg, packageID.skipTests);
         BSymbol functionOwner;
-        List<BIRFunction> scopeFunctionsList;
         if (attachedTypeDef == null) {
             functionOwner = packageCache.getSymbol(currentPkgId);
-            // pr: TODO:
-            // scopeFunctionsList = pkg.getFunctionsLegacy();
-            scopeFunctionsList = null;
         } else {
             functionOwner = attachedTypeDef.type.tsymbol;
-            scopeFunctionsList = attachedTypeDef.attachedFuncs;
         }
         for (BIRBasicBlock currentBB : func.basicBlocks) {
             if (currentBB.terminator.kind != InstructionKind.ASYNC_CALL
@@ -373,11 +368,10 @@ class JvmObservabilityGen {
             BIRFunction desugaredFunc = new BIRFunction(asyncCallIns.pos, lambdaName, 0, bInvokableType,
                     func.workerName, 0, VIRTUAL);
             desugaredFunc.receiver = func.receiver;
-            // pr:
             if (attachedTypeDef == null) {
                 pkg.addFunction(desugaredFunc);
             } else {
-                scopeFunctionsList.add(desugaredFunc);
+                attachedTypeDef.attachedFuncs.add(desugaredFunc);
             }
 
             // Creating the return variable
