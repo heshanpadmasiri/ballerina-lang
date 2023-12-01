@@ -847,14 +847,17 @@ public class BIRGen extends BLangNodeVisitor {
                                             lambdaExpr.getBType(), lambdaExpr.function.symbol.strandName,
                                             lambdaExpr.function.symbol.schedulerPolicy, isWorker));
         this.env.targetOperand = lhsOp;
+        if (lambdaExpr.function.enclosed) {
+            encloseFunction(enclFunc, lambdaExpr.function);
+        }
+    }
+
+    private void encloseFunction(BIRFunction enclFunc, BLangFunction innerFunc) {
         this.env = this.env.createNestedEnv();
         this.currentScope = new BirScope(this.currentScope.id + 1, this.currentScope);
-        if (lambdaExpr.function.enclosed) {
-            BLangFunction bLangFunction = lambdaExpr.function;
-            BIRFunction birFunc = createBIRFunction(bLangFunction);
-            enclFunc.encloseFunction(birFunc);
-            generateBIRFunctionBody(birFunc, bLangFunction);
-        }
+        BIRFunction innerBirFunc = createBIRFunction(innerFunc);
+        enclFunc.encloseFunction(innerBirFunc);
+        generateBIRFunctionBody(innerBirFunc, innerFunc);
         this.currentScope = this.currentScope.parent;
         this.env = this.env.parentEnv;
     }
