@@ -420,7 +420,7 @@ public class ClosureGenerator extends BLangNodeVisitor {
         }
         owner = getOwner(env);
         BLangLambdaFunction lambdaFunction = annotationDesugar.defineFieldAnnotations(fields, pos, env.enclPkg, env,
-                                                                                      typeSymbol.pkgID, owner);
+                typeSymbol.pkgID, owner, this.encloseLambdas);
         if (lambdaFunction != null) {
             boolean isPackageLevelAnnotationClosure = owner.getKind() == SymbolKind.PACKAGE;
             BInvokableSymbol invokableSymbol = createSimpleVariable(lambdaFunction.function, lambdaFunction,
@@ -600,7 +600,6 @@ public class ClosureGenerator extends BLangNodeVisitor {
         return lambdaFunction;
     }
 
-    // pr: this should assign the closure to a tmp variable and return that
     public BInvokableSymbol createSimpleVariable(BLangFunction function, BLangLambdaFunction lambdaFunction,
                                                  boolean isAnnotationClosure) {
         BInvokableSymbol invokableSymbol = function.symbol;
