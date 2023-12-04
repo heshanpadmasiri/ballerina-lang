@@ -5770,6 +5770,7 @@ public class Desugar extends BLangNodeVisitor {
         func.setReturnTypeNode(returnType);
         func.desugaredReturnType = true;
         defineFunction(func, env.enclPkg);
+        func.enclosed = true;
         lambdaFunctionVariable = func.requiredParams;
 
         func.body = lambdaBody;
@@ -5797,8 +5798,6 @@ public class Desugar extends BLangNodeVisitor {
         final BPackageSymbol packageSymbol = targetPkg.symbol;
         final SymbolEnv packageEnv = this.symTable.pkgEnvMap.get(packageSymbol);
         symbolEnter.defineNode(funcNode, packageEnv);
-        packageEnv.enclPkg.addFunction(funcNode);
-        packageEnv.enclPkg.topLevelNodes.add(funcNode);
     }
 
     @Override
