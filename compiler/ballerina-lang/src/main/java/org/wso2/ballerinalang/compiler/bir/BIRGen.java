@@ -849,6 +849,8 @@ public class BIRGen extends BLangNodeVisitor {
         this.env.targetOperand = lhsOp;
         if (lambdaExpr.function.enclosed) {
             encloseFunction(enclFunc, lambdaExpr.function);
+        } else if (lambdaExpr.capturedClosureEnv != null) {
+            throw new AssertionError("Capturing in a non-enclosed function");
         }
     }
 
