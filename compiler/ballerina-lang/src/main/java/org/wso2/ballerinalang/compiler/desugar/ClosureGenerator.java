@@ -205,7 +205,6 @@ public class ClosureGenerator extends BLangNodeVisitor {
     private BLangNode result;
     private SymbolResolver symResolver;
     private AnnotationDesugar annotationDesugar;
-    private boolean encloseLambdas = false;
     public static ClosureGenerator getInstance(CompilerContext context) {
         ClosureGenerator closureGenerator = context.get(CLOSURE_GENERATOR_KEY);
         if (closureGenerator == null) {
@@ -227,7 +226,6 @@ public class ClosureGenerator extends BLangNodeVisitor {
     @Override
     public void visit(BLangPackage pkgNode) {
         SymbolEnv pkgEnv = this.symTable.pkgEnvMap.get(pkgNode.symbol);
-        this.encloseLambdas = false;
         List<BLangFunction> functions = pkgNode.getFunctions();
         for (int i = 0; i < functions.size(); i++) {
             BLangFunction bLangFunction = functions.get(i);
@@ -296,9 +294,7 @@ public class ClosureGenerator extends BLangNodeVisitor {
     @Override
     public void visit(BLangBlockFunctionBody body) {
         SymbolEnv blockEnv = SymbolEnv.createFuncBodyEnv(body, env);
-        encloseLambdas = true;
         body.stmts = rewriteStmt(body.stmts, blockEnv);
-        encloseLambdas = false;
         result = body;
     }
 
@@ -419,8 +415,9 @@ public class ClosureGenerator extends BLangNodeVisitor {
             return;
         }
         owner = getOwner(env);
+        boolean encloseLambdas = owner.getKind() != SymbolKind.PACKAGE;
         BLangLambdaFunction lambdaFunction = annotationDesugar.defineFieldAnnotations(fields, pos, env.enclPkg, env,
-                typeSymbol.pkgID, owner, this.encloseLambdas);
+                typeSymbol.pkgID, owner, encloseLambdas);
         if (lambdaFunction != null) {
             boolean isPackageLevelAnnotationClosure = owner.getKind() == SymbolKind.PACKAGE;
             BInvokableSymbol invokableSymbol = createSimpleVariable(lambdaFunction.function, lambdaFunction,
@@ -545,22 +542,21 @@ public class ClosureGenerator extends BLangNodeVisitor {
         return symbolEnv.enclPkg.symbol;
     }
 
-    // pr: this should assign the closure to a tmp variable and call it via the tmp variable
     private BLangExpression createClosureForDefaultValue(String closureName, String paramName,
                                                          BLangSimpleVariable varNode) {
         BSymbol owner = getOwner(env);
-        boolean enclosed = encloseLambdas;
+        boolean encloseLambdas = owner.getKind() != SymbolKind.PACKAGE;
         BInvokableTypeSymbol symbol = (BInvokableTypeSymbol) env.node.getBType().tsymbol;
         BLangFunction function =
-                createFunction(closureName, varNode.pos, owner.pkgID, owner, varNode.getBType(), !enclosed);
+                createFunction(closureName, varNode.pos, owner.pkgID, owner, varNode.getBType(), !encloseLambdas);
         updateFunctionParams(function, symbol.params, paramName);
         BLangReturn returnStmt = ASTBuilderUtil.createReturnStmt(function.pos, (BLangBlockFunctionBody) function.body);
         returnStmt.expr = varNode.expr;
-        BLangLambdaFunction lambdaFunction = createLambdaFunction(function, enclosed);
+        BLangLambdaFunction lambdaFunction = createLambdaFunction(function);
         lambdaFunction.capturedClosureEnv = env;
         // This should be always valid
         BInvokableSymbol varSymbol = createSimpleVariable(function, lambdaFunction, false);
-        if (enclosed) {
+        if (encloseLambdas) {
             this.env.enclInvokable.symbol.scope.define(function.symbol.name, function.symbol);
         } else {
             // Closures for creating default values for function definition. These should be in package scope so callers
@@ -591,10 +587,9 @@ public class ClosureGenerator extends BLangNodeVisitor {
         }
     }
 
-    BLangLambdaFunction createLambdaFunction(BLangFunction function, boolean enclosed) {
+    BLangLambdaFunction createLambdaFunction(BLangFunction function) {
         BLangLambdaFunction lambdaFunction = (BLangLambdaFunction) TreeBuilder.createLambdaFunctionNode();
         lambdaFunction.function = function;
-        function.enclosed = enclosed;
         lambdaFunction.setBType(function.getBType());
         lambdaFunction.capturedClosureEnv = env;
         return lambdaFunction;

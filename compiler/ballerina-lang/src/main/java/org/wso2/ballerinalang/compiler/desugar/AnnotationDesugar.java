@@ -497,7 +497,7 @@ public class AnnotationDesugar {
             }
 
             BLangLambdaFunction lambdaFunction =
-                    defineAnnotations(function, pkgNode, env, pkgID, owner, function.enclosed);
+                    defineAnnotations(function, pkgNode, env, pkgID, owner, false);
             if (lambdaFunction != null) {
                 // Add the lambda/invocation in a temporary block.
                 BLangBlockStmt target = (BLangBlockStmt) TreeBuilder.createBlockNode();
@@ -845,9 +845,9 @@ public class AnnotationDesugar {
         BInvokableSymbol lambdaFunctionSymbol = createInvokableSymbol(function, pkgID, owner);
         BLangLambdaFunction lambdaFunction = desugar.createLambdaFunction(function, lambdaFunctionSymbol, env);
         lambdaFunction.capturedClosureEnv = env;
-        if (encloseLambdas) {
-            function.enclosed = true;
-        } else {
+        // pr: It would be nice if we can make this decision locally
+        // boolean enclose = owner.getKind() == SymbolKind.FUNCTION;
+        if (!encloseLambdas) {
             pkgNode.addFunction(function);
             pkgNode.topLevelNodes.add(function);
         }

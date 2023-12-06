@@ -2179,8 +2179,6 @@ public class Desugar extends BLangNodeVisitor {
         functionSymbol.type = new BInvokableType(Collections.singletonList(getStringAnyTupleType()), constraint, null);
         function.symbol = functionSymbol;
         rewrite(function, env);
-        // env.enclPkg.addFunction(function);
-        function.enclosed = true;
 
         // Create and return a lambda function
         return createLambdaFunction(function, functionSymbol, env);
@@ -2467,8 +2465,6 @@ public class Desugar extends BLangNodeVisitor {
                                                  getRestType(functionSymbol), symTable.booleanType, null);
         function.symbol = functionSymbol;
         rewrite(function, env);
-        // env.enclPkg.addFunction(function);
-        function.enclosed = true;
         return functionSymbol;
     }
 
@@ -5775,7 +5771,6 @@ public class Desugar extends BLangNodeVisitor {
         func.setReturnTypeNode(returnType);
         func.desugaredReturnType = true;
         defineFunction(func, env.enclPkg);
-        func.enclosed = true;
         lambdaFunctionVariable = func.requiredParams;
 
         func.body = lambdaBody;
@@ -6239,8 +6234,6 @@ public class Desugar extends BLangNodeVisitor {
         BLangLambdaFunction lambdaFunction = (BLangLambdaFunction) TreeBuilder.createLambdaFunctionNode();
         lambdaFunction.function = func;
         lambdaFunction.capturedClosureEnv = env;
-        func.enclosed = true;
-        //env.enclPkg.lambdaFunctions.add(lambdaFunction);
         lambdaFunction.parent = env.enclInvokable;
         lambdaFunction.setBType(func.getBType());
 
@@ -7882,9 +7875,7 @@ public class Desugar extends BLangNodeVisitor {
         lambdaFunction.function.body.pos = bLangArrowFunction.pos;
         // At this phase lambda function is semantically correct. Therefore simply env can be assigned.
         lambdaFunction.capturedClosureEnv = env;
-        if (shouldEnclose(env.enclInvokable)) {
-            lambdaFunction.function.enclosed = true;
-        } else {
+        if (!shouldEnclose(env.enclInvokable)) {
             env.enclPkg.addFunction(lambdaFunction.function);
         }
         result = rewriteExpr(lambdaFunction);

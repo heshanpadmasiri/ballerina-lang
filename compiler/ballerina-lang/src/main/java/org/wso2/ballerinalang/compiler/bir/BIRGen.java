@@ -256,6 +256,7 @@ public class BIRGen extends BLangNodeVisitor {
     private Unifier unifier;
 
     private BirScope currentScope;
+    private List<BLangFunction> packageFunctions = new ArrayList<>();
 
     public static BIRGen getInstance(CompilerContext context) {
         BIRGen birGen = context.get(BIR_GEN);
@@ -338,6 +339,8 @@ public class BIRGen extends BLangNodeVisitor {
     public void visit(BLangPackage astPkg) {
         // Lower function nodes in AST to bir function nodes.
         // TODO handle init, start, stop functions
+        packageFunctions.clear();
+        packageFunctions.addAll(astPkg.getFunctions());
         astPkg.imports.forEach(impPkg -> impPkg.accept(this));
         astPkg.constants.forEach(astConst -> astConst.accept(this));
         astPkg.typeDefinitions.forEach(astTypeDef -> astTypeDef.accept(this));
@@ -847,11 +850,15 @@ public class BIRGen extends BLangNodeVisitor {
                                             lambdaExpr.getBType(), lambdaExpr.function.symbol.strandName,
                                             lambdaExpr.function.symbol.schedulerPolicy, isWorker));
         this.env.targetOperand = lhsOp;
-        if (lambdaExpr.function.enclosed) {
+        if (lambdaEnclosed(lambdaExpr)) {
             encloseFunction(enclFunc, lambdaExpr.function);
         } else if (lambdaExpr.capturedClosureEnv != null) {
             throw new AssertionError("Capturing in a non-enclosed function");
         }
+    }
+
+    private boolean lambdaEnclosed(BLangLambdaFunction lambdaExpr) {
+        return packageFunctions.stream().noneMatch(func -> func.getName() == lambdaExpr.function.getName());
     }
 
     private void encloseFunction(BIRFunction enclFunc, BLangFunction innerFunc) {
