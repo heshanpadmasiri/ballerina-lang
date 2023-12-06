@@ -205,6 +205,7 @@ public class ClosureGenerator extends BLangNodeVisitor {
     private BLangNode result;
     private SymbolResolver symResolver;
     private AnnotationDesugar annotationDesugar;
+
     public static ClosureGenerator getInstance(CompilerContext context) {
         ClosureGenerator closureGenerator = context.get(CLOSURE_GENERATOR_KEY);
         if (closureGenerator == null) {
@@ -226,6 +227,7 @@ public class ClosureGenerator extends BLangNodeVisitor {
     @Override
     public void visit(BLangPackage pkgNode) {
         SymbolEnv pkgEnv = this.symTable.pkgEnvMap.get(pkgNode.symbol);
+
         List<BLangFunction> functions = pkgNode.getFunctions();
         for (int i = 0; i < functions.size(); i++) {
             BLangFunction bLangFunction = functions.get(i);
@@ -415,9 +417,8 @@ public class ClosureGenerator extends BLangNodeVisitor {
             return;
         }
         owner = getOwner(env);
-        boolean encloseLambdas = owner.getKind() != SymbolKind.PACKAGE;
         BLangLambdaFunction lambdaFunction = annotationDesugar.defineFieldAnnotations(fields, pos, env.enclPkg, env,
-                typeSymbol.pkgID, owner, encloseLambdas);
+                typeSymbol.pkgID, owner);
         if (lambdaFunction != null) {
             boolean isPackageLevelAnnotationClosure = owner.getKind() == SymbolKind.PACKAGE;
             BInvokableSymbol invokableSymbol = createSimpleVariable(lambdaFunction.function, lambdaFunction,

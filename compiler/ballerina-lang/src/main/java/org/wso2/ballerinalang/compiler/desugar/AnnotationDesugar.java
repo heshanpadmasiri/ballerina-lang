@@ -391,7 +391,7 @@ public class AnnotationDesugar {
 
         for (BLangSimpleVariable field : classDef.fields) {
             BLangLambdaFunction paramAnnotLambda =
-                    defineAnnotations(field.annAttachments, pos, pkgNode, env, pkgID, owner, isLocalObjectCtor, false);
+                    defineAnnotations(field.annAttachments, pos, pkgNode, env, pkgID, owner, isLocalObjectCtor);
             if (paramAnnotLambda == null) {
                 continue;
             }
@@ -406,7 +406,7 @@ public class AnnotationDesugar {
         }
 
         if (function != null && !mapLiteral.fields.isEmpty()) {
-            return addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner, false);
+            return addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner);
         }
         return null;
     }
@@ -566,7 +566,7 @@ public class AnnotationDesugar {
 
     private BLangLambdaFunction defineAnnotations(BLangTypeDefinition node, Location location,
                                                   BLangPackage pkgNode, SymbolEnv env, PackageID pkgID, BSymbol owner) {
-        return defineAnnotations(getAnnotationList(node), location, pkgNode, env, pkgID, owner, false, false);
+        return defineAnnotations(getAnnotationList(node), location, pkgNode, env, pkgID, owner, false);
     }
 
     private List<BLangAnnotationAttachment> getAnnotationList(AnnotatableNode node) {
@@ -580,7 +580,7 @@ public class AnnotationDesugar {
                                                   BLangPackage pkgNode,
                                                   SymbolEnv env,
                                                   PackageID pkgID,
-                                                  BSymbol owner, boolean isLocalObjectCtor, boolean encloseLambdas) {
+                                                  BSymbol owner, boolean isLocalObjectCtor) {
         if (annAttachments.isEmpty()) {
             return null;
         }
@@ -594,7 +594,7 @@ public class AnnotationDesugar {
             return null;
         }
 
-        return addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner, encloseLambdas);
+        return addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner);
     }
 
     private BLangLambdaFunction defineAnnotations(BLangTypeDefinition typeDef, BLangPackage pkgNode, SymbolEnv env,
@@ -615,7 +615,7 @@ public class AnnotationDesugar {
         }
         for (BLangSimpleVariable field : fields) {
             BLangLambdaFunction paramAnnotLambda = defineAnnotations(field.annAttachments, field.pos, pkgNode, env,
-                    pkgID, owner, false, false);
+                    pkgID, owner, false);
             if (paramAnnotLambda != null) {
                 if (function == null) {
                     function = defineFunction(typeDef.pos, pkgID, owner);
@@ -630,12 +630,12 @@ public class AnnotationDesugar {
         if (function == null || mapLiteral.fields.isEmpty()) {
             return null;
         }
-        return addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner, false);
+        return addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner);
     }
 
     public BLangLambdaFunction defineFieldAnnotations(List<BLangSimpleVariable> fields, Location pos,
                                                       BLangPackage pkgNode, SymbolEnv env, PackageID pkgID,
-                                                      BSymbol owner, boolean encloseLambdas) {
+                                                      BSymbol owner) {
         BLangFunction function = null;
         BLangRecordLiteral mapLiteral = null;
         BLangLambdaFunction lambdaFunction = null;
@@ -644,7 +644,7 @@ public class AnnotationDesugar {
 
         for (BLangSimpleVariable field : fields) {
             BLangLambdaFunction fieldAnnotLambda = defineAnnotations(field.annAttachments, field.pos, pkgNode, env,
-                    pkgID, owner, false, encloseLambdas);
+                    pkgID, owner, false);
             if (fieldAnnotLambda != null) {
                 BInvokableSymbol invokableSymbol =
                         closureGenerator.createSimpleVariable(fieldAnnotLambda.function, fieldAnnotLambda,
@@ -661,7 +661,7 @@ public class AnnotationDesugar {
         }
 
         if (annotFunctionDefined) {
-            lambdaFunction = addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner, encloseLambdas);
+            lambdaFunction = addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner);
         }
 
         return lambdaFunction;
@@ -685,7 +685,7 @@ public class AnnotationDesugar {
 
         for (BLangSimpleVariable param : getParams(bLangFunction)) {
             BLangLambdaFunction paramAnnotLambda = defineAnnotations(param.annAttachments, param.pos, pkgNode, funcEnv,
-                    pkgID, owner, false, encloseLambdas);
+                    pkgID, owner, false);
             if (paramAnnotLambda != null) {
                 if (!annotFunctionDefined) {
                     function = defineFunction(bLangFunction.pos, pkgID, owner);
@@ -710,7 +710,7 @@ public class AnnotationDesugar {
             addAnnotsToLiteral(bLangFunction.returnTypeAnnAttachments, retMapLiteral, bLangFunction.pos, funcEnv,
                                false);
             BLangLambdaFunction returnAnnotLambda = addReturnAndDefineLambda(retFunction, retMapLiteral, pkgNode,
-                    env, pkgID, owner, false);
+                    env, pkgID, owner);
             addInvocationToLiteral(mapLiteral, RETURNS, bLangFunction.returnTypeAnnAttachments.get(0).pos,
                                    returnAnnotLambda);
         }
@@ -719,7 +719,7 @@ public class AnnotationDesugar {
             if (mapLiteral.fields.isEmpty()) {
                 return null;
             }
-            lambdaFunction = addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner, encloseLambdas);
+            lambdaFunction = addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner);
         }
 
         return lambdaFunction;
@@ -837,7 +837,7 @@ public class AnnotationDesugar {
 
     private BLangLambdaFunction addReturnAndDefineLambda(BLangFunction function, BLangRecordLiteral mapLiteral,
                                                          BLangPackage pkgNode, SymbolEnv env, PackageID pkgID,
-                                                         BSymbol owner, boolean encloseLambdas) {
+                                                         BSymbol owner) {
         BLangReturn returnStmt = ASTBuilderUtil.createReturnStmt(function.pos,
                                                                  (BLangBlockFunctionBody) function.body);
         returnStmt.expr = mapLiteral;
@@ -845,12 +845,8 @@ public class AnnotationDesugar {
         BInvokableSymbol lambdaFunctionSymbol = createInvokableSymbol(function, pkgID, owner);
         BLangLambdaFunction lambdaFunction = desugar.createLambdaFunction(function, lambdaFunctionSymbol, env);
         lambdaFunction.capturedClosureEnv = env;
-        // pr: It would be nice if we can make this decision locally
-        // boolean enclose = owner.getKind() == SymbolKind.FUNCTION;
-        if (!encloseLambdas) {
-            pkgNode.addFunction(function);
-            pkgNode.topLevelNodes.add(function);
-        }
+        pkgNode.addFunction(function);
+        pkgNode.topLevelNodes.add(function);
         pkgNode.lambdaFunctions.add(lambdaFunction);
         return lambdaFunction;
     }
