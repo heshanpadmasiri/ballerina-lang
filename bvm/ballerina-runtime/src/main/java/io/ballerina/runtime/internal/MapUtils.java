@@ -32,6 +32,7 @@ import io.ballerina.runtime.internal.types.BRecordType;
 import io.ballerina.runtime.internal.types.BTypeReferenceType;
 import io.ballerina.runtime.internal.types.BUnionType;
 import io.ballerina.runtime.internal.values.MapValue;
+import io.ballerina.runtime.internal.values.MapValueImpl;
 
 import java.util.List;
 
@@ -49,6 +50,10 @@ import static io.ballerina.runtime.internal.errors.ErrorReasons.getModulePrefixe
 public class MapUtils {
 
     public static void handleMapStore(MapValue<BString, Object> mapValue, BString fieldName, Object value) {
+        updateMapValue(TypeUtils.getImpliedType(mapValue.getType()), mapValue, fieldName, value);
+    }
+
+    public static void handleMapStore(MapValue<BString, Object> mapValue, BString fieldName, Long value) {
         updateMapValue(TypeUtils.getImpliedType(mapValue.getType()), mapValue, fieldName, value);
     }
 
@@ -160,5 +165,21 @@ public class MapUtils {
             case TypeTags.TYPE_REFERENCED_TYPE_TAG:
                 updateMapValue(((BTypeReferenceType) mapType).getReferredType(), mapValue, fieldName, value);
         }
+    }
+
+    private static void updateMapValue(Type mapType, MapValue<BString, Object> mapValue, BString fieldName,
+                                       Long value) {
+        if (mapType.getTag() != TypeTags.RECORD_TYPE_TAG) {
+            throw new IllegalArgumentException("Typed record store is only supported for records");
+        }
+        if (handleInherentTypeViolatingRecordUpdate(mapValue, fieldName, value, (BRecordType) mapType, false)) {
+            MapValueImpl<BString, Object> record =
+                    // TODO: think how to avoid this cast? maybe lift the function to mapValue
+                    (MapValueImpl<BString, Object>) mapValue;
+            // pr: check if readonly
+            record.putValue(fieldName, value);
+            return;
+        }
+        mapValue.remove(fieldName);
     }
 }

@@ -692,7 +692,11 @@ public class MapValueImpl<K, V> extends LinkedHashMap<K, V> implements RefValue,
      * This makes it easier to extend the operations without affecting the
      * common behaviors such as error handling.
      */
-    protected V putValue(K key, V value) {
+    public V putValue(K key, V value) {
         return super.put(key, value);
+    }
+
+    public V putValue(K key, Long value) {
+        throw new UnsupportedOperationException("Typed put is only supported for record maps");
     }
 }

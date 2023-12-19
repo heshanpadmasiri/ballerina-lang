@@ -86,6 +86,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.ANY_TO_J
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.COLLECTION_OP;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.CONTAINS_KEY;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.FROM_STRING;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INT_RECORD_PUT;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.LINKED_HASH_SET_OP;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.MAP_PUT;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.MAP_VALUES;
@@ -260,7 +261,7 @@ public class JvmRecordGen {
 
     public void createAndSplitSetMethod(ClassWriter cw, Map<String, BField> fields, String className,
                                         JvmCastGen jvmCastGen) {
-        MethodVisitor mv = cw.visitMethod(ACC_PROTECTED, "putValue", MAP_PUT, "(TK;TV;)TV;", null);
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "putValue", MAP_PUT, "(TK;TV;)TV;", null);
         mv.visitCode();
         int selfIndex = 0;
         int fieldNameRegIndex = 1;
@@ -285,6 +286,8 @@ public class JvmRecordGen {
         JvmCodeGenUtil.visitMaxStackForMethod(mv, "putValue", className);
         mv.visitEnd();
         splitSetMethod(cw, fields, className, jvmCastGen);
+
+        createIntPutValueMethod(cw, fields, className, jvmCastGen);
     }
 
     private void splitSetMethod(ClassWriter cw, Map<String, BField> fields, String className,
@@ -936,6 +939,76 @@ public class JvmRecordGen {
                                JvmCastGen jvmCastGen) {
         createBasicTypeGetMethod(cw, fields, className, jvmCastGen, TypeKind.STRING, "getStringValue",
                 PASS_B_STRING_RETURN_BSTRING, true, B_STRING_VALUE);
+    }
+
+    void createIntPutValueMethod(ClassWriter cw, Map<String, BField> fields, String className,
+                                 JvmCastGen jvmCastGen) {
+        createBasicTypePutValueMethod(cw, fields, className, jvmCastGen, TypeKind.INT, "putValue",
+                INT_RECORD_PUT, "(TK;" + "L" + LONG_VALUE + ";)TV;");
+    }
+
+    // TODO: handle unboxed values
+    private void createBasicTypePutValueMethod(ClassWriter cw, Map<String, BField> fields, String className,
+                                               JvmCastGen jvmCastGen, TypeKind basicType, String methodName,
+                                               String methodDesc, String signature) {
+        // TODO: factor this out to separate method
+        List<BField> sortedFields = fields.values().stream()
+                .filter(field -> field.type.getKind() == basicType &&
+                        !isOptionalRecordField(field)) // optional fields will be handled by the default get method
+                .limit(MAX_FIELDS_PER_SPLIT_METHOD) // rest will go through the default get method
+                .sorted(FIELD_NAME_HASH_COMPARATOR)
+                .toList();
+        if (sortedFields.isEmpty()) {
+            return;
+        }
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, methodDesc, signature, null);
+        mv.visitCode();
+
+        final int selfRegister = 0;
+        final int fieldNameBStringReg = 1;
+        final int valueReg = 2;
+        final int fieldNameStringReg = 3;
+
+        castToJavaString(mv, fieldNameBStringReg, fieldNameStringReg);
+        Label defaultCaseLabel = new Label();
+        List<Label> labels = JvmCreateTypeGen.createLabelsForSwitch(mv, fieldNameStringReg, sortedFields,
+                0, sortedFields.size(), defaultCaseLabel);
+        List<Label> targetLabels = JvmCreateTypeGen.createLabelsForEqualCheck(mv, fieldNameStringReg, sortedFields,
+                0, sortedFields.size(), labels, defaultCaseLabel);
+
+        for (int i = 0; i < sortedFields.size(); i++) {
+            BField field = sortedFields.get(i);
+            Label targetLabel = targetLabels.get(i);
+            BType fieldType = field.type;
+            mv.visitLabel(targetLabel);
+            String fieldName = field.name.value;
+
+            mv.visitVarInsn(ALOAD, selfRegister);
+
+            // return value
+            mv.visitFieldInsn(GETFIELD, className, fieldName, getTypeDesc(fieldType));
+            jvmCastGen.addBoxInsn(mv, fieldType);
+
+            mv.visitVarInsn(ALOAD, selfRegister);
+            mv.visitVarInsn(ALOAD, valueReg);
+            jvmCastGen.addUnboxInsn(mv, fieldType); // <-pr: remove this when we get rid of boxing at caller side
+            mv.visitFieldInsn(PUTFIELD, className, fieldName, getTypeDesc(fieldType));
+
+            mv.visitInsn(ARETURN);
+        }
+
+        // This could happen when we access the rest field, having more than 500 fields or optional field,
+        // in which case we will simply call the default putValue method
+        mv.visitLabel(defaultCaseLabel);
+
+        mv.visitVarInsn(ALOAD, selfRegister);
+        mv.visitVarInsn(ALOAD, fieldNameStringReg);
+        mv.visitVarInsn(ALOAD, fieldNameBStringReg);
+        mv.visitVarInsn(ALOAD, valueReg);
+        mv.visitMethodInsn(INVOKEVIRTUAL, className, "putValue", RECORD_PUT, false);
+        mv.visitInsn(ARETURN);
+        JvmCodeGenUtil.visitMaxStackForMethod(mv, "putValue", className);
+        mv.visitEnd();
     }
 
     private void createBasicTypeGetMethod(ClassWriter cw, Map<String, BField> fields, String className,

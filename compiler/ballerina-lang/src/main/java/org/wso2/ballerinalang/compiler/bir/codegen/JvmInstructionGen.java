@@ -52,10 +52,12 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BObjectType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BRecordType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BTypeReferenceType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BUnionType;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
 import org.wso2.ballerinalang.util.Flags;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -224,6 +226,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_STRI
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_TYPEDESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_TYPEDESC_OF_OBJECT;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.HANDLE_MAP_STORE;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.HANDLE_MAP_STORE_INT;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.HANDLE_TABLE_STORE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_ARRAY;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_ARRAY_WITH_INITIAL_VALUES;
@@ -241,8 +244,8 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.JSON_SET
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.LONG_STREAM_RANGE_CLOSED;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.OBJECT_TYPE_DUPLICATE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.OBJECT_TYPE_IMPL_INIT;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.PASS_B_STRING_RETURN_UNBOXED_BOOLEAN;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.PASS_B_STRING_RETURN_BSTRING;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.PASS_B_STRING_RETURN_UNBOXED_BOOLEAN;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.PASS_B_STRING_RETURN_UNBOXED_DOUBLE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.PASS_B_STRING_RETURN_UNBOXED_LONG;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.PASS_OBJECT_RETURN_OBJECT;
@@ -1454,7 +1457,7 @@ public class JvmInstructionGen {
         // visit value_expr
         BType valueType = mapStoreIns.rhsOp.variableDcl.type;
         this.loadVar(mapStoreIns.rhsOp.variableDcl);
-        jvmCastGen.addBoxInsn(this.mv, valueType);
+        jvmCastGen.addBoxInsn(this.mv, valueType); // <- avoid this if record basic type store
 
         if (varRefType.tag == TypeTags.JSON) {
             this.mv.visitMethodInsn(INVOKESTATIC, JSON_UTILS, "setElement",
@@ -1464,8 +1467,32 @@ public class JvmInstructionGen {
             this.mv.visitMethodInsn(INVOKEINTERFACE, MAP_VALUE, "populateInitialValue",
                                     TWO_OBJECTS_ARGS, true);
         } else {
-            this.mv.visitMethodInsn(INVOKESTATIC, MAP_UTILS, "handleMapStore", HANDLE_MAP_STORE, false);
+            // TODO: use the correct type here
+            // TODO: we need a hack here to make this
+            BType valueTypeHack = valueTypeHack(valueType);
+            String methodDesc = switch (valueTypeHack.getKind()) {
+                case INT -> HANDLE_MAP_STORE_INT;
+                default -> HANDLE_MAP_STORE;
+            };
+            this.mv.visitMethodInsn(INVOKESTATIC, MAP_UTILS, "handleMapStore", methodDesc, false);
         }
+    }
+
+    BType valueTypeHack(BType valueType) {
+        return switch (valueType.getKind()) {
+            case INT -> symbolTable.intType;
+            case UNION -> {
+                BUnionType unionType = (BUnionType) valueType;
+                LinkedHashSet<BType> memberTypes = unionType.getMemberTypes();
+                if (memberTypes.size() == 2 && memberTypes.contains(symbolTable.nilType) &&
+                        memberTypes.contains(symbolTable.intType)) {
+                    yield symbolTable.intType;
+                } else {
+                    yield valueType;
+                }
+            }
+            default -> valueType;
+        };
     }
 
     void generateMapLoadIns(BIRNonTerminator.FieldAccess mapLoadIns) {
