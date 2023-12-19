@@ -585,6 +585,12 @@ public class MapValueImpl<K, V> extends LinkedHashMap<K, V> implements RefValue,
         return new MapIterator<>(new LinkedHashSet<>(this.entrySet()).iterator());
     }
 
+    @Override
+    public V put(K key, Long value) {
+        // TODO:
+        throw new UnsupportedOperationException("Typed put is only supported for records");
+    }
+
     /**
      * {@link MapIterator} iteration provider for ballerina maps.
      *
@@ -692,11 +698,7 @@ public class MapValueImpl<K, V> extends LinkedHashMap<K, V> implements RefValue,
      * This makes it easier to extend the operations without affecting the
      * common behaviors such as error handling.
      */
-    public V putValue(K key, V value) {
+    protected V putValue(K key, V value) {
         return super.put(key, value);
-    }
-
-    public V putValue(K key, Long value) {
-        throw new UnsupportedOperationException("Typed put is only supported for record maps");
     }
 }

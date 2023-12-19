@@ -1470,7 +1470,9 @@ public class JvmInstructionGen {
             // TODO: use the correct type here
             // TODO: we need a hack here to make this
             BType valueTypeHack = valueTypeHack(valueType);
+
             String methodDesc = switch (valueTypeHack.getKind()) {
+                // pr: check if readonly
                 case INT -> HANDLE_MAP_STORE_INT;
                 default -> HANDLE_MAP_STORE;
             };

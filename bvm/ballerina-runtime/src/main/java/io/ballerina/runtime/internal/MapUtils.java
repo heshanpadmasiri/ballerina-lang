@@ -32,7 +32,6 @@ import io.ballerina.runtime.internal.types.BRecordType;
 import io.ballerina.runtime.internal.types.BTypeReferenceType;
 import io.ballerina.runtime.internal.types.BUnionType;
 import io.ballerina.runtime.internal.values.MapValue;
-import io.ballerina.runtime.internal.values.MapValueImpl;
 
 import java.util.List;
 
@@ -173,11 +172,7 @@ public class MapUtils {
             throw new IllegalArgumentException("Typed record store is only supported for records");
         }
         if (handleInherentTypeViolatingRecordUpdate(mapValue, fieldName, value, (BRecordType) mapType, false)) {
-            MapValueImpl<BString, Object> record =
-                    // TODO: think how to avoid this cast? maybe lift the function to mapValue
-                    (MapValueImpl<BString, Object>) mapValue;
-            // pr: check if readonly
-            record.putValue(fieldName, value);
+            mapValue.put(fieldName, value);
             return;
         }
         mapValue.remove(fieldName);

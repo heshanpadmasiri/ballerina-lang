@@ -261,7 +261,7 @@ public class JvmRecordGen {
 
     public void createAndSplitSetMethod(ClassWriter cw, Map<String, BField> fields, String className,
                                         JvmCastGen jvmCastGen) {
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "putValue", MAP_PUT, "(TK;TV;)TV;", null);
+        MethodVisitor mv = cw.visitMethod(ACC_PROTECTED, "putValue", MAP_PUT, "(TK;TV;)TV;", null);
         mv.visitCode();
         int selfIndex = 0;
         int fieldNameRegIndex = 1;
@@ -943,7 +943,7 @@ public class JvmRecordGen {
 
     void createIntPutValueMethod(ClassWriter cw, Map<String, BField> fields, String className,
                                  JvmCastGen jvmCastGen) {
-        createBasicTypePutValueMethod(cw, fields, className, jvmCastGen, TypeKind.INT, "putValue",
+        createBasicTypePutValueMethod(cw, fields, className, jvmCastGen, TypeKind.INT, "put",
                 INT_RECORD_PUT, "(TK;" + "L" + LONG_VALUE + ";)TV;");
     }
 
