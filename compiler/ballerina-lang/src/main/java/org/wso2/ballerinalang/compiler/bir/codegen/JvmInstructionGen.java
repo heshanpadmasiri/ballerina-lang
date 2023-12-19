@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.ballerinalang.model.types.TypeKind.INT;
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ACONST_NULL;
 import static org.objectweb.asm.Opcodes.ALOAD;
@@ -1457,25 +1458,30 @@ public class JvmInstructionGen {
         // visit value_expr
         BType valueType = mapStoreIns.rhsOp.variableDcl.type;
         this.loadVar(mapStoreIns.rhsOp.variableDcl);
-        jvmCastGen.addBoxInsn(this.mv, valueType); // <- avoid this if record basic type store
 
         if (varRefType.tag == TypeTags.JSON) {
+            jvmCastGen.addBoxInsn(this.mv, valueType); // <- avoid this if record basic type store
             this.mv.visitMethodInsn(INVOKESTATIC, JSON_UTILS, "setElement",
                                     JSON_SET_ELEMENT, false);
         } else if (mapStoreIns.onInitialization) {
             // We only reach here for stores in a record init function.
+            jvmCastGen.addBoxInsn(this.mv, valueType); // <- avoid this if record basic type store
             this.mv.visitMethodInsn(INVOKEINTERFACE, MAP_VALUE, "populateInitialValue",
                                     TWO_OBJECTS_ARGS, true);
         } else {
-            // TODO: use the correct type here
             // TODO: we need a hack here to make this
+            // In order to make this work correctly we need to avoid the boxing part in general
             BType valueTypeHack = valueTypeHack(valueType);
-
-            String methodDesc = switch (valueTypeHack.getKind()) {
-                // pr: check if readonly
-                case INT -> HANDLE_MAP_STORE_INT;
-                default -> HANDLE_MAP_STORE;
-            };
+            jvmCastGen.addBoxInsn(this.mv, valueType); // <- avoid this if record basic type store
+            String methodDesc;
+            if (valueTypeHack.getKind() == INT) {
+                // this.mv.visitInsn(POP);
+                // this.mv.visitInsn(LCONST_1);
+                jvmCastGen.addUnboxInsn(this.mv, symbolTable.intType);
+                methodDesc = HANDLE_MAP_STORE_INT;
+            } else {
+                methodDesc = HANDLE_MAP_STORE;
+            }
             this.mv.visitMethodInsn(INVOKESTATIC, MAP_UTILS, "handleMapStore", methodDesc, false);
         }
     }

@@ -52,7 +52,7 @@ public class MapUtils {
         updateMapValue(TypeUtils.getImpliedType(mapValue.getType()), mapValue, fieldName, value);
     }
 
-    public static void handleMapStore(MapValue<BString, Object> mapValue, BString fieldName, Long value) {
+    public static void handleMapStore(MapValue<BString, Object> mapValue, BString fieldName, long value) {
         updateMapValue(TypeUtils.getImpliedType(mapValue.getType()), mapValue, fieldName, value);
     }
 
@@ -167,7 +167,7 @@ public class MapUtils {
     }
 
     private static void updateMapValue(Type mapType, MapValue<BString, Object> mapValue, BString fieldName,
-                                       Long value) {
+                                       long value) {
         if (mapType.getTag() != TypeTags.RECORD_TYPE_TAG) {
             throw new IllegalArgumentException("Typed record store is only supported for records");
         }

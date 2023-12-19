@@ -58,6 +58,7 @@ import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.LLOAD;
 import static org.objectweb.asm.Opcodes.LRETURN;
 import static org.objectweb.asm.Opcodes.NEW;
 import static org.objectweb.asm.Opcodes.POP;
@@ -287,7 +288,7 @@ public class JvmRecordGen {
         mv.visitEnd();
         splitSetMethod(cw, fields, className, jvmCastGen);
 
-        createIntPutValueMethod(cw, fields, className, jvmCastGen);
+        createIntPutMethod(cw, fields, className, jvmCastGen);
     }
 
     private void splitSetMethod(ClassWriter cw, Map<String, BField> fields, String className,
@@ -941,16 +942,15 @@ public class JvmRecordGen {
                 PASS_B_STRING_RETURN_BSTRING, true, B_STRING_VALUE);
     }
 
-    void createIntPutValueMethod(ClassWriter cw, Map<String, BField> fields, String className,
-                                 JvmCastGen jvmCastGen) {
-        createBasicTypePutValueMethod(cw, fields, className, jvmCastGen, TypeKind.INT, "put",
-                INT_RECORD_PUT, "(TK;" + "L" + LONG_VALUE + ";)TV;");
+    void createIntPutMethod(ClassWriter cw, Map<String, BField> fields, String className, JvmCastGen jvmCastGen) {
+        createBasicTypePutMethod(cw, fields, className, jvmCastGen, TypeKind.INT, intType, "put", INT_RECORD_PUT,
+                "(TK;J)TV;");
     }
 
     // TODO: handle unboxed values
-    private void createBasicTypePutValueMethod(ClassWriter cw, Map<String, BField> fields, String className,
-                                               JvmCastGen jvmCastGen, TypeKind basicType, String methodName,
-                                               String methodDesc, String signature) {
+    private void createBasicTypePutMethod(ClassWriter cw, Map<String, BField> fields, String className,
+                                          JvmCastGen jvmCastGen, TypeKind basicType, BType boxedType, String methodName,
+                                          String methodDesc, String signature) {
         // TODO: factor this out to separate method
         List<BField> sortedFields = fields.values().stream()
                 .filter(field -> field.type.getKind() == basicType &&
@@ -967,7 +967,7 @@ public class JvmRecordGen {
         final int selfRegister = 0;
         final int fieldNameBStringReg = 1;
         final int valueReg = 2;
-        final int fieldNameStringReg = 3;
+        final int fieldNameStringReg = 4; // pr: for longs it occupy 2 slots
 
         castToJavaString(mv, fieldNameBStringReg, fieldNameStringReg);
         Label defaultCaseLabel = new Label();
@@ -990,8 +990,7 @@ public class JvmRecordGen {
             jvmCastGen.addBoxInsn(mv, fieldType);
 
             mv.visitVarInsn(ALOAD, selfRegister);
-            mv.visitVarInsn(ALOAD, valueReg);
-            jvmCastGen.addUnboxInsn(mv, fieldType); // <-pr: remove this when we get rid of boxing at caller side
+            mv.visitVarInsn(LLOAD, valueReg);
             mv.visitFieldInsn(PUTFIELD, className, fieldName, getTypeDesc(fieldType));
 
             mv.visitInsn(ARETURN);
@@ -1000,14 +999,16 @@ public class JvmRecordGen {
         // This could happen when we access the rest field, having more than 500 fields or optional field,
         // in which case we will simply call the default putValue method
         mv.visitLabel(defaultCaseLabel);
-
+        // pr:
+        // mv.visitInsn(ACONST_NULL);
         mv.visitVarInsn(ALOAD, selfRegister);
         mv.visitVarInsn(ALOAD, fieldNameStringReg);
         mv.visitVarInsn(ALOAD, fieldNameBStringReg);
-        mv.visitVarInsn(ALOAD, valueReg);
+        mv.visitVarInsn(LLOAD, valueReg);
+        jvmCastGen.addBoxInsn(mv, boxedType);
         mv.visitMethodInsn(INVOKEVIRTUAL, className, "putValue", RECORD_PUT, false);
         mv.visitInsn(ARETURN);
-        JvmCodeGenUtil.visitMaxStackForMethod(mv, "putValue", className);
+        JvmCodeGenUtil.visitMaxStackForMethod(mv, "put", className);
         mv.visitEnd();
     }
 
@@ -1065,8 +1066,7 @@ public class JvmRecordGen {
 
         mv.visitVarInsn(ALOAD, selfRegister);
         mv.visitVarInsn(ALOAD, fieldNameBStringReg);
-        mv.visitMethodInsn(INVOKEVIRTUAL, className, "get", PASS_OBJECT_RETURN_OBJECT,
-                false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, className, "get", PASS_OBJECT_RETURN_OBJECT, false);
 
         if (boxed) {
             mv.visitTypeInsn(CHECKCAST, boxedTypeDesc);

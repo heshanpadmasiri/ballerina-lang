@@ -34,5 +34,5 @@ import io.ballerina.runtime.api.values.BMap;
  */
 public interface MapValue<K, V> extends RefValue, CollectionValue, BMap<K, V> {
 
-    V put(K key, Long value);
+    V put(K key, long value);
 }

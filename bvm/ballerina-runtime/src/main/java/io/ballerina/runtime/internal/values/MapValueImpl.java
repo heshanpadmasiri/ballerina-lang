@@ -586,7 +586,7 @@ public class MapValueImpl<K, V> extends LinkedHashMap<K, V> implements RefValue,
     }
 
     @Override
-    public V put(K key, Long value) {
+    public V put(K key, long value) {
         // TODO:
         throw new UnsupportedOperationException("Typed put is only supported for records");
     }
