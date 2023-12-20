@@ -443,6 +443,28 @@ public abstract class BIRNonTerminator extends BIRAbstractInstruction implements
     }
 
     /**
+     * Special case of {@code FieldAccess} when we know the record has the field at compile time.
+     *
+     * @since 2201.9.0
+     */
+    public static class RecordFieldAccess extends FieldAccess {
+
+        public final String fieldName;
+
+        public RecordFieldAccess(Location pos, InstructionKind kind, BIROperand lhsOp, BIROperand keyOp,
+                                 BIROperand rhsOp, boolean optionalFieldAccess, boolean fillingRead, String fieldName) {
+            super(pos, kind, lhsOp, keyOp, rhsOp, optionalFieldAccess, fillingRead);
+            this.fieldName = fieldName;
+        }
+
+        public RecordFieldAccess(Location pos, InstructionKind kind, BIROperand lhsOp, BIROperand keyOp,
+                                 BIROperand rhsOp, boolean onInitialization, String fieldName) {
+            super(pos, kind, lhsOp, keyOp, rhsOp, onInitialization);
+            this.fieldName = fieldName;
+        }
+    }
+
+    /**
      * An error constructor expression.
      * <p>
      * error(reason as string, detail as map)

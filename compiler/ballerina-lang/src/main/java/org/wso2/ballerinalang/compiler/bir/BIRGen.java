@@ -33,6 +33,7 @@ import org.ballerinalang.model.tree.NodeKind;
 import org.ballerinalang.model.tree.OperatorKind;
 import org.ballerinalang.model.tree.TopLevelNode;
 import org.ballerinalang.model.tree.expressions.RecordLiteralNode;
+import org.ballerinalang.model.types.TypeKind;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode.BIRAnnotation;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode.BIRAnnotationAttachment;
@@ -2799,9 +2800,17 @@ public class BIRGen extends BLangNodeVisitor {
             } else {
                 insKind = InstructionKind.MAP_STORE;
             }
-            setScopeAndEmit(
-                    new BIRNonTerminator.FieldAccess(astIndexBasedAccessExpr.pos, insKind, varRefRegIndex, keyRegIndex,
-                            rhsOp, astIndexBasedAccessExpr.isStoreOnCreation));
+            BIRNonTerminator.FieldAccess ins;
+            if (recordDirectAccessPossible(astIndexBasedAccessExpr, astAccessExprExprType)) {
+                BLangLiteral literal = (BLangLiteral) astIndexBasedAccessExpr.indexExpr;
+                ins = new BIRNonTerminator.RecordFieldAccess(astIndexBasedAccessExpr.pos, InstructionKind.RECORD_STORE,
+                        varRefRegIndex, keyRegIndex, rhsOp, astIndexBasedAccessExpr.isStoreOnCreation,
+                        (String) literal.value);
+            } else {
+                ins = new BIRNonTerminator.FieldAccess(astIndexBasedAccessExpr.pos, insKind, varRefRegIndex,
+                        keyRegIndex, rhsOp, astIndexBasedAccessExpr.isStoreOnCreation);
+            }
+            setScopeAndEmit(ins);
         } else {
             BIRVariableDcl tempVarDcl = new BIRVariableDcl(astIndexBasedAccessExpr.getBType(),
                                                            this.env.nextLocalVarId(names),
@@ -2831,13 +2840,31 @@ public class BIRGen extends BLangNodeVisitor {
             } else {
                 insKind = InstructionKind.MAP_LOAD;
             }
-            setScopeAndEmit(
-                    new BIRNonTerminator.FieldAccess(astIndexBasedAccessExpr.pos, insKind, tempVarRef, keyRegIndex,
-                            varRefRegIndex, except,
-                            astIndexBasedAccessExpr.isLValue && !astIndexBasedAccessExpr.leafNode));
+            BIRNonTerminator.FieldAccess ins;
+            if (recordDirectAccessPossible(astIndexBasedAccessExpr, astAccessExprExprType)) {
+                BLangLiteral literal = (BLangLiteral) astIndexBasedAccessExpr.indexExpr;
+                ins = new BIRNonTerminator.RecordFieldAccess(astIndexBasedAccessExpr.pos, InstructionKind.RECORD_LOAD,
+                        tempVarRef, keyRegIndex, varRefRegIndex, except,
+                        astIndexBasedAccessExpr.isLValue && !astIndexBasedAccessExpr.leafNode, (String) literal.value);
+            } else {
+                ins = new BIRNonTerminator.FieldAccess(astIndexBasedAccessExpr.pos, insKind, tempVarRef, keyRegIndex,
+                        varRefRegIndex, except, astIndexBasedAccessExpr.isLValue && !astIndexBasedAccessExpr.leafNode);
+            }
+            setScopeAndEmit(ins);
             this.env.targetOperand = tempVarRef;
         }
         this.varAssignment = variableStore;
+    }
+
+    private boolean recordDirectAccessPossible(BLangIndexBasedAccess astIndexBasedAccessExpr, BType mapType) {
+        if (astIndexBasedAccessExpr.optionalFieldAccess || astIndexBasedAccessExpr.indexExpr.getKind() != LITERAL ||
+                mapType.getKind() != TypeKind.RECORD) {
+            return false;
+        }
+        // pr: this is to differentiate between r.x and r["x"]. But this don't work perfectly (so we need to check field
+        // to be not null in the JvmInstructionGen we should fix this by propagating this info
+        BLangLiteral literal = (BLangLiteral) astIndexBasedAccessExpr.indexExpr;
+        return literal.originalValue == null;
     }
 
     private BType getEffectiveObjectType(BType objType) {

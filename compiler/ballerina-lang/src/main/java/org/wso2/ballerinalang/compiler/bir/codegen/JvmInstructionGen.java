@@ -47,6 +47,7 @@ import org.wso2.ballerinalang.compiler.semantics.analyzer.Types;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.SchedulerPolicy;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BField;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BIntersectionType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BObjectType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BRecordType;
@@ -60,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ACONST_NULL;
 import static org.objectweb.asm.Opcodes.ALOAD;
@@ -102,6 +104,7 @@ import static org.objectweb.asm.Opcodes.IF_ICMPLT;
 import static org.objectweb.asm.Opcodes.IF_ICMPNE;
 import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INEG;
+import static org.objectweb.asm.Opcodes.INSTANCEOF;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
@@ -123,6 +126,7 @@ import static org.objectweb.asm.Opcodes.LSTORE;
 import static org.objectweb.asm.Opcodes.LUSHR;
 import static org.objectweb.asm.Opcodes.LXOR;
 import static org.objectweb.asm.Opcodes.NEW;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCastGen.getTargetClass;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil.toNameString;
@@ -268,6 +272,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.XML_SET_
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen.getTypeDesc;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmValueGen.getTypeDescClassName;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmValueGen.getTypeValueClassName;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmValueGen.isOptionalRecordField;
 
 /**
  * Instruction generator helper class to hold its enclosing pkg and index map.
@@ -1446,6 +1451,64 @@ public class JvmInstructionGen {
                            INIT_MAPPING_INITIAL_SPREAD_FIELD_ENTRY, false);
     }
 
+    void generateRecordStoreIns(BIRNonTerminator.RecordFieldAccess recordStoreIns) {
+        this.loadVar(recordStoreIns.lhsOp.variableDcl);
+        BRecordType recordType = (BRecordType) JvmCodeGenUtil.getImpliedType(recordStoreIns.lhsOp.variableDcl.type);
+        BField field = recordType.fields.get(recordStoreIns.fieldName);
+        String expectedRecordClass = this.jvmPackageGen.recordClassNames.get(recordType);
+        jvmCastGen.addUnboxInsn(this.mv, recordType);
+        // pr: field == null is a hack see BIRGen
+        if (field == null || expectedRecordClass == null || isOptionalRecordField(field)) {
+            // expectedRecordClass could be null when we don't have any actual values of that type
+            // TODO: We can handle optional field access as well but not sure we should (we will be leaking
+            // the implementation details of how optionals are implemented from JvmRecordGen to here)
+            // maybe we should factor that part out and reuse?
+            generateVirtualRecordStore(recordStoreIns);
+            return;
+        }
+        this.mv.visitInsn(DUP);
+        Label doVirtualAccess = new Label();
+        Label onAccessComplete = new Label();
+        this.mv.visitTypeInsn(INSTANCEOF, expectedRecordClass);
+        this.mv.visitJumpInsn(IFEQ, doVirtualAccess);
+        this.mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKEVIRTUAL, MAP_VALUE_IMPL, "isReadonly", "()Z", false);
+        mv.visitJumpInsn(IFNE,
+                doVirtualAccess); // if readonly we'll do the virtual call which will create the exception
+        generateDirectRecordStore(expectedRecordClass, recordStoreIns.fieldName, field.type,
+                recordStoreIns.rhsOp.variableDcl);
+        this.mv.visitJumpInsn(GOTO, onAccessComplete);
+
+        this.mv.visitLabel(doVirtualAccess);
+        generateVirtualRecordStore(recordStoreIns);
+        this.mv.visitJumpInsn(GOTO, onAccessComplete);
+        this.mv.visitLabel(onAccessComplete);
+    }
+
+    void generateDirectRecordStore(String recordClassName, String fieldName, BType fieldType,
+                                   BIRNode.BIRVariableDcl value) {
+        this.mv.visitTypeInsn(CHECKCAST, recordClassName);
+        this.loadVar(value);
+        this.mv.visitFieldInsn(PUTFIELD, recordClassName, fieldName, getTypeDesc(fieldType));
+    }
+
+    void generateVirtualRecordStore(BIRNonTerminator.RecordFieldAccess recordStoreIns) {
+        this.loadVar(recordStoreIns.keyOp.variableDcl);
+        BType valueType = recordStoreIns.rhsOp.variableDcl.type;
+        this.loadVar(recordStoreIns.rhsOp.variableDcl);
+
+        String methodDesc = switch (valueType.getKind()) {
+            case INT -> HANDLE_MAP_STORE_INT;
+            case BOOLEAN -> HANDLE_MAP_STORE_BOOLEAN;
+            case FLOAT -> HANDLE_MAP_STORE_FLOAT;
+            default -> {
+                jvmCastGen.addBoxInsn(this.mv, valueType);
+                yield HANDLE_MAP_STORE;
+            }
+        };
+        this.mv.visitMethodInsn(INVOKESTATIC, MAP_UTILS, "handleMapStore", methodDesc, false);
+    }
+
     void generateMapStoreIns(BIRNonTerminator.FieldAccess mapStoreIns) {
         // visit map_ref
         this.loadVar(mapStoreIns.lhsOp.variableDcl);
@@ -1476,11 +1539,67 @@ public class JvmInstructionGen {
                     jvmCastGen.addBoxInsn(this.mv, valueType);
                     yield HANDLE_MAP_STORE;
                 }
-            };
-            this.mv.visitMethodInsn(INVOKESTATIC, MAP_UTILS, "handleMapStore", methodDesc, false);
+            }
+            default -> valueType;
+        };
+    }
+
+    void generateRecordLoadIns(BIRNonTerminator.RecordFieldAccess recordFieldAccess) {
+        // visit map_ref
+        this.loadVar(recordFieldAccess.rhsOp.variableDcl);
+        BRecordType recordType = (BRecordType) JvmCodeGenUtil.getImpliedType(recordFieldAccess.rhsOp.variableDcl.type);
+        BField field = recordType.fields.get(recordFieldAccess.fieldName);
+        String expectedRecordClass = this.jvmPackageGen.recordClassNames.get(recordType);
+        jvmCastGen.addUnboxInsn(this.mv, recordType);
+        // pr: field == null is a hack see BIRGen
+        if (field == null || expectedRecordClass == null || isOptionalRecordField(field)) {
+            // expectedRecordClass could be null when we don't have any actual values of that type
+            // TODO: We can handle optional field access as well but not sure we should (we will be leaking
+            // the implementation details of how optionals are implemented from JvmRecordGen to here)
+            // maybe we should factor that part out and reuse?
+            generateVirtualRecordLoad(recordFieldAccess, recordType);
+            return;
+        }
+        this.mv.visitInsn(DUP);
+        Label doVirtualAccess = new Label();
+        Label onAccessComplete = new Label();
+        this.mv.visitTypeInsn(INSTANCEOF, expectedRecordClass);
+        this.mv.visitJumpInsn(IFEQ, doVirtualAccess);
+        generateDirectRecordLoad(expectedRecordClass, recordFieldAccess.fieldName,
+                getTypeDesc(recordFieldAccess.lhsOp.variableDcl.type), recordFieldAccess.lhsOp.variableDcl);
+        this.mv.visitJumpInsn(GOTO, onAccessComplete);
+
+        this.mv.visitLabel(doVirtualAccess);
+        generateVirtualRecordLoad(recordFieldAccess, recordType);
+        this.mv.visitJumpInsn(GOTO, onAccessComplete);
+        this.mv.visitLabel(onAccessComplete);
+    }
+
+    void generateDirectRecordLoad(String recordClassName, String fieldName, String fieldTypeDesc,
+                                  BIRNode.BIRVariableDcl target) {
+        this.mv.visitTypeInsn(CHECKCAST, recordClassName);
+        this.mv.visitFieldInsn(GETFIELD, recordClassName, fieldName, fieldTypeDesc);
+        this.storeToVar(target);
+    }
+
+    // pr: inline this again?
+    void generateVirtualRecordLoad(BIRNonTerminator.RecordFieldAccess recordFieldAccess, BRecordType recordType) {
+        // visit key_expr
+        this.loadVar(recordFieldAccess.keyOp.variableDcl);
+        BType targetType = recordFieldAccess.lhsOp.variableDcl.type;
+        this.mv.visitTypeInsn(CHECKCAST, B_STRING_VALUE);
+        boolean shouldUnbox;
+        if (recordFieldAccess.fillingRead) {
+            this.mv.visitMethodInsn(INVOKEINTERFACE, MAP_VALUE, "fillAndGet",
+                    PASS_OBJECT_RETURN_OBJECT, true);
+            shouldUnbox = true;
         } else {
-            jvmCastGen.addBoxInsn(this.mv, valueType);
-            this.mv.visitMethodInsn(INVOKESTATIC, MAP_UTILS, "handleMapStore", HANDLE_MAP_STORE, false);
+            shouldUnbox = generateMapGet(recordType, targetType);
+        }
+
+        // store in the target reg
+        if (shouldUnbox) {
+            jvmCastGen.addUnboxInsn(this.mv, targetType);
         }
     }
 
@@ -2347,6 +2466,9 @@ public class JvmInstructionGen {
                 case MAP_STORE:
                     generateMapStoreIns((FieldAccess) inst);
                     break;
+                case RECORD_STORE:
+                    generateRecordStoreIns((BIRNonTerminator.RecordFieldAccess) inst);
+                    break;
                 case NEW_TABLE:
                     generateTableNewIns((NewTable) inst);
                     break;
@@ -2364,6 +2486,9 @@ public class JvmInstructionGen {
                     break;
                 case MAP_LOAD:
                     generateMapLoadIns((FieldAccess) inst);
+                    break;
+                case RECORD_LOAD:
+                    generateRecordLoadIns((BIRNonTerminator.RecordFieldAccess) inst);
                     break;
                 case ARRAY_LOAD:
                     generateArrayValueLoad((FieldAccess) inst);

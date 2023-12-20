@@ -65,6 +65,7 @@ import org.wso2.ballerinalang.compiler.semantics.model.symbols.BSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.Symbols;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BInvokableType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BNilType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BRecordType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.util.Name;
 import org.wso2.ballerinalang.compiler.util.Names;
@@ -146,6 +147,8 @@ public class JvmPackageGen {
     private final ConfigMethodGen configMethodGen;
     private final Map<String, BIRFunctionWrapper> birFunctionMap;
     private final Map<String, String> globalVarClassMap;
+    // PR: we probably need a better abstract for this
+    public final Map<BRecordType, String> recordClassNames;
     private final Set<PackageID> dependentModules;
     private final BLangDiagnosticLog dlog;
     private final Types types;
@@ -163,6 +166,7 @@ public class JvmPackageGen {
         configMethodGen = new ConfigMethodGen();
         frameClassGen = new FrameClassGen();
         JvmInstructionGen.anyType = symbolTable.anyType;
+        recordClassNames = new HashMap<>();
     }
 
     private static String getBvmAlias(String orgName, String moduleName) {

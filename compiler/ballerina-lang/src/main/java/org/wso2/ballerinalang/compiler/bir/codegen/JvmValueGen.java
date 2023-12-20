@@ -320,7 +320,7 @@ public class JvmValueGen {
         LambdaGen lambdaGen = new LambdaGen(jvmPackageGen, jvmCastGen);
         cw.visit(V17, ACC_PUBLIC + ACC_SUPER + ACC_FINAL, className, RECORD_VALUE_CLASS, MAP_VALUE_IMPL,
                 new String[]{MAP_VALUE});
-
+        this.jvmPackageGen.recordClassNames.put(recordType, className);
         Map<String, BField> fields = recordType.fields;
         this.createRecordFields(cw, fields);
         jvmRecordGen.createAndSplitGetMethod(cw, fields, className, jvmCastGen);

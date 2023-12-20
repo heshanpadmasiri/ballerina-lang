@@ -410,7 +410,8 @@ public class BIRInstructionWriter extends BIRVisitor {
     }
 
     public void visit(BIRNonTerminator.FieldAccess birFieldAccess) {
-        if (birFieldAccess.kind == InstructionKind.MAP_LOAD || birFieldAccess.kind == InstructionKind.ARRAY_LOAD) {
+        if (birFieldAccess.kind == InstructionKind.MAP_LOAD || birFieldAccess.kind == InstructionKind.ARRAY_LOAD ||
+                birFieldAccess.kind == InstructionKind.RECORD_LOAD) {
             buf.writeBoolean(birFieldAccess.optionalFieldAccess);
             buf.writeBoolean(birFieldAccess.fillingRead);
         }
