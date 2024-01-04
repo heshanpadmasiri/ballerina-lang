@@ -397,6 +397,8 @@ public abstract class BIRNonTerminator extends BIRAbstractInstruction implements
         public boolean fillingRead = false;
         public boolean onInitialization = false;
 
+        public String fieldName = null;
+
         public FieldAccess(Location pos, InstructionKind kind,
                            BIROperand lhsOp, BIROperand keyOp, BIROperand rhsOp) {
             super(pos, kind);
@@ -414,14 +416,34 @@ public abstract class BIRNonTerminator extends BIRAbstractInstruction implements
             this.onInitialization = onInitialization;
         }
 
-        public FieldAccess(Location pos, InstructionKind kind,
-                           BIROperand lhsOp, BIROperand keyOp, BIROperand rhsOp, boolean optionalFieldAccess,
-                           boolean fillingRead) {
+        public FieldAccess(Location pos, InstructionKind kind, BIROperand lhsOp, BIROperand keyOp, BIROperand rhsOp,
+                           boolean onInitialization, String fieldName) {
+            super(pos, kind);
+            this.lhsOp = lhsOp;
+            this.keyOp = keyOp;
+            this.rhsOp = rhsOp;
+            this.onInitialization = onInitialization;
+            this.fieldName = fieldName;
+        }
+
+        public FieldAccess(Location pos, InstructionKind kind, BIROperand lhsOp, BIROperand keyOp, BIROperand rhsOp,
+                           boolean optionalFieldAccess, boolean fillingRead) {
             super(pos, kind);
             this.lhsOp = lhsOp;
             this.keyOp = keyOp;
             this.rhsOp = rhsOp;
             this.optionalFieldAccess = optionalFieldAccess;
+            this.fillingRead = fillingRead;
+        }
+
+        public FieldAccess(Location pos, InstructionKind kind, BIROperand lhsOp, BIROperand keyOp, BIROperand rhsOp,
+                           boolean optionalFieldAccess, boolean fillingRead, String fieldName) {
+            super(pos, kind);
+            this.lhsOp = lhsOp;
+            this.keyOp = keyOp;
+            this.rhsOp = rhsOp;
+            this.optionalFieldAccess = optionalFieldAccess;
+            this.fieldName = fieldName;
             this.fillingRead = fillingRead;
         }
 
@@ -439,28 +461,6 @@ public abstract class BIRNonTerminator extends BIRAbstractInstruction implements
         public void setRhsOperands(BIROperand[] operands) {
             keyOp = operands[0];
             rhsOp = operands[1];
-        }
-    }
-
-    /**
-     * Special case of {@code FieldAccess} when we know the record has the field at compile time.
-     *
-     * @since 2201.9.0
-     */
-    public static class RecordFieldAccess extends FieldAccess {
-
-        public final String fieldName;
-
-        public RecordFieldAccess(Location pos, InstructionKind kind, BIROperand lhsOp, BIROperand keyOp,
-                                 BIROperand rhsOp, boolean optionalFieldAccess, boolean fillingRead, String fieldName) {
-            super(pos, kind, lhsOp, keyOp, rhsOp, optionalFieldAccess, fillingRead);
-            this.fieldName = fieldName;
-        }
-
-        public RecordFieldAccess(Location pos, InstructionKind kind, BIROperand lhsOp, BIROperand keyOp,
-                                 BIROperand rhsOp, boolean onInitialization, String fieldName) {
-            super(pos, kind, lhsOp, keyOp, rhsOp, onInitialization);
-            this.fieldName = fieldName;
         }
     }
 

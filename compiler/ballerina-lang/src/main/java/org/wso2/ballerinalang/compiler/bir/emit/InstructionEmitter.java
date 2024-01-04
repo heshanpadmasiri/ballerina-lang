@@ -91,8 +91,6 @@ class InstructionEmitter {
                 return emitInsRecordDefaultFpLoad((BIRNonTerminator.RecordDefaultFPLoad) ins, tabs);
             case MAP_LOAD:
             case MAP_STORE:
-            case RECORD_LOAD:
-            case RECORD_STORE:
             case ARRAY_LOAD:
             case ARRAY_STORE:
             case OBJECT_LOAD:
@@ -358,8 +356,7 @@ class InstructionEmitter {
         String str = "";
         str += emitTabs(tabs);
         str += emitVarRef(ins.lhsOp);
-        if (ins.kind == InstructionKind.MAP_LOAD || ins.kind == InstructionKind.ARRAY_LOAD ||
-                ins.kind == InstructionKind.RECORD_LOAD) {
+        if (ins.kind == InstructionKind.MAP_LOAD || ins.kind == InstructionKind.ARRAY_LOAD) {
             str += emitSpaces(1);
             str += "=";
             str += emitSpaces(1);
@@ -368,7 +365,7 @@ class InstructionEmitter {
             str += emitVarRef(ins.keyOp);
             str += "]";
         } else if (ins.kind == InstructionKind.MAP_STORE || ins.kind == InstructionKind.ARRAY_STORE ||
-                ins.kind == InstructionKind.OBJECT_STORE || ins.kind == InstructionKind.RECORD_STORE) {
+                ins.kind == InstructionKind.OBJECT_STORE) {
             str += "[";
             str += emitVarRef(ins.keyOp);
             str += "]";

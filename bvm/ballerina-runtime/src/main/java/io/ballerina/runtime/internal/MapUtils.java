@@ -172,6 +172,7 @@ public class MapUtils {
                     ErrorCodes.INVALID_RECORD_FIELD_ACCESS, fieldName, mapValue.getType()));
         }
 
+        // FIXME: we need to overload checkIsType to primitive types as well
         if (TypeChecker.checkIsType(value, recFieldType)) {
             return true;
         }

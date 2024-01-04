@@ -217,6 +217,7 @@ import javax.xml.XMLConstants;
 
 import static org.ballerinalang.model.tree.NodeKind.CLASS_DEFN;
 import static org.ballerinalang.model.tree.NodeKind.INVOCATION;
+import static org.ballerinalang.model.tree.NodeKind.LITERAL;
 import static org.ballerinalang.model.tree.NodeKind.STATEMENT_EXPRESSION;
 import static org.wso2.ballerinalang.compiler.bir.writer.BIRWriterUtils.createBIRAnnotationAttachment;
 import static org.wso2.ballerinalang.compiler.bir.writer.BIRWriterUtils.getBIRAnnotAttachments;
@@ -2803,9 +2804,9 @@ public class BIRGen extends BLangNodeVisitor {
             BIRNonTerminator.FieldAccess ins;
             if (recordDirectAccessPossible(astIndexBasedAccessExpr, astAccessExprExprType)) {
                 BLangLiteral literal = (BLangLiteral) astIndexBasedAccessExpr.indexExpr;
-                ins = new BIRNonTerminator.RecordFieldAccess(astIndexBasedAccessExpr.pos, InstructionKind.RECORD_STORE,
-                        varRefRegIndex, keyRegIndex, rhsOp, astIndexBasedAccessExpr.isStoreOnCreation,
-                        (String) literal.value);
+                String fieldName = (String) literal.value;
+                ins = new BIRNonTerminator.FieldAccess(astIndexBasedAccessExpr.pos, insKind, varRefRegIndex,
+                        keyRegIndex, rhsOp, astIndexBasedAccessExpr.isStoreOnCreation, fieldName);
             } else {
                 ins = new BIRNonTerminator.FieldAccess(astIndexBasedAccessExpr.pos, insKind, varRefRegIndex,
                         keyRegIndex, rhsOp, astIndexBasedAccessExpr.isStoreOnCreation);
@@ -2843,9 +2844,10 @@ public class BIRGen extends BLangNodeVisitor {
             BIRNonTerminator.FieldAccess ins;
             if (recordDirectAccessPossible(astIndexBasedAccessExpr, astAccessExprExprType)) {
                 BLangLiteral literal = (BLangLiteral) astIndexBasedAccessExpr.indexExpr;
-                ins = new BIRNonTerminator.RecordFieldAccess(astIndexBasedAccessExpr.pos, InstructionKind.RECORD_LOAD,
-                        tempVarRef, keyRegIndex, varRefRegIndex, except,
-                        astIndexBasedAccessExpr.isLValue && !astIndexBasedAccessExpr.leafNode, (String) literal.value);
+                String fieldName = (String) literal.value;
+                ins = new BIRNonTerminator.FieldAccess(astIndexBasedAccessExpr.pos, insKind, tempVarRef, keyRegIndex,
+                        varRefRegIndex, except, astIndexBasedAccessExpr.isLValue && !astIndexBasedAccessExpr.leafNode,
+                        fieldName);
             } else {
                 ins = new BIRNonTerminator.FieldAccess(astIndexBasedAccessExpr.pos, insKind, tempVarRef, keyRegIndex,
                         varRefRegIndex, except, astIndexBasedAccessExpr.isLValue && !astIndexBasedAccessExpr.leafNode);
