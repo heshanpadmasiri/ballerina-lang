@@ -967,7 +967,7 @@ public class SyntacticTypeEngine {
         unAnalyzedTypes.add(tupleType);
 
         for (Type member : tupleType.getTupleTypes()) {
-            if (!hasFillerValue(member, unAnalyzedTypes)) {
+            if (!TypeChecker.hasFillerValue(member, unAnalyzedTypes)) {
                 return false;
             }
         }
