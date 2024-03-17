@@ -59,7 +59,7 @@ import io.ballerina.runtime.internal.types.BTypeIdSet;
 import io.ballerina.runtime.internal.types.BTypedescType;
 import io.ballerina.runtime.internal.types.BUnionType;
 import io.ballerina.runtime.internal.types.BXmlType;
-import io.ballerina.runtime.internal.types.semType.BSemType;
+import io.ballerina.runtime.internal.types.semtype.BSemType;
 import io.ballerina.runtime.internal.values.ArrayValue;
 import io.ballerina.runtime.internal.values.DecimalValue;
 import io.ballerina.runtime.internal.values.ErrorValue;
@@ -106,8 +106,8 @@ import static io.ballerina.runtime.internal.TypeHelper.members;
 import static io.ballerina.runtime.internal.TypeHelper.paramValueType;
 import static io.ballerina.runtime.internal.TypeHelper.referredType;
 import static io.ballerina.runtime.internal.TypeHelper.typeConstraint;
-import static io.ballerina.runtime.internal.types.semType.Core.belongToBasicType;
-import static io.ballerina.runtime.internal.types.semType.SemTypeUtils.BasicTypeCodes.BT_BTYPE;
+import static io.ballerina.runtime.internal.types.semtype.Core.belongToBasicType;
+import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_BTYPE;
 
 public class SyntacticTypeEngine {
 
@@ -433,7 +433,6 @@ public class SyntacticTypeEngine {
             return true;
         }
 
-        // FIXME:
         return checkIsLikeOnValue(errors, sourceValue, sourceType, targetType, unresolvedValues, allowNumericConversion,
                 varName);
     }
@@ -533,8 +532,6 @@ public class SyntacticTypeEngine {
                 }
                 return false;
             case TypeTags.UNION_TAG:
-                // FIXME:checkIsLikeUnionType(errors, sourceValue, (BUnionType) targetType, unresolvedValues,
-                // allowNumericConversion, varName);
                 return TypeChecker.checkIsLikeUnionType(errors, sourceValue, targetType, unresolvedValues,
                         allowNumericConversion, varName);
             case TypeTags.INTERSECTION_TAG:
@@ -1178,7 +1175,6 @@ public class SyntacticTypeEngine {
         return sourceVal;
     }
 
-    // FIXME: move this up
     private static boolean checkConstraints(Type sourceConstraint, Type targetConstraint,
                                             List<TypeChecker.TypePair> unresolvedTypes) {
         if (sourceConstraint == null) {
@@ -2668,10 +2664,10 @@ public class SyntacticTypeEngine {
                         if (!TypeChecker.checkIsLikeType(errors, (valueEntry.getValue()), restFieldType,
                                 unresolvedValues,
                                 allowNumericConversion, fieldNameLong)) {
-                            TypeChecker.addErrorMessage(initialErrorCount, "value of field '" + valueEntry.getKey() +
-                                            "' adding to the record '" + targetType + "' should be of type '" + restFieldType +
-                                            "', found '" + TypeConverter.getShortSourceValue(valueEntry.getValue()) + "'",
-                                    errors);
+                            TypeChecker.addErrorMessage(initialErrorCount,
+                                    "value of field '" + valueEntry.getKey() + "' adding to the record '" +
+                                            targetType + "' should be of type '" + restFieldType + "', found '" +
+                                            TypeConverter.getShortSourceValue(valueEntry.getValue()) + "'", errors);
                             returnVal = false;
                         }
                     } else {
