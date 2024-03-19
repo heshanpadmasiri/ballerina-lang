@@ -894,7 +894,7 @@ public class TypeResolver {
                     data.env.enclPkg.symbol.pkgID, null, data.env.scope.owner, td.pos, BUILTIN);
             BArrayType arrType;
             if (td.sizes.size() == 0) {
-                arrType = new BArrayType(resultType, arrayTypeSymbol);
+                arrType = new BArrayType(symTable.typeEnv(), resultType, arrayTypeSymbol);
             } else {
                 BLangExpression size = td.sizes.get(i);
                 if (size.getKind() == NodeKind.LITERAL || size.getKind() == NodeKind.NUMERIC_LITERAL) {
@@ -907,7 +907,8 @@ public class TypeResolver {
                     } else {
                         arrayState = BArrayState.CLOSED;
                     }
-                    arrType = new BArrayType(resultType, arrayTypeSymbol, sizeIndicator, arrayState);
+                    arrType =
+                            new BArrayType(symTable.typeEnv(), resultType, arrayTypeSymbol, sizeIndicator, arrayState);
                 } else {
                     if (size.getKind() != NodeKind.SIMPLE_VARIABLE_REF) {
                         dlog.error(size.pos, DiagnosticErrorCode.INCOMPATIBLE_TYPES, symTable.intType,
@@ -958,7 +959,8 @@ public class TypeResolver {
                     } else {
                         length = (int) lengthCheck;
                     }
-                    arrType = new BArrayType(resultType, arrayTypeSymbol, length, BArrayState.CLOSED);
+                    arrType =
+                            new BArrayType(symTable.typeEnv(), resultType, arrayTypeSymbol, length, BArrayState.CLOSED);
                 }
             }
             arrayTypeSymbol.type = arrType;
@@ -978,6 +980,7 @@ public class TypeResolver {
             return symTable.semanticError;
         }
 
+        // FIXME:
         firstDimArrType.eType = resolveTypeDesc(data.env, data.typeDefinition, data.depth + 1, td.elemtype, data);
         symResolver.markParameterizedType(firstDimArrType, firstDimArrType.eType);
         resolvingTypes.pop();
@@ -1316,7 +1319,7 @@ public class TypeResolver {
         BTypeSymbol unionTypeSymbol = Symbols.createTypeSymbol(SymTag.UNION_TYPE, Flags.asMask(EnumSet.of(Flag.PUBLIC)),
                 Names.EMPTY, symEnv.enclPkg.symbol.pkgID, null,
                 symEnv.scope.owner, td.pos, BUILTIN);
-        BUnionType unionType = new BUnionType(unionTypeSymbol, memberTypes, false, false);
+        BUnionType unionType = new BUnionType(types.typeEnv(), unionTypeSymbol, memberTypes, false, false);
         unionTypeSymbol.type = unionType;
         td.setBType(unionType);
         resolvingTypes.push(unionType);
