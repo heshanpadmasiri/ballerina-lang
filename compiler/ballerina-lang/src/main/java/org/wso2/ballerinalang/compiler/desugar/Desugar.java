@@ -322,6 +322,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
 import javax.xml.XMLConstants;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.UNDERSCORE;
@@ -2007,7 +2008,7 @@ public class Desugar extends BLangNodeVisitor {
         BVarSymbol stringVarSymbol = new BVarSymbol(0, null, null,
                 symTable.stringType, null, symTable.builtinPos, SymbolOrigin.VIRTUAL);
         BType entriesType = new BMapType(TypeTags.MAP,
-                new BTupleType(Arrays.asList(new BTupleMember(symTable.stringType, stringVarSymbol),
+                new BTupleType(symTable.typeEnv(), Arrays.asList(new BTupleMember(symTable.stringType, stringVarSymbol),
                         new BTupleMember(constraintType, varSymbol))), null);
         BLangSimpleVariable entriesInvocationVar = defVariable(pos, entriesType, parentBlockStmt,
                 types.addConversionExprIfRequired(entriesInvocation, entriesType),
@@ -2427,7 +2428,7 @@ public class Desugar extends BLangNodeVisitor {
             add(new BTupleMember(symTable.stringType, stringVarSymbol));
             add(new BTupleMember(symTable.anyType, anyVarSymbol));
         }};
-        return new BTupleType(typeList);
+        return new BTupleType(symTable.typeEnv(), typeList);
     }
 
     /**
@@ -4041,7 +4042,7 @@ public class Desugar extends BLangNodeVisitor {
                         symTable.stringType, null, symTable.builtinPos, VIRTUAL);
                 BVarSymbol anydataVarSymbol = new BVarSymbol(0, null, null,
                         symTable.anydataType, null, symTable.builtinPos, VIRTUAL);
-                BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(Arrays.asList(
+                BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(symTable.typeEnv(), Arrays.asList(
                         new BTupleMember(symTable.stringType, stringVarSymbol),
                         new BTupleMember(symTable.anydataType, anydataVarSymbol))), null);
                 BLangInvocation entriesInvocation = generateMapEntriesInvocation(errorDetailVarRef, entriesType);
@@ -4220,7 +4221,8 @@ public class Desugar extends BLangNodeVisitor {
                 null, null);
         BVarSymbol stringVarSymbol = new BVarSymbol(0, null, null,
                 symTable.stringType, null, symTable.builtinPos, VIRTUAL);
-        BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(Arrays.asList(new BTupleMember(
+        BMapType entriesType =
+                new BMapType(TypeTags.MAP, new BTupleType(symTable.typeEnv(), Arrays.asList(new BTupleMember(
                 symTable.stringType, stringVarSymbol), new BTupleMember(constraintType, varSymbol))), null);
         BLangInvocation entriesInvocation = generateMapEntriesInvocation(matchExprVarRef, entriesType);
         BLangSimpleVariableDef entriesVarDef = createVarDef("$entries$", entriesType, entriesInvocation, pos);
@@ -4413,7 +4415,7 @@ public class Desugar extends BLangNodeVisitor {
         BVarSymbol varSymbol = Symbols.createVarSymbolForTupleMember(restType);
         BVarSymbol stringVarSymbol = new BVarSymbol(0, null, null,
                 symTable.stringType, null, symTable.builtinPos, VIRTUAL);
-        BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(Arrays.asList(
+        BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(symTable.typeEnv(), Arrays.asList(
                 new BTupleMember(symTable.stringType, stringVarSymbol),
                 new BTupleMember(restType, varSymbol))), null);
         BLangInvocation entriesInvocation = generateMapEntriesInvocation(varRef, entriesType);
@@ -4534,7 +4536,7 @@ public class Desugar extends BLangNodeVisitor {
             BVarSymbol varSymbol = new BVarSymbol(restType.flags, null, null, restType, null, null, null);
             BVarSymbol stringVarSymbol = new BVarSymbol(0, null, null,
                     symTable.stringType, null, symTable.builtinPos, VIRTUAL);
-            BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(Arrays.asList(
+            BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(symTable.typeEnv(), Arrays.asList(
                     new BTupleMember(symTable.stringType, stringVarSymbol),
                     new BTupleMember(restType, varSymbol))), null);
             BLangInvocation entriesInvocation = generateMapEntriesInvocation(tempCastVarRef, entriesType);
@@ -4709,7 +4711,7 @@ public class Desugar extends BLangNodeVisitor {
                         symTable.stringType, null, symTable.builtinPos, VIRTUAL);
                 BVarSymbol anydataVarSymbol = new BVarSymbol(0, null, null,
                         symTable.anydataType, null, symTable.builtinPos, VIRTUAL);
-                BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(Arrays.asList(
+                BMapType entriesType = new BMapType(TypeTags.MAP, new BTupleType(symTable.typeEnv(), Arrays.asList(
                         new BTupleMember(symTable.stringType, stringVarSymbol),
                         new BTupleMember(symTable.anydataType, anydataVarSymbol))), null);
                 BLangInvocation entriesInvocation = generateMapEntriesInvocation(errorDetailVarRef, entriesType);
@@ -9548,7 +9550,7 @@ public class Desugar extends BLangNodeVisitor {
                 memberTypes.add(
                         new BTupleMember(member, varSymbol));
             }
-            BTupleType tupleType = new BTupleType(memberTypes);
+            BTupleType tupleType = new BTupleType(symTable.typeEnv(), memberTypes);
             if (tupleVariable.restVariable != null) {
                 BArrayType restArrayType = (BArrayType) getStructuredBindingPatternType(tupleVariable.restVariable);
                 tupleType.restType = restArrayType.eType;

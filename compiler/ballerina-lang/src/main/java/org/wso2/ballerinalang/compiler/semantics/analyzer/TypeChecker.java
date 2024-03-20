@@ -221,6 +221,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
 import javax.xml.XMLConstants;
 
 import static io.ballerina.types.BasicTypeCode.BT_INT;
@@ -1757,7 +1758,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
             return memTypes.get(0).type;
         }
 
-        return new BTupleType(memTypes);
+        return new BTupleType(symTable.typeEnv(), memTypes);
     }
 
     protected BType checkListConstructorCompatibility(BType bType, BLangListConstructorExpr listConstructor,
@@ -1869,7 +1870,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                 List<BTupleMember> members = new ArrayList<>();
                 inferredTupleDetails.fixedMemberTypes.forEach(memberType -> members.add(new BTupleMember(memberType,
                         new BVarSymbol(memberType.flags, null, null, memberType, null, null, null))));
-                BTupleType tupleType = new BTupleType(members);
+                BTupleType tupleType = new BTupleType(symTable.typeEnv(), members);
                 if (!inferredTupleDetails.restMemberTypes.isEmpty()) {
                     tupleType.restType = getRepresentativeBroadType(inferredTupleDetails.restMemberTypes);
                 }
@@ -2337,7 +2338,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
         List<BTupleMember> members = new ArrayList<>();
         fixedMemberTypes.forEach(memberType -> members.add(new BTupleMember(memberType,
                 new BVarSymbol(memberType.flags, null, null, memberType, null, null, null))));
-        BTupleType tupleType = new BTupleType(members);
+        BTupleType tupleType = new BTupleType(symTable.typeEnv(), members);
         if (!restMemberTypes.isEmpty()) {
             tupleType.restType = getRepresentativeBroadType(restMemberTypes);
         }
@@ -3301,7 +3302,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                     null, null);
             results.add(new BTupleMember(memberType, varSymbol));
         }
-        BTupleType actualType = new BTupleType(results);
+        BTupleType actualType = new BTupleType(symTable.typeEnv(), results);
         if (varRefExpr.restParam != null) {
             BLangExpression restExpr = varRefExpr.restParam;
             ((BLangVariableReference) restExpr).isLValue = true;
@@ -3962,7 +3963,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
             pathSegmentCount--;
         }
 
-        BTupleType resourcePathType = new BTupleType(new ArrayList<>());
+        BTupleType resourcePathType = new BTupleType(symTable.typeEnv(), new ArrayList<>());
         if (pathSegmentCount > 0 && lastPathSegmentSym.kind != SymbolKind.RESOURCE_ROOT_PATH_SEGMENT) {
             for (BResourcePathSegmentSymbol s : pathSegmentSymbols.subList(0, pathSegmentCount)) {
                 BVarSymbol varSymbol = Symbols.createVarSymbolForTupleMember(s.type);
@@ -7308,7 +7309,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                 }
             }
 
-            BTupleType tupleType = new BTupleType(tupleMembers);
+            BTupleType tupleType = new BTupleType(symTable.typeEnv(), tupleMembers);
             tupleType.restType = tupleRestType;
             listTypeRestArg = tupleType;
             referredListTypeRestArg = tupleType;

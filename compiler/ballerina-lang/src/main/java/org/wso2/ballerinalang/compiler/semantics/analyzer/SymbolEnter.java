@@ -178,6 +178,7 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.xml.XMLConstants;
 
 import static org.ballerinalang.model.elements.PackageID.ARRAY;
@@ -1873,7 +1874,7 @@ public class SymbolEnter extends BLangNodeVisitor {
 
         switch (typeDef.typeNode.getKind()) {
             case TUPLE_TYPE_NODE:
-                newTypeNode = new BTupleType(null, new ArrayList<>(), true);
+                newTypeNode = new BTupleType(symTable.typeEnv(), null, new ArrayList<>(), true);
                 typeDefSymbol = Symbols.createTypeSymbol(SymTag.TUPLE_TYPE, Flags.asMask(typeDef.flagSet),
                         newTypeDefName, env.enclPkg.symbol.pkgID, newTypeNode, env.scope.owner,
                         typeDef.name.pos, SOURCE);
@@ -2481,7 +2482,7 @@ public class SymbolEnter extends BLangNodeVisitor {
                                                 Symbols.createVarSymbolForTupleMember(m))));
                             }
                         }
-                        tupleTypeNode = new BTupleType(members);
+                        tupleTypeNode = new BTupleType(symTable.typeEnv(), members);
                         tupleTypeNode.restType = getPossibleRestTypeForUnion(varNode, possibleTypes);
                         break;
                     }
@@ -2499,7 +2500,7 @@ public class SymbolEnter extends BLangNodeVisitor {
                         BVarSymbol varSymbol = Symbols.createVarSymbolForTupleMember(type);
                         members.add(new BTupleMember(type, varSymbol));
                     }
-                    tupleTypeNode = new BTupleType(members);
+                    tupleTypeNode = new BTupleType(symTable.typeEnv(), members);
                     tupleTypeNode.restType = getPossibleRestTypeForUnion(varNode, possibleTypes);
                     break;
                 case TypeTags.ANY:
@@ -2509,7 +2510,7 @@ public class SymbolEnter extends BLangNodeVisitor {
                         BVarSymbol varSymbol = Symbols.createVarSymbolForTupleMember(referredType);
                         memberTupleTypes.add(new BTupleMember(referredType, varSymbol));
                     }
-                    tupleTypeNode = new BTupleType(memberTupleTypes);
+                    tupleTypeNode = new BTupleType(symTable.typeEnv(), memberTupleTypes);
                     if (varNode.restVariable != null) {
                         tupleTypeNode.restType = referredType;
                     }
@@ -2520,7 +2521,7 @@ public class SymbolEnter extends BLangNodeVisitor {
                 case TypeTags.ARRAY:
                     List<BTupleMember> tupleTypes = new ArrayList<>();
                     BArrayType arrayType = (BArrayType) referredType;
-                    tupleTypeNode = new BTupleType(tupleTypes);
+                    tupleTypeNode = new BTupleType(symTable.typeEnv(), tupleTypes);
                     BType eType = arrayType.eType;
                     for (int i = 0; i < arrayType.size; i++) {
                         BType type = arrayType.eType;
@@ -2578,7 +2579,7 @@ public class SymbolEnter extends BLangNodeVisitor {
                 }
             }
             if (!members.isEmpty()) {
-                BTupleType restTupleType = new BTupleType(members);
+                BTupleType restTupleType = new BTupleType(symTable.typeEnv(), members);
                 restTupleType.restType = restType;
                 type = restTupleType;
             } else {

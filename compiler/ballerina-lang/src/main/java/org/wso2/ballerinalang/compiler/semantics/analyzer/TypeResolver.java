@@ -980,7 +980,6 @@ public class TypeResolver {
             return symTable.semanticError;
         }
 
-        // FIXME:
         firstDimArrType.eType = resolveTypeDesc(data.env, data.typeDefinition, data.depth + 1, td.elemtype, data);
         symResolver.markParameterizedType(firstDimArrType, firstDimArrType.eType);
         resolvingTypes.pop();
@@ -998,7 +997,7 @@ public class TypeResolver {
                 Names.EMPTY, symEnv.enclPkg.symbol.pkgID, null,
                 symEnv.scope.owner, td.pos, BUILTIN);
         List<BTupleMember> memberTypes = new ArrayList<>();
-        BTupleType tupleType = new BTupleType(tupleTypeSymbol, memberTypes);
+        BTupleType tupleType = new BTupleType(symTable.typeEnv(), tupleTypeSymbol, memberTypes);
         tupleTypeSymbol.type = tupleType;
         td.setBType(tupleType);
         resolvingTypes.push(tupleType);
@@ -1383,7 +1382,6 @@ public class TypeResolver {
         type.setOriginalMemberTypes(memberTypes);
         memberTypes.clear();
         memberTypes.addAll(flattenMemberTypes);
-        type.populateMemberSemTypesAndNonSemTypes();
     }
 
     private BType resolveTypeDesc(BLangIntersectionTypeNode td, ResolverData data, boolean anonymous) {

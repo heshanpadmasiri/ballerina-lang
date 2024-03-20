@@ -447,7 +447,6 @@ class JMethodResolver {
         for (BVarSymbol param : pathParamSymbols) {
             paramTypes.remove(param.type);
         }
-        // Access context via interop validator
         BArrayType pathParamArrayType = new BArrayType(symbolTable.typeEnv(), symbolTable.anydataType);
         paramTypes.add(initialPathParamIndex, pathParamArrayType);
         jMethodRequest.bParamTypes = paramTypes.toArray(new BType[0]);
