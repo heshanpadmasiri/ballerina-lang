@@ -65,6 +65,22 @@ public final class SemTypeUtils {
     public static final BSemType ALL_SEMTYPE =
             SemTypeBuilder.from(BT_NIL, BT_BOOLEAN, BT_STRING, BT_DECIMAL, BT_FLOAT, BT_INT);
 
+    // FIXME:
+
+    private static final int BT_OBJECT = 0x10;
+
+    private static final int BT_UNDEF = 0x12;
+    private static final int VT_COUNT = BT_OBJECT + 1;
+    private static final int VT_MASK = (1 << VT_COUNT) - 1;
+    private static final BSemType VAL = SemTypeBuilder.basicTypeUnion(VT_MASK);
+    private static final BSemType UNDEF = SemTypeBuilder.from(BT_UNDEF);
+
+    private static final BSemType INNER = union(VAL, UNDEF);
+    private static final CellAtomicType CELL_ATOMIC_VAL = new CellAtomicType(VAL, Mutability.CELL_MUT_LIMITED);
+    private static final CellAtomicType CELL_ATOMIC_NEVER = new CellAtomicType(INNER, Mutability.CELL_MUT_LIMITED);
+    public static final TypeAtom ATOM_CELL_VAL = new TypeAtom(0, CELL_ATOMIC_VAL);
+    public static final TypeAtom ATOM_CELL_NEVER = new TypeAtom(0, CELL_ATOMIC_NEVER);
+
     public static final class BasicTypeCodes {
 
         // TODO: eventually these codes need to match with the compiler side
@@ -80,6 +96,12 @@ public final class SemTypeUtils {
     }
 
     public static final class SemTypeBuilder {
+
+        public static BSemType basicTypeUnion(int bits) {
+            int some = 0;
+            SubType[] subTypeData = new SubType[N_TYPES];
+            return new BSemType(bits, some, subTypeData);
+        }
 
         public static BSemType from(int... basicTypeCodes) {
             int all = 0;
