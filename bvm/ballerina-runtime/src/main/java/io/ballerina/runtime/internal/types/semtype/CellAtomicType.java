@@ -20,8 +20,6 @@
 
 package io.ballerina.runtime.internal.types.semtype;
 
-// Marker interface all Bdd nodes must support
-// TODO: limit the possible implementations
-public interface Bdd extends SubTypeData {
+public record CellAtomicType(BSemType ty, Mutability mut) implements AtomicType {
 
 }

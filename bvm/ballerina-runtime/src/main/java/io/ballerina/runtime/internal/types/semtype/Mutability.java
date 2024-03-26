@@ -20,8 +20,8 @@
 
 package io.ballerina.runtime.internal.types.semtype;
 
-// Marker interface all Bdd nodes must support
-// TODO: limit the possible implementations
-public interface Bdd extends SubTypeData {
-
+public enum Mutability {
+    CELL_MUT_NONE,
+    CELL_MUT_LIMITED,
+    CELL_MUT_UNLIMITED
 }

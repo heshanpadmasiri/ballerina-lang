@@ -26,6 +26,34 @@ public final class BddUtils {
         return new BddNode(atom, BddLeafNode.TRUE, BddLeafNode.FALSE, BddLeafNode.FALSE);
     }
 
+    public static SubTypeData bddSubtypeUnion(SubTypeData t1, SubTypeData t2) {
+        if (t1 instanceof BddNode b1 && t2 instanceof BddNode b2) {
+            return bddUnion(b1, b2);
+        }
+        throw new UnsupportedOperationException("bddSubtypeUnion not supported for non-BddNode types");
+    }
+
+    public static SubTypeData bddSubtypeIntersect(SubTypeData t1, SubTypeData t2) {
+        if (t1 instanceof BddNode b1 && t2 instanceof BddNode b2) {
+            return bddIntersect(b1, b2);
+        }
+        throw new UnsupportedOperationException("bddSubtypeIntersect not supported for non-BddNode types");
+    }
+
+    public static SubTypeData bddSubtypeDiff(SubTypeData t1, SubTypeData t2) {
+        if (t1 instanceof BddNode b1 && t2 instanceof BddNode b2) {
+            return bddDiff(b1, b2);
+        }
+        throw new UnsupportedOperationException("bddSubtypeDiff not supported for non-BddNode types");
+    }
+
+    public static SubTypeData bddSubtypeComplement(SubTypeData t) {
+        if (t instanceof BddNode bddNode) {
+            return bddCompliment(bddNode);
+        }
+        throw new UnsupportedOperationException("bddSubtypeComplement not supported for non-BddNode types");
+    }
+
     private static Bdd bddCreate(Atom atom, Bdd left, Bdd middle, Bdd right) {
         if (middle == BddLeafNode.TRUE) {
             return BddLeafNode.TRUE;
