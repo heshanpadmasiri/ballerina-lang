@@ -458,4 +458,13 @@ public class BSemType implements Type {
         }
         return Optional.of(List.of(orderedUnionMembers));
     }
+
+    // Use these infavor of directly access fields so we can easily turn this to a record in the future
+    public int all() {
+        return all;
+    }
+
+    public int some() {
+        return some;
+    }
 }

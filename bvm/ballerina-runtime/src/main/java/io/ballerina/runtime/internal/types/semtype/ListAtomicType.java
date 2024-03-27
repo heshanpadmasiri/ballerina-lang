@@ -14,12 +14,21 @@
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
- *
- *
  */
 
 package io.ballerina.runtime.internal.types.semtype;
 
-record CellAtomicType(BSemType ty, Mutability mut) implements AtomicType {
+import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_CELL;
 
+public record ListAtomicType(FixedLengthArray members, BSemType rest) implements AtomicType {
+
+    public ListAtomicType {
+        validate(members, rest);
+    }
+
+    private static void validate(FixedLengthArray members, BSemType rest) {
+        if (rest.all() != 0 && rest.some() != 1 << BT_CELL) {
+            throw new IllegalStateException("rest type must be a cell atomic type");
+        }
+    }
 }

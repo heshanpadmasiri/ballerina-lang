@@ -50,6 +50,7 @@ import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicType
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_DECIMAL;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_FLOAT;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_INT;
+import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_LIST;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_NEVER;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_NIL;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_STRING;
@@ -61,9 +62,10 @@ import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicType
 //  any dependency outside of Semtype for this class.
 public final class SemTypeUtils {
 
+    public static final FixedLengthArray EMPTY = new FixedLengthArray(List.of(), 0);
     public static final BSemType ALL_BTYPE = SemTypeBuilder.from(BT_BTYPE);
     public static final BSemType ALL_SEMTYPE =
-            SemTypeBuilder.from(BT_NIL, BT_BOOLEAN, BT_STRING, BT_DECIMAL, BT_FLOAT, BT_INT);
+            SemTypeBuilder.from(BT_NIL, BT_BOOLEAN, BT_STRING, BT_DECIMAL, BT_FLOAT, BT_INT, BT_LIST);
 
     // FIXME:
 
@@ -80,6 +82,7 @@ public final class SemTypeUtils {
     private static final CellAtomicType CELL_ATOMIC_NEVER = new CellAtomicType(INNER, Mutability.CELL_MUT_LIMITED);
     public static final TypeAtom ATOM_CELL_VAL = new TypeAtom(0, CELL_ATOMIC_VAL);
     public static final TypeAtom ATOM_CELL_NEVER = new TypeAtom(0, CELL_ATOMIC_NEVER);
+    public static final BSemType NEVER = SemTypeBuilder.from(BT_NEVER);
 
     public static final class BasicTypeCodes {
 
@@ -91,8 +94,10 @@ public final class SemTypeUtils {
         public static final int BT_DECIMAL = 0x04;
         public static final int BT_FLOAT = 0x05;
         public static final int BT_INT = 0x06;
-        public static final int BT_BTYPE = 0x07;
-        public static final int N_TYPES = 8;
+        public static final int BT_CELL = 0x07;
+        public static final int BT_LIST = 0x08;
+        public static final int BT_BTYPE = 0x09;
+        public static final int N_TYPES = BT_BTYPE + 1;
     }
 
     public static final class SemTypeBuilder {
@@ -101,6 +106,21 @@ public final class SemTypeUtils {
             int some = 0;
             SubType[] subTypeData = new SubType[N_TYPES];
             return new BSemType(bits, some, subTypeData);
+        }
+
+        public static BSemType basicSubtype(int basicTypeCode, SubTypeData data) {
+            int some = 1 << basicTypeCode;
+            SubType[] subTypes = new SubType[N_TYPES];
+            subTypes[basicTypeCode] = switch (basicTypeCode) {
+                case BT_BOOLEAN -> new BooleanSubType(((BooleanSubType.BooleanSubTypeData) data).value());
+                case BT_STRING -> new StringSubType(data);
+                case BT_DECIMAL -> new DecimalSubType(data);
+                case BT_FLOAT -> new FloatSubType(data);
+                case BT_INT -> new IntSubType(data);
+                default -> throw new IllegalStateException("Unexpected value: " + basicTypeCode);
+            };
+            return new BSemType(0, some, subTypes);
+
         }
 
         public static BSemType from(int... basicTypeCodes) {
@@ -229,10 +249,16 @@ public final class SemTypeUtils {
 
         private static final int SEMTYPE_MASK =
                 (1 << BT_NIL) | (1 << BT_BOOLEAN) | (1 << BT_STRING) | (1 << BT_DECIMAL) | (1 << BT_FLOAT) |
-                        (1 << BT_INT);
+                        (1 << BT_INT) | (1 << BT_LIST);
         // NOTE: this is part of a temperory solution so we don't have to write builders for each type, until a given
         //  BType has been implemented in semtype (at which point you anyway can't create an instance because we remove
         //  the class) we can use this to convert the BType to a SemType.
+        public static BSemType from(Type type) {
+            if (type instanceof BSemType semType) {
+                return semType;
+            }
+            return from((BType) type);
+        }
         public static BSemType from(BType bType) {
             if (bType == null) {
                 throw new IllegalStateException("BType cannot be null");
@@ -246,6 +272,9 @@ public final class SemTypeUtils {
             if (bType instanceof BUnionType unionType && !unionType.getMemberTypes().isEmpty()) {
                 return from(unionType);
             }
+//            if (bType instanceof BArrayType arrayType) {
+//                return from(arrayType);
+//            }
             int all = 0;
             int some = 0;
             some |= 1 << BT_BTYPE;
@@ -296,6 +325,10 @@ public final class SemTypeUtils {
             }
             return result;
         }
+
+//        private static BSemType from(BArrayType arrayType) {
+//            return arrayType.semType();
+//        }
 
         private static BSemType from(BUnionType unionType) {
             List<Type> members = unionType.getMemberTypes();

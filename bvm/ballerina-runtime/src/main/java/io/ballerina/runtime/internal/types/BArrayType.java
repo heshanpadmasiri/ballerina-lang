@@ -25,14 +25,25 @@ import io.ballerina.runtime.api.types.MaybeRoType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.internal.TypeChecker;
 import io.ballerina.runtime.internal.TypeHelper;
+import io.ballerina.runtime.internal.types.semtype.BSemType;
+import io.ballerina.runtime.internal.types.semtype.Env;
+import io.ballerina.runtime.internal.types.semtype.FixedLengthArray;
+import io.ballerina.runtime.internal.types.semtype.ListDefinition;
+import io.ballerina.runtime.internal.types.semtype.SemTypeUtils;
 import io.ballerina.runtime.internal.values.ArrayValue;
 import io.ballerina.runtime.internal.values.ArrayValueImpl;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static io.ballerina.runtime.api.TypeBuilder.toBType;
+import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.EMPTY;
+import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.NEVER;
 
+// TODO: Update the doc comment
+// TODO: introduce a single BListType
+// TODO: make sure it does everything via the BSemType
 /**
  * {@code BArrayType} represents a type of an arrays in Ballerina.
  * <p>
@@ -55,6 +66,7 @@ public class BArrayType extends BType implements ArrayType, MaybeRoType {
     private IntersectionType immutableType;
     private IntersectionType intersectionType = null;
     private int typeFlags;
+    private ListDefinition ld = null;
     public BArrayType(Type elementType) {
         this(elementType, false);
     }
@@ -217,4 +229,18 @@ public class BArrayType extends BType implements ArrayType, MaybeRoType {
         this.intersectionType = intersectionType;
     }
 
+    // TODO: Should we have this here or move this to type builder
+    public BSemType semType() {
+        Env env = Env.getInstance();
+        if (ld != null) {
+            return ld.getSemType(env);
+        }
+        ld = new ListDefinition();
+        BSemType elementType = SemTypeUtils.SemTypeBuilder.from(getElementType());
+        // TODO: handle readonly
+        if (size == -1) {
+            return ld.define(env, EMPTY, elementType);
+        }
+        return ld.define(env, new FixedLengthArray(List.of(elementType), Math.abs(size)), NEVER);
+    }
 }

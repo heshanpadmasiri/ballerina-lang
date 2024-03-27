@@ -33,7 +33,7 @@ public class DecimalSubType implements SubType {
 
     final SubTypeData data;
 
-    private DecimalSubType(SubTypeData data) {
+    DecimalSubType(SubTypeData data) {
         this.data = data;
     }
 

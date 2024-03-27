@@ -20,34 +20,34 @@
 
 package io.ballerina.runtime.internal.types.semtype;
 
-public final class BddUtils {
+final class BddUtils {
 
-    public static BddNode bddAtom(Atom atom) {
+    static BddNode bddAtom(Atom atom) {
         return new BddNode(atom, BddLeafNode.TRUE, BddLeafNode.FALSE, BddLeafNode.FALSE);
     }
 
-    public static SubTypeData bddSubtypeUnion(SubTypeData t1, SubTypeData t2) {
+    static SubTypeData bddSubtypeUnion(SubTypeData t1, SubTypeData t2) {
         if (t1 instanceof BddNode b1 && t2 instanceof BddNode b2) {
             return bddUnion(b1, b2);
         }
         throw new UnsupportedOperationException("bddSubtypeUnion not supported for non-BddNode types");
     }
 
-    public static SubTypeData bddSubtypeIntersect(SubTypeData t1, SubTypeData t2) {
+    static SubTypeData bddSubtypeIntersect(SubTypeData t1, SubTypeData t2) {
         if (t1 instanceof BddNode b1 && t2 instanceof BddNode b2) {
             return bddIntersect(b1, b2);
         }
         throw new UnsupportedOperationException("bddSubtypeIntersect not supported for non-BddNode types");
     }
 
-    public static SubTypeData bddSubtypeDiff(SubTypeData t1, SubTypeData t2) {
+    static SubTypeData bddSubtypeDiff(SubTypeData t1, SubTypeData t2) {
         if (t1 instanceof BddNode b1 && t2 instanceof BddNode b2) {
             return bddDiff(b1, b2);
         }
         throw new UnsupportedOperationException("bddSubtypeDiff not supported for non-BddNode types");
     }
 
-    public static SubTypeData bddSubtypeComplement(SubTypeData t) {
+    static SubTypeData bddSubtypeComplement(SubTypeData t) {
         if (t instanceof BddNode bddNode) {
             return bddCompliment(bddNode);
         }
@@ -64,7 +64,7 @@ public final class BddUtils {
         return new BddNode(atom, left, middle, right);
     }
 
-    public static Bdd bddUnion(Bdd b1, Bdd b2) {
+    private static Bdd bddUnion(Bdd b1, Bdd b2) {
         if (b1 == b2) {
             return b1;
         } else if (b1 instanceof BddLeafNode b1Leaf) {
@@ -93,7 +93,7 @@ public final class BddUtils {
         }
     }
 
-    public static Bdd bddIntersect(Bdd b1, Bdd b2) {
+    private static Bdd bddIntersect(Bdd b1, Bdd b2) {
         if (b1 == b2) {
             return b1;
         } else if (b1 instanceof BddLeafNode b1Leaf) {
@@ -122,7 +122,7 @@ public final class BddUtils {
         }
     }
 
-    public static Bdd bddDiff(Bdd b1, Bdd b2) {
+    private static Bdd bddDiff(Bdd b1, Bdd b2) {
         if (b1 == b2) {
             return BddLeafNode.FALSE;
         } else if (b2 instanceof BddLeafNode b2Leaf) {

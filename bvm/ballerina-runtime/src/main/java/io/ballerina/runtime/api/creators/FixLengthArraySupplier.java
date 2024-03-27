@@ -14,12 +14,20 @@
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
- *
- *
  */
 
-package io.ballerina.runtime.internal.types.semtype;
+package io.ballerina.runtime.api.creators;
 
-record CellAtomicType(BSemType ty, Mutability mut) implements AtomicType {
+import io.ballerina.runtime.internal.types.semtype.FixedLengthArray;
 
+import java.util.List;
+import java.util.function.Supplier;
+
+public record FixLengthArraySupplier(List<TypeSupplier> initial, int fixedLength)
+        implements Supplier<FixedLengthArray> {
+
+    @Override
+    public FixedLengthArray get() {
+        return new FixedLengthArray(initial.stream().map(TypeSupplier::get).toList(), fixedLength);
+    }
 }

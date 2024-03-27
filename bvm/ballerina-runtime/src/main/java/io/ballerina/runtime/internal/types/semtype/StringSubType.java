@@ -34,7 +34,7 @@ public class StringSubType implements SubType {
     private static final StringSubType ALL = new StringSubType(AllOrNothing.ALL);
     private static final StringSubType NOTHING = new StringSubType(AllOrNothing.NOTHING);
 
-    private StringSubType(SubTypeData data) {
+    StringSubType(SubTypeData data) {
         this.data = data;
     }
 
