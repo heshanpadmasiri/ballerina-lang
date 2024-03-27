@@ -91,8 +91,10 @@ public final class SemTypeUtils {
         public static final int BT_DECIMAL = 0x04;
         public static final int BT_FLOAT = 0x05;
         public static final int BT_INT = 0x06;
-        public static final int BT_BTYPE = 0x07;
-        public static final int N_TYPES = 8;
+        public static final int BT_CELL = 0x07;
+        public static final int BT_LIST = 0x08;
+        public static final int BT_BTYPE = 0x09;
+        public static final int N_TYPES = BT_BTYPE + 1;
     }
 
     public static final class SemTypeBuilder {
@@ -101,6 +103,21 @@ public final class SemTypeUtils {
             int some = 0;
             SubType[] subTypeData = new SubType[N_TYPES];
             return new BSemType(bits, some, subTypeData);
+        }
+
+        public static BSemType basicSubtype(int basicTypeCode, SubTypeData data) {
+            int some = 1 << basicTypeCode;
+            SubType[] subTypes = new SubType[N_TYPES];
+            subTypes[basicTypeCode] = switch (basicTypeCode) {
+                case BT_BOOLEAN -> new BooleanSubType(((BooleanSubType.BooleanSubTypeData) data).value());
+                case BT_STRING -> new StringSubType(data);
+                case BT_DECIMAL -> new DecimalSubType(data);
+                case BT_FLOAT -> new FloatSubType(data);
+                case BT_INT -> new IntSubType(data);
+                default -> throw new IllegalStateException("Unexpected value: " + basicTypeCode);
+            };
+            return new BSemType(0, some, subTypes);
+
         }
 
         public static BSemType from(int... basicTypeCodes) {

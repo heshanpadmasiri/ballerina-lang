@@ -32,7 +32,7 @@ public class FloatSubType implements SubType {
 
     final SubTypeData data;
 
-    private FloatSubType(SubTypeData data) {
+    FloatSubType(SubTypeData data) {
         this.data = data;
     }
 

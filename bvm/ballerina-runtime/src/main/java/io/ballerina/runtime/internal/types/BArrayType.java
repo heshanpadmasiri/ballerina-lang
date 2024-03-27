@@ -33,6 +33,9 @@ import java.util.Optional;
 
 import static io.ballerina.runtime.api.TypeBuilder.toBType;
 
+// TODO: Update the doc comment
+// TODO: introduce a single BListType
+// TODO: make sure it does everything via the BSemType
 /**
  * {@code BArrayType} represents a type of an arrays in Ballerina.
  * <p>

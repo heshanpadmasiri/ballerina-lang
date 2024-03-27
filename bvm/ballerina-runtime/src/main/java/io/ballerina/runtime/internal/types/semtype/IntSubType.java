@@ -50,7 +50,7 @@ public class IntSubType implements SubType {
     // a Java Long type tag must be given as byte always, otherwise we'll cast things to Long and fail
     boolean isByte = false;
 
-    private IntSubType(SubTypeData data) {
+    IntSubType(SubTypeData data) {
         this.data = data;
     }
 
