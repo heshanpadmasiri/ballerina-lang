@@ -25,12 +25,12 @@ import java.util.Map;
 
 public class Env {
 
-    private Env instance;
+    private static Env instance;
     private final List<ListAtomicType> recListAtoms;
     private final Map<AtomicType, TypeAtom> atomTable = new HashMap<>();
     private volatile int recAtomCount = 0;
 
-    public synchronized Env getInstance() {
+    public synchronized static Env getInstance() {
         if (instance == null) {
             instance = new Env();
         }
