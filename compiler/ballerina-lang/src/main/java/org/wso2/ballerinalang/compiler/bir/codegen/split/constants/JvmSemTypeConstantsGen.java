@@ -31,9 +31,20 @@ import org.wso2.ballerinalang.compiler.bir.codegen.internal.BTypeHashComparator;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BUnionType;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static org.objectweb.asm.Opcodes.AASTORE;
+import static org.objectweb.asm.Opcodes.ANEWARRAY;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.NEW;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
@@ -42,8 +53,13 @@ import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BINARY_TYPE_OPERATION_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_SEMTYPE_TYPE_INIT_METHOD;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.GET_TYPE_SUPPLIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAX_CONSTANTS_PER_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_UTLS;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.UNION_TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.VOID_METHOD_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen.hasIdentifier;
@@ -62,6 +78,7 @@ public class JvmSemTypeConstantsGen {
 
     private final String semTypeConstantsClass;
     private final Map<BType, String> typeVarMap;
+    private final Map<BType, String> typeSupplierMap;
     private final ClassWriter cw;
     private MethodVisitor mv;
     private int constantIndex = 0;
@@ -75,6 +92,7 @@ public class JvmSemTypeConstantsGen {
         generateConstantsClassInit(cw, semTypeConstantsClass);
         mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, B_SEMTYPE_TYPE_INIT_METHOD, VOID_METHOD_DESC, null, null);
         typeVarMap = new TreeMap<>(bTypeHashComparator);
+        typeSupplierMap = new TreeMap<>(bTypeHashComparator);
     }
 
     public void setJvmTypeGen(JvmTypeGen jvmTypeGen) {
@@ -90,7 +108,62 @@ public class JvmSemTypeConstantsGen {
         return typeVarName;
     }
 
+    private String generateTypeSupplierInitMethod(BType type) {
+        String name = typeSupplierMap.get(type);
+        if (name != null) {
+            return name;
+        }
+        String varName = JvmConstants.SEMTYPE_TYPE_SUPPLIER_PREFIX + constantIndex++;
+        typeSupplierMap.put(type, varName);
+        if (constantIndex % MAX_CONSTANTS_PER_METHOD == 0 && constantIndex != 0) {
+            mv.visitMethodInsn(INVOKESTATIC, semTypeConstantsClass, B_SEMTYPE_TYPE_INIT_METHOD + methodCount,
+                    VOID_METHOD_DESC, false);
+            genMethodReturn(mv);
+            mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, B_SEMTYPE_TYPE_INIT_METHOD + methodCount++, VOID_METHOD_DESC,
+                    null, null);
+        }
+        if (!(type instanceof BUnionType unionType)) {
+            throw new UnsupportedOperationException("Unsupported BType" + type);
+        }
+        List<BType> members = new ArrayList<>(unionType.getMemberTypes());
+        // create UnionType supplier
+        mv.visitTypeInsn(NEW, UNION_TYPE_SUPPLIER);
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, UNION_TYPE_SUPPLIER, JVM_INIT_METHOD, VOID_METHOD_DESC, false);
+        FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, varName, GET_TYPE_SUPPLIER, null, null);
+        fv.visitEnd();
+        // Assign it to local field
+        mv.visitInsn(DUP);
+        mv.visitFieldInsn(PUTSTATIC, semTypeConstantsClass, varName, GET_TYPE_SUPPLIER);
+        // load number of members
+        mv.visitLdcInsn(members.size());
+        // create new array
+        mv.visitTypeInsn(ANEWARRAY, TYPE_SUPPLIER);
+        // for each member type
+        for (int i = 0; i < members.size(); i++) {
+            mv.visitInsn(DUP);
+            mv.visitLdcInsn(i);
+            // -- load type
+            BType member = members.get(i);
+            jvmTypeGen.loadTypeUsingTypeBuilder(mv, member);
+            // cast to BSemType
+            mv.visitTypeInsn(CHECKCAST, "io/ballerina/runtime/internal/types/semtype/BSemType");
+            // -- create identity supplier
+            mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, "createIdentitySupplier",
+                    "(Lio/ballerina/runtime/internal/types/semtype/BSemType;)Lio/ballerina/runtime/api/creators/TypeSupplier;",
+                    false);
+            // -- store it in the array
+            mv.visitInsn(AASTORE);
+        }
+        // call resolve (stack must be union supplier, array)
+        mv.visitMethodInsn(INVOKEVIRTUAL, UNION_TYPE_SUPPLIER, "resolve",
+                "([Lio/ballerina/runtime/api/creators/TypeSupplier;)Lio/ballerina/runtime/internal/types/semtype/BSemType;",
+                false);
+        return varName;
+    }
+
     private String generateBSemTypeInitMethod(BType type) {
+        generateTypeSupplierInitMethod(type); // FIXME:
         String varName = JvmConstants.SEMTYPE_TYPE_VAR_PREFIX + constantIndex++;
         if (constantIndex % MAX_CONSTANTS_PER_METHOD == 0 && constantIndex != 0) {
             mv.visitMethodInsn(INVOKESTATIC, semTypeConstantsClass, B_SEMTYPE_TYPE_INIT_METHOD + methodCount,
@@ -127,6 +200,11 @@ public class JvmSemTypeConstantsGen {
             }
             numberOfTypesOnStack--;
         }
+    }
+
+    private void createTypeSupplierField(String typeVarName) {
+        FieldVisitor fv =
+                cw.visitField(ACC_PUBLIC + ACC_STATIC, typeVarName, TYPE_SUPPLIER, null, null);
     }
 
     private void createSemTypeField(String typeVarName) {

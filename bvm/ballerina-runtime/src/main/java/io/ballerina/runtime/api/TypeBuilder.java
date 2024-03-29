@@ -19,6 +19,7 @@
 package io.ballerina.runtime.api;
 
 import io.ballerina.runtime.api.constants.TypeConstants;
+import io.ballerina.runtime.api.creators.TypeSupplier;
 import io.ballerina.runtime.api.flags.TypeFlags;
 import io.ballerina.runtime.api.types.MaybeRoType;
 import io.ballerina.runtime.api.types.Type;

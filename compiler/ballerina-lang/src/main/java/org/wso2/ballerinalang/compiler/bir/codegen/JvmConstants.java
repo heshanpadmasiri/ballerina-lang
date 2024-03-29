@@ -111,6 +111,11 @@ public class JvmConstants {
     public static final String BASIC_TYPE_BUILDER_DESCRIPTOR = "()L" + TYPE + ";";
     public static final String BINARY_TYPE_OPERATION_DESCRIPTOR = "(L" + TYPE + ";L" + TYPE + ";)L" + TYPE + ";";
     public static final String TYPE_BUILDER = "io/ballerina/runtime/api/TypeBuilder";
+    public static final String TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/TypeSupplier";
+    public static final String TYPE_SUPPLIER_UTLS = "io/ballerina/runtime/api/creators/TypeSupplierUtils";
+
+    public static final String GET_TYPE_SUPPLIER = "Lio/ballerina/runtime/api/creators/TypeSupplier;";
+    public static final String UNION_TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/UnionTypeSupplier";
     public static final String TO_B_TYPE_DESC =
             "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/api/types/Type;";
     public static final String TO_SEMTYPE_DESC =
@@ -192,6 +197,7 @@ public class JvmConstants {
     public static final String UNION_TYPE_VAR_PREFIX = "$unionType";
 
     public static final String SEMTYPE_TYPE_VAR_PREFIX = "$semType";
+    public static final String SEMTYPE_TYPE_SUPPLIER_PREFIX = "$semTypeSupplier";
     public static final String ERROR_TYPE_VAR_PREFIX = "$errorType";
     public static final String TYPEREF_TYPE_VAR_PREFIX = "$typeRefType$";
     public static final String TUPLE_TYPE_VAR_PREFIX = "$tupleType";
