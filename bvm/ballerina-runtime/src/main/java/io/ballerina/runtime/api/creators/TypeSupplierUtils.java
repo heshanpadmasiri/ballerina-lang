@@ -19,7 +19,9 @@
 
 package io.ballerina.runtime.api.creators;
 
+import io.ballerina.runtime.internal.types.BType;
 import io.ballerina.runtime.internal.types.semtype.BSemType;
+import io.ballerina.runtime.internal.types.semtype.SemTypeUtils;
 
 public final class TypeSupplierUtils {
 
@@ -28,5 +30,18 @@ public final class TypeSupplierUtils {
 
     public static TypeSupplier createIdentitySupplier(BSemType type) {
         return () -> type;
+    }
+
+    public static TypeSupplier from(Object value) {
+        if (value instanceof TypeSupplier supplier) {
+            return supplier;
+        }
+        if (value instanceof BSemType type) {
+            return createIdentitySupplier(type);
+        }
+        if (value instanceof BType bType) {
+            return from(SemTypeUtils.SemTypeBuilder.from(bType));
+        }
+        throw new IllegalArgumentException("Invalid type supplier value: " + value);
     }
 }
