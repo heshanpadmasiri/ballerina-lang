@@ -111,26 +111,16 @@ public class JvmConstants {
     public static final String BASIC_TYPE_BUILDER_DESCRIPTOR = "()L" + TYPE + ";";
     public static final String BINARY_TYPE_OPERATION_DESCRIPTOR = "(L" + TYPE + ";L" + TYPE + ";)L" + TYPE + ";";
     public static final String TYPE_BUILDER = "io/ballerina/runtime/api/TypeBuilder";
-    public static final String TO_B_TYPE_DESC =
-            "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/api/types/Type;";
-    public static final String TO_SEMTYPE_DESC =
-            "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/internal/types/semtype/BSemType;";
+    public static final String TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/TypeSupplier";
+    public static final String TYPE_SUPPLIER_FROM_OBJECT = "from";
+    public static final String TYPE_SUPPLIER_RESOLVE = "resolve";
+    public static final String TYPE_SUPPLIER_UTLS = "io/ballerina/runtime/api/creators/TypeSupplierUtils";
+
+    public static final String GET_TYPE_SUPPLIER = "Lio/ballerina/runtime/api/creators/TypeSupplier;";
+    public static final String UNION_TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/UnionTypeSupplier";
     public static final String STRING_SUBTYPE_DATA =
             TYPE_BUILDER + "$StringSubtypeData";
-    public static final String TYPE_BUILDER_IDENTIFIER = TYPE_BUILDER + "$Identifier";
-    public static final String TYPE_BUILDER_INIT_DESCRIPTOR =
-            "(L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";)V";
-
-    public static final String BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR =
-            "(L" + TYPE + ";L" + TYPE + ";L" + TYPE_BUILDER_IDENTIFIER + ";)L" + TYPE + ";";
-    public static final String LIST_SUBTYPE_BUILDER_DESCRIPTOR = "([L" + TYPE + ";IL" + TYPE + ";)L" + TYPE + ";";
-    public static final String STRING_SUBTYPE_BUILDER_DESCRIPTOR = "(L" + STRING_SUBTYPE_DATA + ";)L" + TYPE + ";";
-    public static final String INT_SUBTYPE_BUILDER_DESCRIPTOR = "(JJ)L" + TYPE + ";";
-    public static final String XML_SIMPLE_SUBTYPE_BUILDER_DESCRIPTOR = "(I)L" + TYPE + ";";
-    public static final String XML_SUBTYPE_BUILDER_DESCRIPTOR = "(L" + TYPE + ";)L" + TYPE + ";";
-    public static final String STRING_SUBTYPE_DATA_BUILDER_DESC =
-            "([L" + STRING_VALUE + ";)L" + STRING_SUBTYPE_DATA + ";";
-
+    public static final String TYPE_SUPPLIER_IDENTIFIER = TYPE_SUPPLIER_UTLS + "$Identifier";
     public static final String PREDEFINED_TYPES = "io/ballerina/runtime/api/PredefinedTypes";
 
     public static final String ARRAY_TYPE = "io/ballerina/runtime/api/types/ArrayType";
@@ -192,6 +182,7 @@ public class JvmConstants {
     public static final String UNION_TYPE_VAR_PREFIX = "$unionType";
 
     public static final String SEMTYPE_TYPE_VAR_PREFIX = "$semType";
+    public static final String SEMTYPE_TYPE_SUPPLIER_PREFIX = "$semTypeSupplier";
     public static final String ERROR_TYPE_VAR_PREFIX = "$errorType";
     public static final String TYPEREF_TYPE_VAR_PREFIX = "$typeRefType$";
     public static final String TUPLE_TYPE_VAR_PREFIX = "$tupleType";
@@ -481,7 +472,6 @@ public class JvmConstants {
     public static final int MAX_STRINGS_PER_METHOD = 5000;
     public static final int VISIT_MAX_SAFE_MARGIN = 10;
     public static final int OVERFLOW_LINE_NUMBER = 0x80000000;
-
     private JvmConstants() {
     }
 }

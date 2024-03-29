@@ -19,6 +19,7 @@
 package io.ballerina.runtime.api;
 
 import io.ballerina.runtime.api.constants.TypeConstants;
+import io.ballerina.runtime.api.creators.TypeSupplierUtils;
 import io.ballerina.runtime.api.flags.TypeFlags;
 import io.ballerina.runtime.api.types.MaybeRoType;
 import io.ballerina.runtime.api.types.Type;
@@ -149,14 +150,14 @@ public final class TypeBuilder {
         throw new UnsupportedOperationException("unsupported intersection");
     }
 
-    public static Type union(Type type1, Type type2, Identifier identifier) {
+    public static Type union(Type type1, Type type2, TypeSupplierUtils.Identifier identifier) {
         BSemType semType1 = toSemType(type1);
         BSemType semType2 = toSemType(type2);
         BSemType result = Core.union(semType1, semType2);
         // TODO: avoid creating new modules instead use some sort of flyweight here
-        String name = identifier.name;
+        String name = identifier.name();
         if (name != null && !name.isEmpty()) {
-            result.setIdentifiers(name, new Module(identifier.org, identifier.pkgName, identifier.version));
+            result.setIdentifiers(name, new Module(identifier.org(), identifier.pkgName(), identifier.version()));
         } else {
             result.setOrderedUnionMembers(new Type[]{type1, type2});
         }
@@ -382,10 +383,6 @@ public final class TypeBuilder {
         }
         return SemTypeUtils.SemTypeBuilder.stringSubType(data.charsAllowed, data.chars, data.nonCharsAllowed,
                 data.nonChars);
-    }
-
-    public record Identifier(String name, String org, String pkgName, String version) {
-
     }
 
     // TODO: ideally this should cache things such as common integer singletons, boolean subtypes etc. Also note that
