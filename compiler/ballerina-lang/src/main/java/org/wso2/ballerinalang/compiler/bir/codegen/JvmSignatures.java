@@ -93,6 +93,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRAND_ME
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STREAM_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_BUILDER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_VALUE;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_IDENTIFIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TABLE_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.THROWABLE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TOML_DETAILS;
@@ -475,10 +476,12 @@ public class JvmSignatures {
             "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/api/types/Type;";
     public static final String TO_SEMTYPE_DESC =
             "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/internal/types/semtype/BSemType;";
-    public static final String TYPE_BUILDER_INIT_DESCRIPTOR =
+    public static final String IDENTIFIER_INIT_DESC =
             "(L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";)V";
+
+    public static final String INIT_WITH_IDENTIFIER = "(L" + TYPE_SUPPLIER_IDENTIFIER + ";)V";
     public static final String BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR =
-            "(L" + TYPE + ";L" + TYPE + ";L" + JvmConstants.TYPE_BUILDER_IDENTIFIER + ";)L" + TYPE + ";";
+            "(L" + TYPE + ";L" + TYPE + ";L" + TYPE_SUPPLIER_IDENTIFIER + ";)L" + TYPE + ";";
     public static final String LIST_SUBTYPE_BUILDER_DESCRIPTOR = "([L" + TYPE + ";IL" + TYPE + ";)L" + TYPE + ";";
     public static final String STRING_SUBTYPE_BUILDER_DESCRIPTOR =
             "(L" + JvmConstants.STRING_SUBTYPE_DATA + ";)L" + TYPE + ";";

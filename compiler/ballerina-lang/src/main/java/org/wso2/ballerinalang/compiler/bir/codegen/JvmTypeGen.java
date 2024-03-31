@@ -115,6 +115,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil.getStri
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil.toNameString;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.ADD_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BINARY_TYPE_OPERATION_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_IDENTIFIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BOOLEAN_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_STRING_VAR_PREFIX;
@@ -156,8 +157,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPEDESC_TYPE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPES_ERROR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER_IDENTIFIER;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_BUILDER_INIT_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.IDENTIFIER_INIT_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VALUE_OF_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.XML_SIMPLE_SUBTYPE_BUILDER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.XML_SUBTYPE_BUILDER_DESCRIPTOR;
@@ -454,7 +454,7 @@ public class JvmTypeGen {
         boolean needToSetIdentifier = hasIdentifier(type);
         while (numberOfTypesOnStack > 1) {
             if (needToSetIdentifier && numberOfTypesOnStack == 2) {
-                loadTypeBuilderIdentifier(mv, type);
+                loadTypeSupplierIdentifier(mv, type);
                 mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "union",
                         BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR, false);
             } else {
@@ -486,20 +486,20 @@ public class JvmTypeGen {
         return type.tsymbol != null && (type.name != null || type.tsymbol.name != null);
     }
 
-    public static void loadTypeBuilderIdentifier(MethodVisitor mv, BType type) {
+    public static void loadTypeSupplierIdentifier(MethodVisitor mv, BType type) {
         PackageID packageID = type.tsymbol.pkgID;
         String org = packageID.orgName.value;
         String pkgName = packageID.pkgName.value;
         String version = packageID.version.value;
         String name = type.tsymbol.name != null ? Utils.decodeIdentifier(type.tsymbol.name.getValue()) :
                 Utils.decodeIdentifier(type.name.getValue());
-        mv.visitTypeInsn(NEW, TYPE_BUILDER_IDENTIFIER);
+        mv.visitTypeInsn(NEW, TYPE_SUPPLIER_IDENTIFIER);
         mv.visitInsn(DUP);
         mv.visitLdcInsn(name);
         mv.visitLdcInsn(org);
         mv.visitLdcInsn(pkgName);
         mv.visitLdcInsn(version);
-        mv.visitMethodInsn(INVOKESPECIAL, TYPE_BUILDER_IDENTIFIER, JVM_INIT_METHOD, TYPE_BUILDER_INIT_DESCRIPTOR,
+        mv.visitMethodInsn(INVOKESPECIAL, TYPE_SUPPLIER_IDENTIFIER, JVM_INIT_METHOD, IDENTIFIER_INIT_DESC,
                 false);
     }
 
@@ -953,7 +953,6 @@ public class JvmTypeGen {
             mv.visitTypeInsn(ANEWARRAY, STRING_VALUE);
             int i = 0;
             for (String fieldName : fieldNames) {
-
                 mv.visitInsn(DUP);
                 mv.visitLdcInsn((long) i);
                 mv.visitInsn(L2I);

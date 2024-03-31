@@ -19,7 +19,9 @@
 
 package io.ballerina.runtime.api.creators;
 
+import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.internal.types.semtype.BSemType;
 
 import static io.ballerina.runtime.internal.types.semtype.Core.union;
@@ -29,6 +31,15 @@ public class UnionTypeSupplier implements TypeSupplier {
     private BSemType type = null;
     private State state = State.UNRESOLVED;
     private TypeSupplier[] members;
+    private final TypeSupplierUtils.Identifier identifier;
+
+    public UnionTypeSupplier(TypeSupplierUtils.Identifier identifier) {
+        this.identifier = identifier;
+    }
+
+    public UnionTypeSupplier() {
+        this.identifier = null;
+    }
 
     @Override
     public BSemType get() {
@@ -43,13 +54,23 @@ public class UnionTypeSupplier implements TypeSupplier {
         BSemType resolvingType = (BSemType) PredefinedTypes.TYPE_NEVER;
         this.members = members;
         state = State.RESOLVING;
-        for (TypeSupplier member : members) {
+        Type[] orderedMembers = new Type[members.length];
+        for (int i = 0; i < members.length; i++) {
+            TypeSupplier member = members[i];
             BSemType memberType = member.get();
             resolvingType = union(resolvingType, memberType);
+            orderedMembers[i] = memberType;
         }
         state = State.RESOLVED;
         this.members = null;
         type = resolvingType;
+        // TODO: don't set the identifier if the name is empty
+        if (identifier != null && !identifier.name().isEmpty()) {
+            type.setIdentifiers(identifier.name(),
+                    new Module(identifier.org(), identifier.pkgName(), identifier.version()));
+        } else {
+            type.setOrderedUnionMembers(orderedMembers);
+        }
         return resolvingType;
     }
 

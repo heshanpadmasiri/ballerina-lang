@@ -120,8 +120,7 @@ public class JvmConstants {
     public static final String UNION_TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/UnionTypeSupplier";
     public static final String STRING_SUBTYPE_DATA =
             TYPE_BUILDER + "$StringSubtypeData";
-    public static final String TYPE_BUILDER_IDENTIFIER = TYPE_BUILDER + "$Identifier";
-
+    public static final String TYPE_SUPPLIER_IDENTIFIER = TYPE_SUPPLIER_UTLS + "$Identifier";
     public static final String PREDEFINED_TYPES = "io/ballerina/runtime/api/PredefinedTypes";
 
     public static final String ARRAY_TYPE = "io/ballerina/runtime/api/types/ArrayType";

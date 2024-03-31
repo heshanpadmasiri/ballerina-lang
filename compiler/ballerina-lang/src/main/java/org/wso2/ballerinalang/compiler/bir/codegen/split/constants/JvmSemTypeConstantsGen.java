@@ -51,21 +51,18 @@ import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BINARY_TYPE_OPERATION_DESCRIPTOR;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_SEMTYPE_TYPE_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.GET_TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAX_CONSTANTS_PER_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_WITH_IDENTIFIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_SUPPLIER_GET_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_UTLS;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.UNION_TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.VOID_METHOD_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen.hasIdentifier;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen.loadTypeBuilderIdentifier;
 import static org.wso2.ballerinalang.compiler.bir.codegen.split.constants.JvmConstantGenCommons.genMethodReturn;
 import static org.wso2.ballerinalang.compiler.bir.codegen.split.constants.JvmConstantGenCommons.generateConstantsClassInit;
 
@@ -127,17 +124,37 @@ public class JvmSemTypeConstantsGen {
         if (!(type instanceof BUnionType unionType)) {
             throw new UnsupportedOperationException("Unsupported BType" + type);
         }
+        generateUnionTypeSupplier(unionType, varName);
+        return varName;
+    }
+
+    private void generateUnionTypeSupplier(BUnionType unionType, String varName) {
         List<BType> members = new ArrayList<>(unionType.getMemberTypes());
-        // create UnionType supplier
+        createUnionTypeSupplier(unionType);
+        createAndInitializeTypeSupplierField(varName);
+        loadMemberTypeSuppliers(members);
+        resolveUnionTypeSupplier();
+    }
+
+    private void createUnionTypeSupplier(BUnionType unionType) {
         mv.visitTypeInsn(NEW, UNION_TYPE_SUPPLIER);
         mv.visitInsn(DUP);
-        mv.visitMethodInsn(INVOKESPECIAL, UNION_TYPE_SUPPLIER, JVM_INIT_METHOD, VOID_METHOD_DESC, false);
-        FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, varName, GET_TYPE_SUPPLIER, null, null);
-        fv.visitEnd();
-        // Assign it to local field
-        mv.visitInsn(DUP);
-        mv.visitFieldInsn(PUTSTATIC, semTypeConstantsClass, varName, GET_TYPE_SUPPLIER);
-        // load number of members
+        if (hasIdentifier(unionType)) {
+            JvmTypeGen.loadTypeSupplierIdentifier(mv, unionType);
+            mv.visitMethodInsn(INVOKESPECIAL, UNION_TYPE_SUPPLIER, JVM_INIT_METHOD, INIT_WITH_IDENTIFIER, false);
+        } else {
+            mv.visitMethodInsn(INVOKESPECIAL, UNION_TYPE_SUPPLIER, JVM_INIT_METHOD, VOID_METHOD_DESC, false);
+        }
+    }
+
+    private void resolveUnionTypeSupplier() {
+        mv.visitMethodInsn(INVOKEVIRTUAL, UNION_TYPE_SUPPLIER, JvmConstants.TYPE_SUPPLIER_RESOLVE,
+                JvmSignatures.TYPE_SUPPLIER_RESOLVE_DESC, false);
+        // TODO: for the moment we don't care about the result and instead reload it by calling the supplier
+        mv.visitInsn(POP);
+    }
+
+    private void loadMemberTypeSuppliers(List<BType> members) {
         mv.visitLdcInsn(members.size());
         // create new array
         mv.visitTypeInsn(ANEWARRAY, TYPE_SUPPLIER);
@@ -153,14 +170,9 @@ public class JvmSemTypeConstantsGen {
             // -- store it in the array
             mv.visitInsn(AASTORE);
         }
-        // call resolve (stack must be union supplier, array)
-        mv.visitMethodInsn(INVOKEVIRTUAL, UNION_TYPE_SUPPLIER, JvmConstants.TYPE_SUPPLIER_RESOLVE,
-                JvmSignatures.TYPE_SUPPLIER_RESOLVE_DESC, false);
-        // TODO: for the moment we don't care about the result and instead reload it by calling the supplier
-        mv.visitInsn(POP);
-        return varName;
     }
 
+    // TODO: remove this, and instead use the type supplier to get the type
     private String generateBSemTypeInitMethod(BType type) {
         String typeSupplier = generateTypeSupplierInitMethod(type); // FIXME:
         String varName = JvmConstants.SEMTYPE_TYPE_VAR_PREFIX + constantIndex++;
@@ -180,29 +192,11 @@ public class JvmSemTypeConstantsGen {
         return varName;
     }
 
-    private void loadBUnionType(BUnionType unionType) {
-        int numberOfTypesOnStack = 0;
-        for (BType member : unionType.getMemberTypes()) {
-            jvmTypeGen.loadTypeUsingTypeBuilder(mv, member);
-            numberOfTypesOnStack++;
-        }
-        boolean needToSetIdentifier = hasIdentifier(unionType);
-        while (numberOfTypesOnStack > 1) {
-            if (needToSetIdentifier && numberOfTypesOnStack == 2) {
-                loadTypeBuilderIdentifier(mv, unionType);
-                mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "union",
-                        BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR,
-                        false);
-            } else {
-                mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "union", BINARY_TYPE_OPERATION_DESCRIPTOR, false);
-            }
-            numberOfTypesOnStack--;
-        }
-    }
-
-    private void createTypeSupplierField(String typeVarName) {
-        FieldVisitor fv =
-                cw.visitField(ACC_PUBLIC + ACC_STATIC, typeVarName, TYPE_SUPPLIER, null, null);
+    private void createAndInitializeTypeSupplierField(String varName) {
+        mv.visitInsn(DUP);
+        FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, varName, GET_TYPE_SUPPLIER, null, null);
+        fv.visitEnd();
+        mv.visitFieldInsn(PUTSTATIC, semTypeConstantsClass, varName, GET_TYPE_SUPPLIER);
     }
 
     private void createSemTypeField(String typeVarName) {

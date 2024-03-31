@@ -44,4 +44,8 @@ public final class TypeSupplierUtils {
         }
         throw new IllegalArgumentException("Invalid type supplier value: " + value);
     }
+
+    public record Identifier(String name, String org, String pkgName, String version) {
+
+    }
 }
