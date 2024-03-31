@@ -479,7 +479,7 @@ public class JvmTypeGen {
     }
 
     private void loadUnionTypeUsingTypeBuilder(MethodVisitor mv, BType type) {
-        jvmConstantsGen.generateGetSemType(mv, jvmConstantsGen.getSemTypeConstantsVar(type));
+        jvmConstantsGen.generateGetSemType(mv, jvmConstantsGen.getSemTypeSupplier(type));
     }
 
     public static boolean hasIdentifier(BType type) {
