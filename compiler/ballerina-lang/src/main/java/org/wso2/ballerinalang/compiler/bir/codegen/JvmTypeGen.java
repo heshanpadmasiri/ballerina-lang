@@ -709,17 +709,17 @@ public class JvmTypeGen {
                 yield canBeHandledByTypeBuilder(arrayType.eType, seen);
             }
             case TypeTags.UNION -> {
-                BUnionType unionType = (BUnionType) type;
-                Set<BType> members = unionType.getMemberTypes();
-                if (members.size() < 2) {
-                    // TODO: how to handle this?
-                    yield false;
-                }
-                for (BType memberType : members) {
-                    if (!canBeHandledByTypeBuilder(memberType, seen)) {
-                        yield false;
-                    }
-                }
+//                BUnionType unionType = (BUnionType) type;
+//                Set<BType> members = unionType.getMemberTypes();
+//                if (members.size() < 2) {
+//                    // TODO: how to handle this?
+//                    yield false;
+//                }
+//                for (BType memberType : members) {
+//                    if (!canBeHandledByTypeBuilder(memberType, seen)) {
+//                        yield false;
+//                    }
+//                }
                 yield true;
             }
             case TypeTags.TUPLE -> {

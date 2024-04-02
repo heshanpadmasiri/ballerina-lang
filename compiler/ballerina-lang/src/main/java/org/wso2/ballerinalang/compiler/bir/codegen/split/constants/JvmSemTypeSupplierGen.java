@@ -173,7 +173,7 @@ public class JvmSemTypeSupplierGen {
             mv.visitFieldInsn(GETSTATIC, semTypeConstantsClass, name, GET_TYPE_SUPPLIER);
             return;
         }
-        jvmTypeGen.loadTypeUsingTypeBuilder(mv, type);
+        jvmTypeGen.loadType(mv, type);
         mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM_OBJECT,
                 JvmSignatures.TYPE_SUPPLIER_FROM_OBJECT_DESC, false);
     }
