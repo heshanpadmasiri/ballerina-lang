@@ -46,11 +46,16 @@ public class UnionTypeSupplier implements TypeSupplier {
         return switch (state) {
             case RESOLVED -> type;
             case UNRESOLVED -> throw new IllegalStateException("Union type is not resolved");
-            case RESOLVING -> resolve(members);
+            case RESOLVING, READY -> resolve(members);
         };
     }
 
-    public BSemType resolve(TypeSupplier... members) {
+    public void setMemberSuppliers(TypeSupplier... members) {
+        this.members = members;
+        this.state = State.READY;
+    }
+
+    private BSemType resolve(TypeSupplier... members) {
         BSemType resolvingType = (BSemType) PredefinedTypes.TYPE_NEVER;
         this.members = members;
         state = State.RESOLVING;
@@ -77,6 +82,7 @@ public class UnionTypeSupplier implements TypeSupplier {
     private enum State {
         UNRESOLVED,
         RESOLVING,
+        READY,
         RESOLVED
     }
 }

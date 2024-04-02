@@ -38,28 +38,27 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static org.objectweb.asm.Opcodes.AASTORE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.NEW;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_SEMTYPE_TYPE_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.GET_TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAX_CONSTANTS_PER_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_WITH_IDENTIFIER;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_SUPPLIER_GET_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_UTLS;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.UNION_TYPE_SUPPLIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_WITH_IDENTIFIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_SUPPLIER_GET_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.VOID_METHOD_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen.hasIdentifier;
 import static org.wso2.ballerinalang.compiler.bir.codegen.split.constants.JvmConstantGenCommons.genMethodReturn;
@@ -131,7 +130,7 @@ public class JvmSemTypeSupplierGen {
         createUnionTypeSupplier(unionType);
         createAndInitializeTypeSupplierField(varName);
         loadMemberTypeSuppliers(members);
-        resolveUnionTypeSupplier();
+        setMemberSuppliers();
     }
 
     private void createUnionTypeSupplier(BUnionType unionType) {
@@ -145,11 +144,9 @@ public class JvmSemTypeSupplierGen {
         }
     }
 
-    private void resolveUnionTypeSupplier() {
-        mv.visitMethodInsn(INVOKEVIRTUAL, UNION_TYPE_SUPPLIER, JvmConstants.TYPE_SUPPLIER_RESOLVE,
-                JvmSignatures.TYPE_SUPPLIER_RESOLVE_DESC, false);
-        // We ignore the result of resolving and instead use the get in type supplier as needed
-        mv.visitInsn(POP);
+    private void setMemberSuppliers() {
+        mv.visitMethodInsn(INVOKEVIRTUAL, UNION_TYPE_SUPPLIER, JvmConstants.UNION_TYPE_SUPPLIER_SET_MEMBERS,
+                JvmSignatures.UNION_TYPE_SUPPLIER_SET_MEMBER_DESC, false);
     }
 
     private void loadMemberTypeSuppliers(List<BType> members) {
@@ -160,12 +157,17 @@ public class JvmSemTypeSupplierGen {
         for (int i = 0; i < members.size(); i++) {
             mv.visitInsn(DUP);
             mv.visitLdcInsn(i);
-            BType member = members.get(i);
-            jvmTypeGen.loadTypeUsingTypeBuilder(mv, member);
-            mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM_OBJECT,
-                    JvmSignatures.TYPE_SUPPLIER_FROM_OBJECT_DESC, false);
+            loadTypeSupplierFromBType(members.get(i));
             mv.visitInsn(AASTORE);
         }
+    }
+
+    private void loadTypeSupplierFromBType(BType type) {
+        // TODO: if the type already has a Type supplier just load it
+        //  if the type is a "supplier type" create it and load it?
+        jvmTypeGen.loadTypeUsingTypeBuilder(mv, type);
+        mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM_OBJECT,
+                JvmSignatures.TYPE_SUPPLIER_FROM_OBJECT_DESC, false);
     }
 
     private void createAndInitializeTypeSupplierField(String varName) {
