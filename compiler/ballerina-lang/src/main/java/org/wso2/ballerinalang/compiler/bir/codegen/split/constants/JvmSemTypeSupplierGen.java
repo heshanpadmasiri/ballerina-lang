@@ -164,6 +164,10 @@ public class JvmSemTypeSupplierGen {
 
     private void loadTypeSupplierFromBType(BType type) {
         // TODO: if the type already has a Type supplier just load it
+        if (typeSupplierMap.containsKey(type)) {
+            mv.visitFieldInsn(GETSTATIC, semTypeConstantsClass, typeSupplierMap.get(type), GET_TYPE_SUPPLIER);
+            return;
+        }
         //  if the type is a "supplier type" create it and load it?
         jvmTypeGen.loadTypeUsingTypeBuilder(mv, type);
         mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM_OBJECT,

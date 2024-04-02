@@ -710,10 +710,7 @@ public class JvmTypeGen {
             }
             case TypeTags.UNION -> {
                 BUnionType unionType = (BUnionType) type;
-                if (unionType.isCyclic) {
-                    yield false;
-                }
-                LinkedHashSet<BType> members = unionType.getMemberTypes();
+                Set<BType> members = unionType.getMemberTypes();
                 if (members.size() < 2) {
                     // TODO: how to handle this?
                     yield false;
