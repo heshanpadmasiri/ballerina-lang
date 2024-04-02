@@ -555,48 +555,50 @@ public class JvmTypeGen {
     }
 
     private void loadTupleTypeUsingTypeBuilder(MethodVisitor mv, BType type) {
-        BTupleType tupleType = (BTupleType) type;
-        List<BTupleMember> members = tupleType.getMembers();
-        mv.visitLdcInsn(members.size());
-        mv.visitTypeInsn(ANEWARRAY, TYPE);
-        for (int i = 0; i < members.size(); i++) {
-            mv.visitInsn(DUP);
-            mv.visitLdcInsn(i);
-            loadTypeUsingTypeBuilder(mv, members.get(i).type);
-            mv.visitInsn(AASTORE);
-        }
-
-        mv.visitLdcInsn(members.size());
-        if (tupleType.restType != null) {
-            loadTypeUsingTypeBuilder(mv, tupleType.restType);
-        } else {
-            loadNeverType(mv);
-        }
-        mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "tupleSubType", LIST_SUBTYPE_BUILDER_DESCRIPTOR, false);
+        jvmConstantsGen.generateGetSemType(mv, jvmConstantsGen.getSemTypeSupplier(type));
+//        BTupleType tupleType = (BTupleType) type;
+//        List<BTupleMember> members = tupleType.getMembers();
+//        mv.visitLdcInsn(members.size());
+//        mv.visitTypeInsn(ANEWARRAY, TYPE);
+//        for (int i = 0; i < members.size(); i++) {
+//            mv.visitInsn(DUP);
+//            mv.visitLdcInsn(i);
+//            loadTypeUsingTypeBuilder(mv, members.get(i).type);
+//            mv.visitInsn(AASTORE);
+//        }
+//
+//        mv.visitLdcInsn(members.size());
+//        if (tupleType.restType != null) {
+//            loadTypeUsingTypeBuilder(mv, tupleType.restType);
+//        } else {
+//            loadNeverType(mv);
+//        }
+//        mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "tupleSubType", LIST_SUBTYPE_BUILDER_DESCRIPTOR, false);
     }
 
     private void loadArraySubTypeUsingTypeBuilder(MethodVisitor mv, BType type) {
-        BArrayType arrayType = (BArrayType) type;
-        BType elementType = arrayType.eType;
-        if (arrayType.size != -1) {
-            // fixed length array
-            mv.visitLdcInsn(1);
-            mv.visitTypeInsn(ANEWARRAY, TYPE);
-            mv.visitInsn(DUP);
-            mv.visitLdcInsn(0);
-            loadTypeUsingTypeBuilder(mv, elementType);
-            mv.visitInsn(AASTORE);
-
-            mv.visitLdcInsn(arrayType.size);
-
-            loadNeverType(mv);
-        } else {
-            mv.visitLdcInsn(0);
-            mv.visitTypeInsn(ANEWARRAY, TYPE);
-            mv.visitLdcInsn(0);
-            loadTypeUsingTypeBuilder(mv, elementType);
-        }
-        mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "listSubType", LIST_SUBTYPE_BUILDER_DESCRIPTOR, false);
+        jvmConstantsGen.generateGetSemType(mv, jvmConstantsGen.getSemTypeSupplier(type));
+//        BArrayType arrayType = (BArrayType) type;
+//        BType elementType = arrayType.eType;
+//        if (arrayType.size != -1) {
+//            // fixed length array
+//            mv.visitLdcInsn(1);
+//            mv.visitTypeInsn(ANEWARRAY, TYPE);
+//            mv.visitInsn(DUP);
+//            mv.visitLdcInsn(0);
+//            loadTypeUsingTypeBuilder(mv, elementType);
+//            mv.visitInsn(AASTORE);
+//
+//            mv.visitLdcInsn(arrayType.size);
+//
+//            loadNeverType(mv);
+//        } else {
+//            mv.visitLdcInsn(0);
+//            mv.visitTypeInsn(ANEWARRAY, TYPE);
+//            mv.visitLdcInsn(0);
+//            loadTypeUsingTypeBuilder(mv, elementType);
+//        }
+//        mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "listSubType", LIST_SUBTYPE_BUILDER_DESCRIPTOR, false);
     }
 
     private static void loadNeverType(MethodVisitor mv) {
@@ -697,20 +699,24 @@ public class JvmTypeGen {
                     TypeTags.UNSIGNED8_INT, TypeTags.UNSIGNED16_INT, TypeTags.UNSIGNED32_INT,
                     TypeTags.SIGNED8_INT, TypeTags.SIGNED16_INT, TypeTags.SIGNED32_INT,
                     TypeTags.FLOAT, TypeTags.STRING, TypeTags.CHAR_STRING, TypeTags.DECIMAL, TypeTags.BOOLEAN,
-                    TypeTags.ANY, TypeTags.ANYDATA, TypeTags.JSON,
+                    TypeTags.ANY, TypeTags.ANYDATA, TypeTags.JSON, TypeTags.ARRAY, TypeTags.TUPLE,
                     TypeTags.XML_COMMENT, TypeTags.XML_PI, TypeTags.XML_ELEMENT, TypeTags.XML_TEXT -> true;
             case TypeTags.ERROR -> {
                 BErrorType errorType = (BErrorType) type;
                 PackageID pkgID = errorType.tsymbol.pkgID;
                 yield JvmCodeGenUtil.isBuiltInPackage(pkgID);
             }
-            case TypeTags.ARRAY -> {
-                BArrayType arrayType = (BArrayType) type;
-                yield canBeHandledByTypeBuilder(arrayType.eType, seen);
-            }
+//            case TypeTags.ARRAY -> {
+//                BArrayType arrayType = (BArrayType) type;
+//                yield canBeHandledByTypeBuilder(arrayType.eType, seen);
+//            }
             case TypeTags.UNION -> {
-//                BUnionType unionType = (BUnionType) type;
-//                Set<BType> members = unionType.getMemberTypes();
+                BUnionType unionType = (BUnionType) type;
+                yield unionType.getMemberTypes().size() > 1;
+//                if (unionType.isCyclic) {
+//                    yield false;
+//                }
+//                LinkedHashSet<BType> members = unionType.getMemberTypes();
 //                if (members.size() < 2) {
 //                    // TODO: how to handle this?
 //                    yield false;
@@ -720,20 +726,20 @@ public class JvmTypeGen {
 //                        yield false;
 //                    }
 //                }
-                yield true;
+//                yield true;
             }
-            case TypeTags.TUPLE -> {
-                BTupleType tupleType = (BTupleType) type;
-                if (tupleType.isCyclic) {
-                    yield false;
-                }
-                for (BTupleMember member : tupleType.getMembers()) {
-                    if (!canBeHandledByTypeBuilder(member.type, seen)) {
-                        yield false;
-                    }
-                }
-                yield canBeHandledByTypeBuilder(tupleType.restType, seen);
-            }
+//            case TypeTags.TUPLE -> {
+//                BTupleType tupleType = (BTupleType) type;
+//                if (tupleType.isCyclic) {
+//                    yield false;
+//                }
+//                for (BTupleMember member : tupleType.getMembers()) {
+//                    if (!canBeHandledByTypeBuilder(member.type, seen)) {
+//                        yield false;
+//                    }
+//                }
+//                yield canBeHandledByTypeBuilder(tupleType.restType, seen);
+//            }
             case TypeTags.INTERSECTION -> {
                 BIntersectionType intersectionType = (BIntersectionType) type;
                 yield canBeHandledByTypeBuilder(intersectionType.effectiveType, seen);

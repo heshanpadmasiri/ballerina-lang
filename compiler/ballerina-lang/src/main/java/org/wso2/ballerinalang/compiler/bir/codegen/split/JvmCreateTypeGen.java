@@ -202,7 +202,6 @@ public class JvmCreateTypeGen {
         mv.visitMethodInsn(INVOKESTATIC, arrayTypeConstantClass, B_ARRAY_TYPE_INIT_METHOD, VOID_METHOD_DESC, false);
         mv.visitMethodInsn(INVOKESTATIC, tupleTypeConstantsClass, B_TUPLE_TYPE_INIT_METHOD, VOID_METHOD_DESC, false);
         mv.visitMethodInsn(INVOKESTATIC, unionTypeConstantClass, B_UNION_TYPE_INIT_METHOD, VOID_METHOD_DESC, false);
-        mv.visitMethodInsn(INVOKESTATIC, semTypeConstantClass, B_SEMTYPE_TYPE_INIT_METHOD, VOID_METHOD_DESC, false);
         mv.visitMethodInsn(INVOKESTATIC, errorTypeConstantClass, B_ERROR_TYPE_INIT_METHOD, VOID_METHOD_DESC, false);
 
         mv.visitMethodInsn(INVOKESTATIC, refTypeConstantsClass, B_TYPEREF_TYPE_POPULATE_METHOD, VOID_METHOD_DESC,
@@ -213,6 +212,7 @@ public class JvmCreateTypeGen {
         mv.visitMethodInsn(INVOKESTATIC, unionTypeConstantClass, B_UNION_TYPE_POPULATE_METHOD, VOID_METHOD_DESC, false);
         mv.visitMethodInsn(INVOKESTATIC, errorTypeConstantClass, B_ERROR_TYPE_POPULATE_METHOD, VOID_METHOD_DESC, false);
 
+        mv.visitMethodInsn(INVOKESTATIC, semTypeConstantClass, B_SEMTYPE_TYPE_INIT_METHOD, VOID_METHOD_DESC, false);
         mv.visitInsn(RETURN);
         JvmCodeGenUtil.visitMaxStackForMethod(mv, CREATE_TYPE_CONSTANTS_METHOD, moduleInitClass);
         mv.visitEnd();

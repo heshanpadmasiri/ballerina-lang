@@ -117,6 +117,7 @@ public final class SemTypeUtils {
                 case BT_DECIMAL -> new DecimalSubType(data);
                 case BT_FLOAT -> new FloatSubType(data);
                 case BT_INT -> new IntSubType(data);
+                case BT_LIST -> new ListSubType((BddNode) data);
                 default -> throw new IllegalStateException("Unexpected value: " + basicTypeCode);
             };
             return new BSemType(0, some, subTypes);

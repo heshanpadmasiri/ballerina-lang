@@ -30,10 +30,13 @@ import org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen;
 import org.wso2.ballerinalang.compiler.bir.codegen.internal.BTypeHashComparator;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BTupleType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BUnionType;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -50,6 +53,7 @@ import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.NEW;
+import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_SEMTYPE_TYPE_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.GET_TYPE_SUPPLIER;
@@ -118,15 +122,64 @@ public class JvmSemTypeSupplierGen {
             mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, B_SEMTYPE_TYPE_INIT_METHOD + methodCount++, VOID_METHOD_DESC,
                     null, null);
         }
+        // TODO: add similar type suppliers for other types that can need a state to initialize like lists
         if (type instanceof BUnionType unionType) {
-            generateLazyTypeSupplier(unionType, varName);
+            generateUnionTypeSupplier(unionType, varName);
+        } else if (type instanceof BArrayType arrayType) {
+            generateListTypeSupplier(arrayType, varName);
+        } else if (type instanceof BTupleType tupleType) {
+            generateListTypeSupplier(tupleType, varName);
         } else {
             throw new UnsupportedOperationException("Unsupported BType" + type);
         }
         return varName;
     }
 
-    private void generateLazyTypeSupplier(BUnionType unionType, String varName) {
+    // TODO: think about how to do "anonymous" list types
+    private void generateListTypeSupplier(BTupleType tupleType, String varName) {
+        List<BType> memberTypes = tupleType.getMembers().stream().map(member -> member.type).toList();
+        BType restType = tupleType.restType == null ? BType.createNeverType() : tupleType.restType;
+        generateListTypeSupplierInner(memberTypes, restType);
+        createAndInitializeTypeSupplierField(varName);
+        mv.visitInsn(POP);
+    }
+
+    private void generateListTypeSupplier(BArrayType arrayType, String varName) {
+        BType elementType = arrayType.eType;
+        int length = arrayType.size;
+        if (length == -1) {
+            generateListTypeSupplierInner(List.of(), elementType);
+        } else {
+            generateListTypeSupplierInner(Collections.nCopies(length, elementType), BType.createNeverType());
+        }
+        createAndInitializeTypeSupplierField(varName);
+        mv.visitInsn(POP);
+    }
+
+    private void generateListTypeSupplierInner(List<BType> memberTypes, BType restType) {
+        mv.visitTypeInsn(NEW, "io/ballerina/runtime/api/creators/ListTypeSupplier");
+        mv.visitInsn(DUP);
+        loadFixedLengthArraySupplier(memberTypes);
+        loadTypeSupplierFromBType(restType);
+        mv.visitMethodInsn(INVOKESPECIAL, "io/ballerina/runtime/api/creators/ListTypeSupplier", "<init>",
+                "(Lio/ballerina/runtime/api/creators/FixLengthArraySupplier;Lio/ballerina/runtime/api/creators/TypeSupplier;)V",
+                false);
+    }
+
+    private void loadFixedLengthArraySupplier(List<BType> memberTypes) {
+        // create new FixedLengthArraySupplier
+        mv.visitTypeInsn(NEW, "io/ballerina/runtime/api/creators/FixLengthArraySupplier");
+        mv.visitInsn(DUP);
+        // load array of type suppliers
+        loadMemberTypeSuppliers(memberTypes);
+        // load fixedLength
+        mv.visitLdcInsn(memberTypes.size());
+        // call constructor
+        mv.visitMethodInsn(INVOKESPECIAL, "io/ballerina/runtime/api/creators/FixLengthArraySupplier", "<init>",
+                "([Lio/ballerina/runtime/api/creators/TypeSupplier;I)V", false);
+    }
+
+    private void generateUnionTypeSupplier(BUnionType unionType, String varName) {
         List<BType> members = new ArrayList<>(unionType.getMemberTypes());
         createTypeSupplier(unionType);
         createAndInitializeTypeSupplierField(varName);

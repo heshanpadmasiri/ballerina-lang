@@ -103,13 +103,13 @@ public class JvmConstantsGen {
     public void generateConstants(Map<String, byte[]> jarEntries) {
         jvmBallerinaConstantsGen.generateConstantInit(jarEntries);
         unionTypeConstantsGen.generateClass(jarEntries);
-        semTypeSupplierGen.generateClass(jarEntries);
         errorTypeConstantsGen.generateClass(jarEntries);
         moduleConstantsGen.generateConstantInit(jarEntries);
         stringConstantsGen.generateConstantInit(jarEntries);
         tupleTypeConstantsGen.generateClass(jarEntries);
         arrayTypeConstantsGen.generateClass(jarEntries);
         refTypeConstantsGen.generateClass(jarEntries);
+        semTypeSupplierGen.generateClass(jarEntries);
     }
 
     public void generateGetBErrorType(MethodVisitor mv, String varName) {

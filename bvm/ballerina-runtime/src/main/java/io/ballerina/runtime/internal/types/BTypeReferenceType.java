@@ -66,7 +66,8 @@ public class BTypeReferenceType extends BAnnotatableType implements Intersectabl
             return true;
         }
 
-        if (obj instanceof BTypeReferenceType) {
+        if (obj instanceof BTypeReferenceType other) {
+//            return Objects.equals(referredType, other.referredType);
             return this.referredType.equals(((BTypeReferenceType) obj).getReferredType());
         }
         return false;

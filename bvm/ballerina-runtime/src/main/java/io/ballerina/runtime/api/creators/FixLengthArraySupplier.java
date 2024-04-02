@@ -20,14 +20,14 @@ package io.ballerina.runtime.api.creators;
 
 import io.ballerina.runtime.internal.types.semtype.FixedLengthArray;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
-public record FixLengthArraySupplier(List<TypeSupplier> initial, int fixedLength)
+public record FixLengthArraySupplier(TypeSupplier[] initial, int fixedLength)
         implements Supplier<FixedLengthArray> {
 
     @Override
     public FixedLengthArray get() {
-        return new FixedLengthArray(initial.stream().map(TypeSupplier::get).toList(), fixedLength);
+        return new FixedLengthArray(Arrays.stream(initial).map(TypeSupplier::get).toList(), fixedLength);
     }
 }
