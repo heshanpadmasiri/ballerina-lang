@@ -20,6 +20,7 @@
 package org.wso2.ballerinalang.compiler.bir.codegen.split.constants;
 
 import org.ballerinalang.model.elements.PackageID;
+import org.ballerinalang.model.types.TypeKind;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -117,23 +118,23 @@ public class JvmSemTypeSupplierGen {
             mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, B_SEMTYPE_TYPE_INIT_METHOD + methodCount++, VOID_METHOD_DESC,
                     null, null);
         }
-        // TODO: add similar type suppliers for other types that can need a state to initialize like lists
-        if (!(type instanceof BUnionType unionType)) {
+        if (type instanceof BUnionType unionType) {
+            generateLazyTypeSupplier(unionType, varName);
+        } else {
             throw new UnsupportedOperationException("Unsupported BType" + type);
         }
-        generateUnionTypeSupplier(unionType, varName);
         return varName;
     }
 
-    private void generateUnionTypeSupplier(BUnionType unionType, String varName) {
+    private void generateLazyTypeSupplier(BUnionType unionType, String varName) {
         List<BType> members = new ArrayList<>(unionType.getMemberTypes());
-        createUnionTypeSupplier(unionType);
+        createTypeSupplier(unionType);
         createAndInitializeTypeSupplierField(varName);
         loadMemberTypeSuppliers(members);
         setMemberSuppliers();
     }
 
-    private void createUnionTypeSupplier(BUnionType unionType) {
+    private void createTypeSupplier(BUnionType unionType) {
         mv.visitTypeInsn(NEW, LAZY_TYPE_SUPPLIER);
         mv.visitInsn(DUP);
         if (hasIdentifier(unionType)) {
@@ -167,11 +168,18 @@ public class JvmSemTypeSupplierGen {
         if (typeSupplierMap.containsKey(type)) {
             mv.visitFieldInsn(GETSTATIC, semTypeConstantsClass, typeSupplierMap.get(type), GET_TYPE_SUPPLIER);
             return;
+        } else if (canUseTypeSupplier(type)) {
+            String name = get(type);
+            mv.visitFieldInsn(GETSTATIC, semTypeConstantsClass, name, GET_TYPE_SUPPLIER);
+            return;
         }
-        //  if the type is a "supplier type" create it and load it?
         jvmTypeGen.loadTypeUsingTypeBuilder(mv, type);
         mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM_OBJECT,
                 JvmSignatures.TYPE_SUPPLIER_FROM_OBJECT_DESC, false);
+    }
+
+    private static boolean canUseTypeSupplier(BType type) {
+        return type.getKind() == TypeKind.UNION;
     }
 
     private void createAndInitializeTypeSupplierField(String varName) {
