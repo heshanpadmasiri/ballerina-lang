@@ -113,11 +113,11 @@ public class JvmConstants {
     public static final String TYPE_BUILDER = "io/ballerina/runtime/api/TypeBuilder";
     public static final String TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/TypeSupplier";
     public static final String TYPE_SUPPLIER_FROM_OBJECT = "from";
-    public static final String UNION_TYPE_SUPPLIER_SET_MEMBERS = "setMemberSuppliers";
+    public static final String LAZY_TYPE_SUPPLIER_SET_MEMBERS = "setMemberSuppliers";
     public static final String TYPE_SUPPLIER_UTLS = "io/ballerina/runtime/api/creators/TypeSupplierUtils";
 
     public static final String GET_TYPE_SUPPLIER = "Lio/ballerina/runtime/api/creators/TypeSupplier;";
-    public static final String UNION_TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/UnionTypeSupplier";
+    public static final String LAZY_TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/LazyTypeSupplier";
     public static final String STRING_SUBTYPE_DATA =
             TYPE_BUILDER + "$StringSubtypeData";
     public static final String TYPE_SUPPLIER_IDENTIFIER = TYPE_SUPPLIER_UTLS + "$Identifier";

@@ -469,7 +469,7 @@ public class JvmSignatures {
     public static final String SET_DEFAULT_VALUE_METHOD = "(L" + STRING_VALUE + ";L" + B_FUNCTION_POINTER + ";)V";
     public static final String TYPE_SUPPLIER_FROM_OBJECT_DESC =
             "(Ljava/lang/Object;)Lio/ballerina/runtime/api/creators/TypeSupplier;";
-    public static final String UNION_TYPE_SUPPLIER_SET_MEMBER_DESC =
+    public static final String LAZY_TYPE_SUPPLIER_SET_MEMBER_DESC =
             "([Lio/ballerina/runtime/api/creators/TypeSupplier;)V";
     public static final String TYPE_SUPPLIER_GET_DESCRIPTOR = "()Ljava/lang/Object;";
     public static final String TO_B_TYPE_DESC =

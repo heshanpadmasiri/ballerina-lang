@@ -56,7 +56,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAX_CONSTANTS_PER_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_UTLS;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.UNION_TYPE_SUPPLIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LAZY_TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_WITH_IDENTIFIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_SUPPLIER_GET_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.VOID_METHOD_DESC;
@@ -134,19 +134,19 @@ public class JvmSemTypeSupplierGen {
     }
 
     private void createUnionTypeSupplier(BUnionType unionType) {
-        mv.visitTypeInsn(NEW, UNION_TYPE_SUPPLIER);
+        mv.visitTypeInsn(NEW, LAZY_TYPE_SUPPLIER);
         mv.visitInsn(DUP);
         if (hasIdentifier(unionType)) {
             JvmTypeGen.loadTypeSupplierIdentifier(mv, unionType);
-            mv.visitMethodInsn(INVOKESPECIAL, UNION_TYPE_SUPPLIER, JVM_INIT_METHOD, INIT_WITH_IDENTIFIER, false);
+            mv.visitMethodInsn(INVOKESPECIAL, LAZY_TYPE_SUPPLIER, JVM_INIT_METHOD, INIT_WITH_IDENTIFIER, false);
         } else {
-            mv.visitMethodInsn(INVOKESPECIAL, UNION_TYPE_SUPPLIER, JVM_INIT_METHOD, VOID_METHOD_DESC, false);
+            mv.visitMethodInsn(INVOKESPECIAL, LAZY_TYPE_SUPPLIER, JVM_INIT_METHOD, VOID_METHOD_DESC, false);
         }
     }
 
     private void setMemberSuppliers() {
-        mv.visitMethodInsn(INVOKEVIRTUAL, UNION_TYPE_SUPPLIER, JvmConstants.UNION_TYPE_SUPPLIER_SET_MEMBERS,
-                JvmSignatures.UNION_TYPE_SUPPLIER_SET_MEMBER_DESC, false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, LAZY_TYPE_SUPPLIER, JvmConstants.LAZY_TYPE_SUPPLIER_SET_MEMBERS,
+                JvmSignatures.LAZY_TYPE_SUPPLIER_SET_MEMBER_DESC, false);
     }
 
     private void loadMemberTypeSuppliers(List<BType> members) {

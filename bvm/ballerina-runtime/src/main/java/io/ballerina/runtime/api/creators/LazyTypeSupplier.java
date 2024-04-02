@@ -26,18 +26,18 @@ import io.ballerina.runtime.internal.types.semtype.BSemType;
 
 import static io.ballerina.runtime.internal.types.semtype.Core.union;
 
-public class UnionTypeSupplier implements TypeSupplier {
+public class LazyTypeSupplier implements TypeSupplier {
 
     private BSemType type = null;
     private State state = State.UNRESOLVED;
     private TypeSupplier[] members;
     private final TypeSupplierUtils.Identifier identifier;
 
-    public UnionTypeSupplier(TypeSupplierUtils.Identifier identifier) {
+    public LazyTypeSupplier(TypeSupplierUtils.Identifier identifier) {
         this.identifier = identifier;
     }
 
-    public UnionTypeSupplier() {
+    public LazyTypeSupplier() {
         this.identifier = null;
     }
 
