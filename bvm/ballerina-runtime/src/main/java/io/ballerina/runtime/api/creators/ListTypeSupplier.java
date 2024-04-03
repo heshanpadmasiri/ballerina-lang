@@ -26,16 +26,26 @@ import io.ballerina.runtime.internal.types.semtype.ListDefinition;
 public class ListTypeSupplier implements TypeSupplier {
 
     private ListDefinition ld = null;
-    private final FixLengthArraySupplier fixLengthArraySupplier;
-    private final TypeSupplier restTypeSupplier;
+    private FixLengthArraySupplier fixLengthArraySupplier = null;
+    private TypeSupplier restTypeSupplier = null;
+    private final int index;
+    private static int count = 0;
 
-    public ListTypeSupplier(FixLengthArraySupplier fixedLengthSupplier, TypeSupplier restTypeSupplier) {
+    public ListTypeSupplier() {
+        this.index = count;
+        count++;
+    }
+
+    public void setTypeSuppliers(FixLengthArraySupplier fixedLengthSupplier, TypeSupplier restTypeSupplier) {
         this.fixLengthArraySupplier = fixedLengthSupplier;
         this.restTypeSupplier = restTypeSupplier;
     }
 
     @Override
     public BSemType get() {
+        if (fixLengthArraySupplier == null || restTypeSupplier == null) {
+            throw new IllegalStateException("Type suppliers are not set for ListTypeSupplier");
+        }
         Env env = Env.getInstance();
         if (ld != null) {
             return ld.getSemType(env);

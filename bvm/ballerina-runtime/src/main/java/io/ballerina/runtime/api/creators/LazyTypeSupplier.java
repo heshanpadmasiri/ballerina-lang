@@ -32,7 +32,8 @@ public class LazyTypeSupplier implements TypeSupplier {
     private State state = State.UNRESOLVED;
     private TypeSupplier[] members;
     private final TypeSupplierUtils.Identifier identifier;
-
+    // Hack
+    private int depth = 0;
     public LazyTypeSupplier(TypeSupplierUtils.Identifier identifier) {
         this.identifier = identifier;
     }
@@ -60,8 +61,12 @@ public class LazyTypeSupplier implements TypeSupplier {
         this.members = members;
         state = State.RESOLVING;
         Type[] orderedMembers = new Type[members.length];
+        depth++;
         for (int i = 0; i < members.length; i++) {
             TypeSupplier member = members[i];
+            if (depth > 20) {
+                throw new UnsupportedOperationException("Infinite recursion");
+            }
             BSemType memberType = member.get();
             resolvingType = union(resolvingType, memberType);
             orderedMembers[i] = memberType;

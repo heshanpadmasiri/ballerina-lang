@@ -20,10 +20,11 @@
 package org.wso2.ballerinalang.compiler.bir.codegen.split.constants;
 
 import org.ballerinalang.model.elements.PackageID;
-import org.ballerinalang.model.types.TypeKind;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.wso2.ballerinalang.compiler.bir.codegen.BallerinaClassWriter;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants;
@@ -33,6 +34,7 @@ import org.wso2.ballerinalang.compiler.bir.codegen.internal.BTypeHashComparator;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BTupleType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BTypeReferenceType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BUnionType;
 
 import java.util.ArrayList;
@@ -42,27 +44,31 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static org.objectweb.asm.Opcodes.AASTORE;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ANEWARRAY;
+import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.NEW;
-import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_SEMTYPE_CREATOR_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_SEMTYPE_TYPE_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.GET_TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_METHOD;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LAZY_TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAX_CONSTANTS_PER_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_UTLS;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LAZY_TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.INIT_WITH_IDENTIFIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_CREATOR_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_SUPPLIER_GET_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.VOID_METHOD_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen.hasIdentifier;
@@ -80,6 +86,7 @@ public class JvmSemTypeSupplierGen {
 
     private final String semTypeConstantsClass;
     private final Map<BType, String> typeSupplierMap;
+    private final Map<BType, String> typeCreatorMap;
     private final ClassWriter cw;
     private MethodVisitor mv;
     private int constantIndex = 0;
@@ -93,6 +100,7 @@ public class JvmSemTypeSupplierGen {
         generateConstantsClassInit(cw, semTypeConstantsClass);
         mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, B_SEMTYPE_TYPE_INIT_METHOD, VOID_METHOD_DESC, null, null);
         typeSupplierMap = new TreeMap<>(bTypeHashComparator);
+        typeCreatorMap = new TreeMap<>(bTypeHashComparator);
     }
 
     public void setJvmTypeGen(JvmTypeGen jvmTypeGen) {
@@ -122,13 +130,14 @@ public class JvmSemTypeSupplierGen {
             mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, B_SEMTYPE_TYPE_INIT_METHOD + methodCount++, VOID_METHOD_DESC,
                     null, null);
         }
-        // TODO: add similar type suppliers for other types that can need a state to initialize like lists
         if (type instanceof BUnionType unionType) {
             generateUnionTypeSupplier(unionType, varName);
         } else if (type instanceof BArrayType arrayType) {
             generateListTypeSupplier(arrayType, varName);
         } else if (type instanceof BTupleType tupleType) {
             generateListTypeSupplier(tupleType, varName);
+        } else if (type instanceof BTypeReferenceType referenceType) {
+            generateTypeRefSupplier(referenceType, varName);
         } else {
             throw new UnsupportedOperationException("Unsupported BType" + type);
         }
@@ -139,29 +148,35 @@ public class JvmSemTypeSupplierGen {
     private void generateListTypeSupplier(BTupleType tupleType, String varName) {
         List<BType> memberTypes = tupleType.getMembers().stream().map(member -> member.type).toList();
         BType restType = tupleType.restType == null ? BType.createNeverType() : tupleType.restType;
-        generateListTypeSupplierInner(memberTypes, restType);
-        createAndInitializeTypeSupplierField(varName);
-        mv.visitInsn(POP);
+        generateListTypeSupplierInner(memberTypes, restType, varName);
+    }
+
+    private void generateTypeRefSupplier(BTypeReferenceType referenceType, String varName) {
+        createLazyTypeSupplier(referenceType, List.of(referenceType.referredType), varName);
+//        loadTypeSupplierFromBType(referenceType.referredType);
+//        createAndInitializeTypeSupplierField(varName);
+//        mv.visitInsn(POP);
     }
 
     private void generateListTypeSupplier(BArrayType arrayType, String varName) {
         BType elementType = arrayType.eType;
         int length = arrayType.size;
         if (length == -1) {
-            generateListTypeSupplierInner(List.of(), elementType);
+            generateListTypeSupplierInner(List.of(), elementType, varName);
         } else {
-            generateListTypeSupplierInner(Collections.nCopies(length, elementType), BType.createNeverType());
+            generateListTypeSupplierInner(Collections.nCopies(length, elementType), BType.createNeverType(), varName);
         }
-        createAndInitializeTypeSupplierField(varName);
-        mv.visitInsn(POP);
     }
 
-    private void generateListTypeSupplierInner(List<BType> memberTypes, BType restType) {
+    private void generateListTypeSupplierInner(List<BType> memberTypes, BType restType, String varName) {
         mv.visitTypeInsn(NEW, "io/ballerina/runtime/api/creators/ListTypeSupplier");
         mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, "io/ballerina/runtime/api/creators/ListTypeSupplier", "<init>",
+                VOID_METHOD_DESC, false);
+        createAndInitializeTypeSupplierField(varName);
         loadFixedLengthArraySupplier(memberTypes);
         loadTypeSupplierFromBType(restType);
-        mv.visitMethodInsn(INVOKESPECIAL, "io/ballerina/runtime/api/creators/ListTypeSupplier", "<init>",
+        mv.visitMethodInsn(INVOKEVIRTUAL, "io/ballerina/runtime/api/creators/ListTypeSupplier", "setTypeSuppliers",
                 "(Lio/ballerina/runtime/api/creators/FixLengthArraySupplier;Lio/ballerina/runtime/api/creators/TypeSupplier;)V",
                 false);
     }
@@ -181,17 +196,21 @@ public class JvmSemTypeSupplierGen {
 
     private void generateUnionTypeSupplier(BUnionType unionType, String varName) {
         List<BType> members = new ArrayList<>(unionType.getMemberTypes());
-        createTypeSupplier(unionType);
+        createLazyTypeSupplier(unionType, members, varName);
+    }
+
+    private void createLazyTypeSupplier(BType type, List<BType> members, String varName) {
+        createLazyTypeSupplier(type);
         createAndInitializeTypeSupplierField(varName);
         loadMemberTypeSuppliers(members);
         setMemberSuppliers();
     }
 
-    private void createTypeSupplier(BUnionType unionType) {
+    private void createLazyTypeSupplier(BType type) {
         mv.visitTypeInsn(NEW, LAZY_TYPE_SUPPLIER);
         mv.visitInsn(DUP);
-        if (hasIdentifier(unionType)) {
-            JvmTypeGen.loadTypeSupplierIdentifier(mv, unionType);
+        if (hasIdentifier(type)) {
+            JvmTypeGen.loadTypeSupplierIdentifier(mv, type);
             mv.visitMethodInsn(INVOKESPECIAL, LAZY_TYPE_SUPPLIER, JVM_INIT_METHOD, INIT_WITH_IDENTIFIER, false);
         } else {
             mv.visitMethodInsn(INVOKESPECIAL, LAZY_TYPE_SUPPLIER, JVM_INIT_METHOD, VOID_METHOD_DESC, false);
@@ -217,7 +236,6 @@ public class JvmSemTypeSupplierGen {
     }
 
     private void loadTypeSupplierFromBType(BType type) {
-        // TODO: if the type already has a Type supplier just load it
         if (typeSupplierMap.containsKey(type)) {
             mv.visitFieldInsn(GETSTATIC, semTypeConstantsClass, typeSupplierMap.get(type), GET_TYPE_SUPPLIER);
             return;
@@ -226,13 +244,51 @@ public class JvmSemTypeSupplierGen {
             mv.visitFieldInsn(GETSTATIC, semTypeConstantsClass, name, GET_TYPE_SUPPLIER);
             return;
         }
-        jvmTypeGen.loadType(mv, type);
-        mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM_OBJECT,
-                JvmSignatures.TYPE_SUPPLIER_FROM_OBJECT_DESC, false);
+        createTypeSupplierForBType(type);
+//        jvmTypeGen.loadType(mv, type);
+//        mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM_OBJECT,
+//                JvmSignatures.TYPE_SUPPLIER_FROM_OBJECT_DESC, false);
+    }
+
+    private void createTypeSupplierForBType(BType type) {
+        String typeCreatorMethodName = typeCreatorMap.get(type);
+        if (typeCreatorMethodName == null) {
+//            if (isRecursiveMap(type)) {
+//                typeCreatorMethodName = createTypeCreatorMethod(new BMapType(TypeTags.MAP, new BAnyType(null), null));
+//            } else {
+            typeCreatorMethodName = createTypeCreatorMethod(type);
+//            }
+            typeCreatorMap.put(type, typeCreatorMethodName);
+        }
+        Handle typeCreatorMethodHandle = new Handle(H_INVOKESTATIC, semTypeConstantsClass, typeCreatorMethodName,
+                TYPE_CREATOR_DESC, false);
+        Handle bootstrapMethodHandle = new Handle(H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory",
+                "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;",
+                false);
+        mv.visitInvokeDynamicInsn("get", "()Ljava/util/function/Supplier;", bootstrapMethodHandle,
+                Type.getType("()Ljava/lang/Object;"), typeCreatorMethodHandle, Type.getType(TYPE_CREATOR_DESC));
+        // We need to pass this lambda to a value of the correct type so that JVM will convert this to the correct type
+
+        mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM,
+                "(Ljava/util/function/Supplier;)L" + TYPE_SUPPLIER + ";", false);
+    }
+
+    private String createTypeCreatorMethod(BType type) {
+        String typeCreatorMethodName = B_SEMTYPE_CREATOR_METHOD + methodCount++;
+        MethodVisitor typeCreatorMv =
+                cw.visitMethod(ACC_PRIVATE + ACC_STATIC, typeCreatorMethodName, TYPE_CREATOR_DESC, null, null);
+        typeCreatorMv.visitCode();
+        jvmTypeGen.loadType(typeCreatorMv, type);
+        typeCreatorMv.visitInsn(ARETURN);
+        typeCreatorMv.visitMaxs(0, 0);
+        return typeCreatorMethodName;
     }
 
     private static boolean canUseTypeSupplier(BType type) {
-        return type.getKind() == TypeKind.UNION;
+        return switch (type.getKind()) {
+            case UNION, ARRAY, TUPLE, TYPEREFDESC -> true;
+            default -> false;
+        };
     }
 
     private void createAndInitializeTypeSupplierField(String varName) {

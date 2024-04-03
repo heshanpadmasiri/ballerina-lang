@@ -107,12 +107,13 @@ public class JvmConstants {
 
     // types related classes
     // TODO: these names are not uniform
+    public static final String B_SEMTYPE = "io/ballerina/runtime/internal/types/semtype/BSemType";
     public static final String TYPE = "io/ballerina/runtime/api/types/Type";
     public static final String BASIC_TYPE_BUILDER_DESCRIPTOR = "()L" + TYPE + ";";
     public static final String BINARY_TYPE_OPERATION_DESCRIPTOR = "(L" + TYPE + ";L" + TYPE + ";)L" + TYPE + ";";
     public static final String TYPE_BUILDER = "io/ballerina/runtime/api/TypeBuilder";
     public static final String TYPE_SUPPLIER = "io/ballerina/runtime/api/creators/TypeSupplier";
-    public static final String TYPE_SUPPLIER_FROM_OBJECT = "from";
+    public static final String TYPE_SUPPLIER_FROM = "from";
     public static final String LAZY_TYPE_SUPPLIER_SET_MEMBERS = "setMemberSuppliers";
     public static final String TYPE_SUPPLIER_UTLS = "io/ballerina/runtime/api/creators/TypeSupplierUtils";
 
@@ -327,6 +328,7 @@ public class JvmConstants {
     public static final String B_STRING_INIT_METHOD_PREFIX = "$string_init";
     public static final String B_UNION_TYPE_INIT_METHOD = "$union_type_init";
     public static final String B_SEMTYPE_TYPE_INIT_METHOD = "$semtype_init";
+    public static final String B_SEMTYPE_CREATOR_METHOD = "$semtype_init";
     public static final String B_ERROR_TYPE_INIT_METHOD = "$error_type_init";
     public static final String B_TUPLE_TYPE_INIT_METHOD = "$tuple_type_init";
     public static final String B_ARRAY_TYPE_INIT_METHOD = "$array_type_init";

@@ -78,7 +78,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -389,8 +388,8 @@ public class JvmTypeGen {
             loadIntersectionTypeUsingTypeBuilder(mv, type);
             return;
         }
-        if (tag == TypeTags.UNION) {
-            loadUnionTypeUsingTypeBuilder(mv, type);
+        if (tag == TypeTags.UNION || tag == TypeTags.TYPEREFDESC) {
+            loadTypeUseTypeSupplier(mv, type);
             return;
         }
         if (tag == TypeTags.FINITE) {
@@ -478,7 +477,7 @@ public class JvmTypeGen {
         loadTypeUsingTypeBuilder(mv, effectiveType);
     }
 
-    private void loadUnionTypeUsingTypeBuilder(MethodVisitor mv, BType type) {
+    private void loadTypeUseTypeSupplier(MethodVisitor mv, BType type) {
         jvmConstantsGen.generateGetSemType(mv, jvmConstantsGen.getSemTypeSupplier(type));
     }
 
@@ -699,7 +698,7 @@ public class JvmTypeGen {
                     TypeTags.UNSIGNED8_INT, TypeTags.UNSIGNED16_INT, TypeTags.UNSIGNED32_INT,
                     TypeTags.SIGNED8_INT, TypeTags.SIGNED16_INT, TypeTags.SIGNED32_INT,
                     TypeTags.FLOAT, TypeTags.STRING, TypeTags.CHAR_STRING, TypeTags.DECIMAL, TypeTags.BOOLEAN,
-                    TypeTags.ANY, TypeTags.ANYDATA, TypeTags.JSON, TypeTags.ARRAY, TypeTags.TUPLE,
+                    TypeTags.ANY, TypeTags.ANYDATA, TypeTags.JSON, TypeTags.ARRAY, TypeTags.TUPLE, TypeTags.TYPEREFDESC,
                     TypeTags.XML_COMMENT, TypeTags.XML_PI, TypeTags.XML_ELEMENT, TypeTags.XML_TEXT -> true;
             case TypeTags.ERROR -> {
                 BErrorType errorType = (BErrorType) type;

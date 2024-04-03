@@ -33,11 +33,8 @@ import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.TypeHashVisitor;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.Types;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
-import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BErrorType;
-import org.wso2.ballerinalang.compiler.semantics.model.types.BTupleType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
-import org.wso2.ballerinalang.compiler.semantics.model.types.BTypeReferenceType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BUnionType;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
 
@@ -141,11 +138,9 @@ public class JvmConstantsGen {
             case TypeTags.ERROR:
                 return errorTypeConstantsGen.add((BErrorType) type);
             case TypeTags.ARRAY:
-                return arrayTypeConstantsGen.add((BArrayType) type);
             case TypeTags.TUPLE:
-                return tupleTypeConstantsGen.add((BTupleType) type, symbolTable);
             case TypeTags.TYPEREFDESC:
-                return refTypeConstantsGen.add((BTypeReferenceType) type);
+                return semTypeSupplierGen.get(type);
             default:
                 return unionTypeConstantsGen.add((BUnionType) type, symbolTable);
         }

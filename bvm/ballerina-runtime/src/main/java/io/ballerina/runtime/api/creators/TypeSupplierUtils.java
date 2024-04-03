@@ -19,9 +19,12 @@
 
 package io.ballerina.runtime.api.creators;
 
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.internal.types.BType;
 import io.ballerina.runtime.internal.types.semtype.BSemType;
 import io.ballerina.runtime.internal.types.semtype.SemTypeUtils;
+
+import java.util.function.Supplier;
 
 public final class TypeSupplierUtils {
 
@@ -32,7 +35,17 @@ public final class TypeSupplierUtils {
         return () -> type;
     }
 
+    public static TypeSupplier from(Supplier baseSupplier) {
+        return () -> {
+            Type type = (Type) baseSupplier.get();
+            return SemTypeUtils.SemTypeBuilder.from(type);
+        };
+    }
+
     public static TypeSupplier from(Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Value cannot be null");
+        }
         if (value instanceof TypeSupplier supplier) {
             return supplier;
         }

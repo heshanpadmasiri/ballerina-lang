@@ -31,6 +31,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_LIST_IN
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_MAP;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_MAPPING_INITIAL_VALUE_ENTRY;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_OBJECT;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_SEMTYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_STRING_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_XML_QNAME;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CHANNEL_DETAILS;
@@ -93,7 +94,6 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRAND_ME
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STREAM_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_BUILDER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_VALUE;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_IDENTIFIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TABLE_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.THROWABLE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TOML_DETAILS;
@@ -103,6 +103,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPEDESC_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_ID_SET;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_REF_TYPE_IMPL;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER_IDENTIFIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.UNION_TYPE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VALUE_CREATOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VARIABLE_KEY;
@@ -467,15 +468,19 @@ public class JvmSignatures {
     public static final String GET_TEST_CONFIG_PATH = "(L" + MODULE + ";L" + STRING_VALUE + ";L" + STRING_VALUE +
             ";)L" + TOML_DETAILS + ";";
     public static final String SET_DEFAULT_VALUE_METHOD = "(L" + STRING_VALUE + ";L" + B_FUNCTION_POINTER + ";)V";
+
+    public static final String TYPE_CREATOR_DESC = "()L" + TYPE + ";";
     public static final String TYPE_SUPPLIER_FROM_OBJECT_DESC =
             "(Ljava/lang/Object;)Lio/ballerina/runtime/api/creators/TypeSupplier;";
+
     public static final String LAZY_TYPE_SUPPLIER_SET_MEMBER_DESC =
             "([Lio/ballerina/runtime/api/creators/TypeSupplier;)V";
     public static final String TYPE_SUPPLIER_GET_DESCRIPTOR = "()Ljava/lang/Object;";
     public static final String TO_B_TYPE_DESC =
             "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/api/types/Type;";
     public static final String TO_SEMTYPE_DESC =
-            "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/internal/types/semtype/BSemType;";
+            "(Lio/ballerina/runtime/api/types/Type;)L" + B_SEMTYPE +
+                    "io/ballerina/runtime/internal/types/semtype/BSemType;";
     public static final String IDENTIFIER_INIT_DESC =
             "(L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";)V";
 
