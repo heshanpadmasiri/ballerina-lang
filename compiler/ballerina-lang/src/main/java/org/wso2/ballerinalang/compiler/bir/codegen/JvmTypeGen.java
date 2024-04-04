@@ -114,8 +114,8 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil.getModu
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil.getStringConstantsClass;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil.toNameString;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.ADD_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BINARY_TYPE_OPERATION_DESCRIPTOR;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.BINARY_TYPE_OPERATION_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BOOLEAN_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_STRING_VAR_PREFIX;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CALL_FUNCTION;
@@ -133,7 +133,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.INTERSECT
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.INT_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LINKED_HASH_SET;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LIST_SUBTYPE_BUILDER_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.LIST_SUBTYPE_BUILDER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LONG_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAP_TYPE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_ANON_TYPES_CLASS_NAME;
@@ -146,21 +146,21 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.PARAMETER
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.PREDEFINED_TYPES;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.SET;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STREAM_TYPE_IMPL;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_SUBTYPE_BUILDER_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.STRING_SUBTYPE_BUILDER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_SUBTYPE_DATA;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_SUBTYPE_DATA_BUILDER_DESC;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.STRING_SUBTYPE_DATA_BUILDER_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.STRING_VALUE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TABLE_TYPE_IMPL;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TO_SEMTYPE_DESC;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TO_SEMTYPE_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPEDESC_TYPE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPES_ERROR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_IDENTIFIER;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER_INIT_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_BUILDER_INIT_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VALUE_OF_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.XML_SIMPLE_SUBTYPE_BUILDER_DESCRIPTOR;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.XML_SUBTYPE_BUILDER_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.XML_SIMPLE_SUBTYPE_BUILDER_DESCRIPTOR;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.XML_SUBTYPE_BUILDER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.XML_TYPE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.ANY_TO_JBOOLEAN;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.BOOLEAN_VALUE_OF_METHOD;
@@ -1537,6 +1537,6 @@ public class JvmTypeGen {
     //   more types to semtypes that should happen naturally
     @Deprecated
     public static void wrapType(MethodVisitor mv) {
-        mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "toSemType", TO_SEMTYPE_DESC, false);
+        mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "toSemType", TO_SEMTYPE_DESCRIPTOR, false);
     }
 }

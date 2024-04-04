@@ -466,6 +466,26 @@ public class JvmSignatures {
     public static final String GET_TEST_CONFIG_PATH = "(L" + MODULE + ";L" + STRING_VALUE + ";L" + STRING_VALUE +
             ";)L" + TOML_DETAILS + ";";
     public static final String SET_DEFAULT_VALUE_METHOD = "(L" + STRING_VALUE + ";L" + B_FUNCTION_POINTER + ";)V";
+    public static final String BASIC_TYPE_BUILDER_DESCRIPTOR = "()L" + TYPE + ";";
+    public static final String BINARY_TYPE_OPERATION_DESCRIPTOR = "(L" + TYPE + ";L" + TYPE + ";)L" + TYPE + ";";
+    public static final String TO_B_TYPE_DESCRIPTOR =
+            "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/api/types/Type;";
+    public static final String TO_SEMTYPE_DESCRIPTOR =
+            "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/internal/types/semtype/BSemType;";
+    public static final String TYPE_BUILDER_INIT_DESCRIPTOR =
+            "(L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";)V";
+    public static final String BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR =
+            "(L" + TYPE + ";L" + TYPE + ";L" + JvmConstants.TYPE_IDENTIFIER + ";)L" + TYPE + ";";
+    public static final String LIST_SUBTYPE_BUILDER_DESCRIPTOR = "([L" + TYPE + ";IL" + TYPE + ";)L" + TYPE + ";";
+    public static final String STRING_SUBTYPE_BUILDER_DESCRIPTOR =
+            "(L" + JvmConstants.STRING_SUBTYPE_DATA + ";)L" + TYPE + ";";
+    public static final String INT_SUBTYPE_BUILDER_DESCRIPTOR = "(JJ)L" + TYPE + ";";
+    public static final String XML_SIMPLE_SUBTYPE_BUILDER_DESCRIPTOR = "(I)L" + TYPE + ";";
+    public static final String XML_SUBTYPE_BUILDER_DESCRIPTOR = "(L" + TYPE + ";)L" + TYPE + ";";
+    public static final String STRING_SUBTYPE_DATA_BUILDER_DESC =
+            "([L" + STRING_VALUE + ";)L" + JvmConstants.STRING_SUBTYPE_DATA + ";";
+
+    public static final String TYPE_SUPPLIER_GET_DESCRIPTOR = "()Ljava/lang/Object;";
 
     private JvmSignatures() {
     }
