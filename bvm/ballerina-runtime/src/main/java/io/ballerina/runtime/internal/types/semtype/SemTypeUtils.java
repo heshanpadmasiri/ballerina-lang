@@ -560,6 +560,9 @@ public final class SemTypeUtils {
                 }
             }
             return TypeTags.INT_TAG;
+        } else if (belongToBasicType(semType, BT_LIST)) {
+            // FIXME:
+            return TypeTags.TUPLE_TAG;
         }
         throw new IllegalStateException("Unable to calculate tag for the given SemType: " + semType);
     }

@@ -32,6 +32,9 @@ import org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen;
 import org.wso2.ballerinalang.compiler.bir.codegen.internal.BTypeHashComparator;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BIntersectionType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BMapType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BTableType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BTupleType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BTypeReferenceType;
@@ -132,6 +135,8 @@ public class JvmSemTypeSupplierGen {
         }
         if (type instanceof BUnionType unionType) {
             generateUnionTypeSupplier(unionType, varName);
+        } else if (type instanceof BIntersectionType intersectionType) {
+            generateIntersectionTypeSupplier(intersectionType, varName);
         } else if (type instanceof BArrayType arrayType) {
             generateListTypeSupplier(arrayType, varName);
         } else if (type instanceof BTupleType tupleType) {
@@ -199,6 +204,11 @@ public class JvmSemTypeSupplierGen {
         createLazyTypeSupplier(unionType, members, varName);
     }
 
+    private void generateIntersectionTypeSupplier(BIntersectionType intersectionType, String varName) {
+        List<BType> members = new ArrayList<>(intersectionType.getConstituentTypes());
+        createLazyTypeSupplier(intersectionType, members, varName);
+    }
+
     private void createLazyTypeSupplier(BType type, List<BType> members, String varName) {
         createLazyTypeSupplier(type);
         createAndInitializeTypeSupplierField(varName);
@@ -243,11 +253,60 @@ public class JvmSemTypeSupplierGen {
             String name = get(type);
             mv.visitFieldInsn(GETSTATIC, semTypeConstantsClass, name, GET_TYPE_SUPPLIER);
             return;
+        } else if (shouldUseRecTypeSupplier(type)) {
+            loadRecTypeSupplier(type);
+            return;
+//        } else if (type instanceof BTypeReferenceType refType) {
+//            loadTypeSupplierFromBType(refType.referredType);
+//            return;
         }
         createTypeSupplierForBType(type);
 //        jvmTypeGen.loadType(mv, type);
 //        mv.visitMethodInsn(INVOKESTATIC, TYPE_SUPPLIER_UTLS, JvmConstants.TYPE_SUPPLIER_FROM_OBJECT,
 //                JvmSignatures.TYPE_SUPPLIER_FROM_OBJECT_DESC, false);
+    }
+
+    private boolean shouldUseRecTypeSupplier(BType type) {
+        if (type instanceof BMapType) {
+            return true;
+        } else if (type instanceof BTableType tableType) {
+            return tableType.fieldNameList.isEmpty() && tableType.keyTypeConstraint == null;
+        }
+        return false;
+    }
+
+    private void loadRecTypeSupplier(BType type) {
+        if (type instanceof BMapType mapType) {
+            createBRectTypeSupplier(mapType);
+            return;
+        }
+        if (type instanceof BTableType tableType) {
+            createBRectTypeSupplier(tableType);
+            return;
+        }
+        throw new IllegalArgumentException("Unsupported type: " + type);
+    }
+
+    private void createBRectTypeSupplier(BMapType type) {
+        // load constraint type
+        loadTypeSupplierFromBType(type.constraint);
+        // load readonly flag
+        jvmTypeGen.loadReadonlyFlag(mv, type);
+        // call createMap method
+        mv.visitMethodInsn(INVOKESTATIC, "io/ballerina/runtime/api/creators/BRecTypeSupplier", "createMap",
+                "(Lio/ballerina/runtime/api/creators/TypeSupplier;Z)Lio/ballerina/runtime/api/creators/BRecTypeSupplier;",
+                false);
+    }
+
+    private void createBRectTypeSupplier(BTableType type) {
+        // load constraint type
+        loadTypeSupplierFromBType(type.constraint);
+        // load readonly flag
+        jvmTypeGen.loadReadonlyFlag(mv, type);
+        // call createMap method
+        mv.visitMethodInsn(INVOKESTATIC, "io/ballerina/runtime/api/creators/BRecTypeSupplier", "createTable",
+                "(Lio/ballerina/runtime/api/creators/TypeSupplier;Z)Lio/ballerina/runtime/api/creators/BRecTypeSupplier;",
+                false);
     }
 
     private void createTypeSupplierForBType(BType type) {
@@ -286,7 +345,7 @@ public class JvmSemTypeSupplierGen {
 
     private static boolean canUseTypeSupplier(BType type) {
         return switch (type.getKind()) {
-            case UNION, ARRAY, TUPLE, TYPEREFDESC -> true;
+            case UNION, INTERSECTION, ARRAY, TUPLE, TYPEREFDESC -> true;
             default -> false;
         };
     }

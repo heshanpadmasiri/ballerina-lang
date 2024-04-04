@@ -26,7 +26,7 @@ public record FixedLengthArray(List<BSemType> initial, int fixedLength) {
 
     public FixedLengthArray {
         // TODO: normalize the initial part
-        validate(initial, fixedLength);
+        // validate(initial, fixedLength);
     }
 
     private static void validate(List<BSemType> initial, int fixedLength) {

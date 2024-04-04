@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.internal.types.BErrorType;
 import io.ballerina.runtime.internal.types.BType;
 import io.ballerina.runtime.internal.types.BUnionType;
 
@@ -37,6 +38,7 @@ import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicType
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_DECIMAL;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_FLOAT;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_INT;
+import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_LIST;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_NIL;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.BT_STRING;
 import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicTypeCodes.N_TYPES;
@@ -196,7 +198,18 @@ public class BSemType implements Type {
                         typeClass == BSubType.BTypeClass.BJson;
             }
         }
-        return bTypeComponent.getBTypeComponent().isAnydata();
+        if (bTypeComponent instanceof BUnionType bUnionType) {
+            return bUnionType.isAnydata();
+        } else {
+            return !(bTypeComponent.getBTypeComponent() instanceof BErrorType);
+        }
+        // FIXME: this is not correct we need to handle bTypeComponent being a union correctly
+//        return !(bTypeComponent.getBTypeComponent() instanceof BErrorType);
+//        // FIXME: hack to prevent infinite recursion
+//        if (name != null && (name.equals("json") || name.equals("anydata"))) {
+//            return true;
+//        }
+//        return bTypeComponent.getBTypeComponent().isAnydata();
     }
 
     @Override
@@ -277,6 +290,10 @@ public class BSemType implements Type {
             }
             if (containsSimple(this, BT_BTYPE)) {
                 return getBTypePart().toString();
+            }
+            if (containsSimple(this, BT_LIST)) {
+                // FIXME:
+                return "[list]";
             }
             throw new IllegalStateException("Unexpected single type");
         }

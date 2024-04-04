@@ -479,8 +479,7 @@ public class JvmSignatures {
     public static final String TO_B_TYPE_DESC =
             "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/api/types/Type;";
     public static final String TO_SEMTYPE_DESC =
-            "(Lio/ballerina/runtime/api/types/Type;)L" + B_SEMTYPE +
-                    "io/ballerina/runtime/internal/types/semtype/BSemType;";
+            "(Lio/ballerina/runtime/api/types/Type;)L" + B_SEMTYPE + ";";
     public static final String IDENTIFIER_INIT_DESC =
             "(L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";)V";
 

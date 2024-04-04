@@ -43,10 +43,21 @@ import java.util.Optional;
 @SuppressWarnings("unchecked")
 public class BMapType extends BType implements MapType {
 
-    private final Type constraint;
-    private final boolean readonly;
+    private Type constraint;
+    private boolean readonly;
     private IntersectionType immutableType;
     private IntersectionType intersectionType = null;
+
+    public BMapType() {
+        super(TypeConstants.MAP_TNAME, null, MapValueImpl.class);
+        constraint = null;
+        readonly = false;
+    }
+
+    public void setValues(Type constraint, boolean readonly) {
+        this.constraint = readonly ? ReadOnlyUtils.getReadOnlyType(constraint) : constraint;
+        this.readonly = readonly;
+    }
 
     public BMapType(Type constraint) {
         this(constraint, false);
@@ -142,6 +153,10 @@ public class BMapType extends BType implements MapType {
 
     @Override
     public boolean isAnydata() {
+        // FIXME:
+        if (this.constraint == null) {
+            return true;
+        }
         return this.constraint.isAnydata();
     }
 

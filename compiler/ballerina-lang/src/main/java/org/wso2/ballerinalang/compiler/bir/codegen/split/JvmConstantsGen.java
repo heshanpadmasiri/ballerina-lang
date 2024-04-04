@@ -73,11 +73,11 @@ public class JvmConstantsGen {
         this.moduleConstantsGen = new JvmModuleConstantsGen(module);
         this.jvmBallerinaConstantsGen = new JvmBallerinaConstantsGen(module, moduleInitClass, this);
         this.unionTypeConstantsGen = new JvmUnionTypeConstantsGen(module.packageID, bTypeHashComparator);
+        this.semTypeSupplierGen = new JvmSemTypeSupplierGen(module.packageID, bTypeHashComparator);
         this.errorTypeConstantsGen = new JvmErrorTypeConstantsGen(module.packageID, bTypeHashComparator);
         this.tupleTypeConstantsGen = new JvmTupleTypeConstantsGen(module.packageID, bTypeHashComparator);
         this.arrayTypeConstantsGen = new JvmArrayTypeConstantsGen(module.packageID, bTypeHashComparator, types);
         this.refTypeConstantsGen = new JvmRefTypeConstantsGen(module.packageID, bTypeHashComparator);
-        this.semTypeSupplierGen = new JvmSemTypeSupplierGen(module.packageID, bTypeHashComparator);
     }
 
     public int getBStringConstantVarIndex(String value) {

@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_PREFIX;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.UNSIGNED8_MAX_VALUE;
@@ -143,8 +144,9 @@ public final class TypeBuilder {
     // Type operations
     // TODO: once semtypes are properly implemented these should become just wrappers to Core
     public static Type intersect(Type type1, Type type2) {
-        if (isReadonly(type1) || isReadonly(type2)) {
-            Type other = isReadonly(type1) ? type2 : type1;
+        Function<Type, Boolean> isReadonlyType = (type) -> TypeChecker.isSameType(type, PredefinedTypes.TYPE_READONLY);
+        if (isReadonlyType.apply(type1) || isReadonlyType.apply(type2)) {
+            Type other = isReadonlyType.apply(type1) ? type2 : type1;
             return toReadonlyType(other);
         }
         throw new UnsupportedOperationException("unsupported intersection");
@@ -346,6 +348,12 @@ public final class TypeBuilder {
         }
         if (TypeChecker.isSameType(type, PredefinedTypes.TYPE_JSON)) {
             return PredefinedTypes.TYPE_READONLY_JSON;
+        }
+        if (TypeChecker.checkIsType(type, SemTypeUtils.ALL_SEMTYPE)) {
+            if (isReadonly(type)) {
+                return type;
+            }
+            throw new UnsupportedOperationException("unimplemented");
         }
         Type inner = toBType(type);
         if (inner instanceof MaybeRoType maybeRoType) {

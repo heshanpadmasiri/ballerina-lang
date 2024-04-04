@@ -35,13 +35,24 @@ import java.util.Optional;
  */
 public class BTableType extends BType implements TableType {
 
-    private final Type constraint;
+    private Type constraint;
     private Type keyType;
     private String[] fieldNames = new String[]{};
 
-    private final boolean readonly;
+    private boolean readonly;
     private IntersectionType immutableType;
     private IntersectionType intersectionType = null;
+
+    public BTableType() {
+        super(TypeConstants.TABLE_TNAME, null, TableValue.class);
+        this.constraint = null;
+        this.readonly = false;
+    }
+
+    public void setValues(Type constraint, boolean readonly) {
+        this.constraint = readonly ? ReadOnlyUtils.getReadOnlyType(constraint) : constraint;
+        this.readonly = readonly;
+    }
 
     public BTableType(Type constraint, String[] fieldNames, boolean readonly) {
         this(constraint, readonly);

@@ -59,7 +59,8 @@ public class ListSubType implements SubType {
 
     @Override
     public boolean isEmpty() {
-        throw new UnsupportedOperationException("unimplemented");
+        return false;
+//        throw new UnsupportedOperationException("unimplemented");
     }
 
     public BddNode data() {

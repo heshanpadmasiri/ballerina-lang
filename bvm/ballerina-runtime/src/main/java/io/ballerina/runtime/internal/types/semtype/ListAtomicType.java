@@ -23,7 +23,7 @@ import static io.ballerina.runtime.internal.types.semtype.SemTypeUtils.BasicType
 public record ListAtomicType(FixedLengthArray members, BSemType rest) implements AtomicType {
 
     public ListAtomicType {
-        validate(members, rest);
+        //validate(members, rest);
     }
 
     private static void validate(FixedLengthArray members, BSemType rest) {
