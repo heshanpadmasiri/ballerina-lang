@@ -454,7 +454,7 @@ public class JvmTypeGen {
         boolean needToSetIdentifier = hasIdentifier(type);
         while (numberOfTypesOnStack > 1) {
             if (needToSetIdentifier && numberOfTypesOnStack == 2) {
-                loadTypeBuilderIdentifier(mv, type);
+                loadTypeIdentifier(mv, type);
                 mv.visitMethodInsn(INVOKESTATIC, TYPE_BUILDER, "union",
                         BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR, false);
             } else {
@@ -486,7 +486,7 @@ public class JvmTypeGen {
         return type.tsymbol != null && (type.name != null || type.tsymbol.name != null);
     }
 
-    public static void loadTypeBuilderIdentifier(MethodVisitor mv, BType type) {
+    public static void loadTypeIdentifier(MethodVisitor mv, BType type) {
         PackageID packageID = type.tsymbol.pkgID;
         String org = packageID.orgName.value;
         String pkgName = packageID.pkgName.value;

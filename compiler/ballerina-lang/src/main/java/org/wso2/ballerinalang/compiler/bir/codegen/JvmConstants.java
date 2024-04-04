@@ -111,6 +111,9 @@ public class JvmConstants {
     public static final String TYPE_BUILDER = "io/ballerina/runtime/api/TypeBuilder";
 
     public static final String TYPE_SUPPLIER = "io/ballerina/runtime/api/types/TypeSupplier";
+
+    public static final String LAMBDA_METAFACTORY = "java/lang/invoke/LambdaMetafactory";
+    public static final String UNION_TYPE_SUPPLIER = "io/ballerina/runtime/internal/types/UnionTypeSupplier";
     public static final String STRING_SUBTYPE_DATA = TYPE_BUILDER + "$StringSubtypeData";
     public static final String TYPE_IDENTIFIER = "io/ballerina/runtime/api/types/TypeIdentifier";
 
@@ -465,7 +468,6 @@ public class JvmConstants {
     public static final int MAX_STRINGS_PER_METHOD = 5000;
     public static final int VISIT_MAX_SAFE_MARGIN = 10;
     public static final int OVERFLOW_LINE_NUMBER = 0x80000000;
-    public static final String LAMBDA_METAFACTORY = "java/lang/invoke/LambdaMetafactory";
 
     private JvmConstants() {
     }

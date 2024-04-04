@@ -100,8 +100,10 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TRANSACTI
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TUPLE_TYPE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPEDESC_VALUE;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_IDENTIFIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_ID_SET;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_REF_TYPE_IMPL;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.UNION_TYPE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VALUE_CREATOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VARIABLE_KEY;
@@ -487,8 +489,11 @@ public class JvmSignatures {
 
     public static final String TYPE_SUPPLIER_GET_DESCRIPTOR = "()Ljava/lang/Object;";
     public static final String TYPE_CREATOR_DESC = "()L" + TYPE + ";";
+    public static final String GET_TYPE_SUPPLIER = "L" + TYPE_SUPPLIER + ";";
     public static final String LAMBDA_META_FACTORY_DESC =
             "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;";
+    public static final String NAMED_UNION_TYPE_SUPPLIER_INIT_DESC = "(L" + TYPE_IDENTIFIER + ";)V";
+    public static final String UNION_TYPE_SUPPLIER_SET_MEMBERS = "([L" + TYPE_SUPPLIER + ";)V";
 
     private JvmSignatures() {
     }
