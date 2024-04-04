@@ -22,10 +22,13 @@ package org.wso2.ballerinalang.compiler.bir.codegen.split.constants;
 import org.ballerinalang.model.elements.PackageID;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.wso2.ballerinalang.compiler.bir.codegen.BallerinaClassWriter;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmCodeGenUtil;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants;
+import org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures;
 import org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen;
 import org.wso2.ballerinalang.compiler.bir.codegen.internal.BTypeHashComparator;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
@@ -34,17 +37,27 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BUnionType;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_CREATOR_METHOD;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_SUPPLIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.BINARY_TYPE_OPERATION_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.B_SEMTYPE_TYPE_INIT_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAX_CONSTANTS_PER_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.GET_TYPE;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_CREATOR_DESC;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.TYPE_SUPPLIER_GET_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmSignatures.VOID_METHOD_DESC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen.hasIdentifier;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmTypeGen.loadTypeBuilderIdentifier;
@@ -62,6 +75,7 @@ public class JvmSemTypeConstantsGen {
 
     private final String semTypeConstantsClass;
     private final Map<BType, String> typeVarMap;
+    private final Map<BType, String> typeCreatorMethods;
     private final ClassWriter cw;
     private MethodVisitor mv;
     private int constantIndex = 0;
@@ -75,6 +89,7 @@ public class JvmSemTypeConstantsGen {
         generateConstantsClassInit(cw, semTypeConstantsClass);
         mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, B_SEMTYPE_TYPE_INIT_METHOD, VOID_METHOD_DESC, null, null);
         typeVarMap = new TreeMap<>(bTypeHashComparator);
+        typeCreatorMethods = new TreeMap<>(bTypeHashComparator);
     }
 
     public void setJvmTypeGen(JvmTypeGen jvmTypeGen) {
@@ -112,7 +127,7 @@ public class JvmSemTypeConstantsGen {
     private void loadBUnionType(BUnionType unionType) {
         int numberOfTypesOnStack = 0;
         for (BType member : unionType.getMemberTypes()) {
-            jvmTypeGen.loadTypeUsingTypeBuilder(mv, member);
+            loadTypeUsingTypeSupplier(member);
             numberOfTypesOnStack++;
         }
         boolean needToSetIdentifier = hasIdentifier(unionType);
@@ -127,6 +142,40 @@ public class JvmSemTypeConstantsGen {
             }
             numberOfTypesOnStack--;
         }
+    }
+
+    private void loadTypeUsingTypeSupplier(BType type) {
+        loadAnonTypeSupplier(type);
+        mv.visitMethodInsn(INVOKEINTERFACE, TYPE_SUPPLIER, "get", TYPE_SUPPLIER_GET_DESCRIPTOR, true);
+        mv.visitTypeInsn(CHECKCAST, TYPE);
+    }
+
+    private void loadAnonTypeSupplier(BType type) {
+        String typeCreatorMethodName = typeCreatorMethods.get(type);
+        if (typeCreatorMethodName == null) {
+            typeCreatorMethodName = createTypeCreatorMethod(type);
+            typeCreatorMethods.put(type, typeCreatorMethodName);
+        }
+        Handle typeCreatorMethodHandle = new Handle(H_INVOKESTATIC, semTypeConstantsClass, typeCreatorMethodName,
+                TYPE_CREATOR_DESC, false);
+        Handle bootstrapMethodHandle = new Handle(H_INVOKESTATIC, JvmConstants.LAMBDA_METAFACTORY, "metafactory",
+                JvmSignatures.LAMBDA_META_FACTORY_DESC, false);
+        String desc = "()L" + TYPE_SUPPLIER + ";";
+        mv.visitInvokeDynamicInsn("get", desc, bootstrapMethodHandle,
+                Type.getType("()Ljava/lang/Object;"), typeCreatorMethodHandle, Type.getType(TYPE_CREATOR_DESC));
+    }
+
+    private String createTypeCreatorMethod(BType type) {
+        String typeCreatorMethodName = TYPE_CREATOR_METHOD + methodCount++;
+        MethodVisitor typeCreatorMv =
+                cw.visitMethod(ACC_PRIVATE + ACC_STATIC, typeCreatorMethodName, TYPE_CREATOR_DESC, null, null);
+        typeCreatorMv.visitCode();
+        jvmTypeGen.loadType(typeCreatorMv, type);
+        // TODO: convert to BSemType
+        typeCreatorMv.visitInsn(ARETURN);
+        // TODO: there is a function for this
+        typeCreatorMv.visitMaxs(0, 0);
+        return typeCreatorMethodName;
     }
 
     private void createSemTypeField(String typeVarName) {

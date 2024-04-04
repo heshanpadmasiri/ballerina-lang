@@ -486,6 +486,9 @@ public class JvmSignatures {
             "([L" + STRING_VALUE + ";)L" + JvmConstants.STRING_SUBTYPE_DATA + ";";
 
     public static final String TYPE_SUPPLIER_GET_DESCRIPTOR = "()Ljava/lang/Object;";
+    public static final String TYPE_CREATOR_DESC = "()L" + TYPE + ";";
+    public static final String LAMBDA_META_FACTORY_DESC =
+            "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;";
 
     private JvmSignatures() {
     }
