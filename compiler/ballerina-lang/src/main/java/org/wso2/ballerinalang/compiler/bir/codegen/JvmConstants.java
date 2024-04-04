@@ -115,14 +115,13 @@ public class JvmConstants {
             "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/api/types/Type;";
     public static final String TO_SEMTYPE_DESC =
             "(Lio/ballerina/runtime/api/types/Type;)Lio/ballerina/runtime/internal/types/semtype/BSemType;";
-    public static final String STRING_SUBTYPE_DATA =
-            TYPE_BUILDER + "$StringSubtypeData";
-    public static final String TYPE_BUILDER_IDENTIFIER = TYPE_BUILDER + "$Identifier";
+    public static final String STRING_SUBTYPE_DATA = TYPE_BUILDER + "$StringSubtypeData";
+    public static final String TYPE_IDENTIFIER = "io/ballerina/runtime/api/types/TypeIdentifier";
     public static final String TYPE_BUILDER_INIT_DESCRIPTOR =
             "(L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";L" + STRING_VALUE + ";)V";
 
     public static final String BINARY_TYPE_OPERATION_WITH_IDENTIFIER_DESCRIPTOR =
-            "(L" + TYPE + ";L" + TYPE + ";L" + TYPE_BUILDER_IDENTIFIER + ";)L" + TYPE + ";";
+            "(L" + TYPE + ";L" + TYPE + ";L" + TYPE_IDENTIFIER + ";)L" + TYPE + ";";
     public static final String LIST_SUBTYPE_BUILDER_DESCRIPTOR = "([L" + TYPE + ";IL" + TYPE + ";)L" + TYPE + ";";
     public static final String STRING_SUBTYPE_BUILDER_DESCRIPTOR = "(L" + STRING_SUBTYPE_DATA + ";)L" + TYPE + ";";
     public static final String INT_SUBTYPE_BUILDER_DESCRIPTOR = "(JJ)L" + TYPE + ";";

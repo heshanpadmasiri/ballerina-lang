@@ -156,7 +156,7 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPEDESC_TYPE_IMPL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPES_ERROR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER_IDENTIFIER;
+import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_IDENTIFIER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TYPE_BUILDER_INIT_DESCRIPTOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VALUE_OF_METHOD;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.XML_SIMPLE_SUBTYPE_BUILDER_DESCRIPTOR;
@@ -493,13 +493,13 @@ public class JvmTypeGen {
         String version = packageID.version.value;
         String name = type.tsymbol.name != null ? Utils.decodeIdentifier(type.tsymbol.name.getValue()) :
                 Utils.decodeIdentifier(type.name.getValue());
-        mv.visitTypeInsn(NEW, TYPE_BUILDER_IDENTIFIER);
+        mv.visitTypeInsn(NEW, TYPE_IDENTIFIER);
         mv.visitInsn(DUP);
         mv.visitLdcInsn(name);
         mv.visitLdcInsn(org);
         mv.visitLdcInsn(pkgName);
         mv.visitLdcInsn(version);
-        mv.visitMethodInsn(INVOKESPECIAL, TYPE_BUILDER_IDENTIFIER, JVM_INIT_METHOD, TYPE_BUILDER_INIT_DESCRIPTOR,
+        mv.visitMethodInsn(INVOKESPECIAL, TYPE_IDENTIFIER, JVM_INIT_METHOD, TYPE_BUILDER_INIT_DESCRIPTOR,
                 false);
     }
 
