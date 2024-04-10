@@ -147,7 +147,7 @@ public class SymbolTable {
 
     public final BType semanticError = new BType(TypeTags.SEMANTIC_ERROR, null);
     public final BType nullSet = new BType(TypeTags.NULL_SET, null);
-    public final BType invokableType = new BInvokableType(null, null, null, null);
+    public final BType invokableType;
     public final BType empty = new BType(TypeTags.EMPTY, null);
 
     public BConstructorSymbol errorConstructor;
@@ -305,6 +305,7 @@ public class SymbolTable {
         xmlType = new BXMLType(BUnionType.create(types.typeEnv(), null, xmlElementType, xmlCommentType,
                 xmlPIType, xmlTextType), null);
         tupleType = new BTupleType(types.typeEnv(), Lists.of(new BTupleMember(noType, varSymbol)));
+        invokableType = new BInvokableType(types.typeEnv(), List.of(), null, null, null);
         initializeType(xmlType, TypeKind.XML.typeName(), BUILTIN);
         defineCyclicUnionBasedInternalTypes();
 
@@ -1145,7 +1146,7 @@ public class SymbolTable {
     private void defineOperator(Name name,
                                 List<BType> paramTypes,
                                 BType retType) {
-        BInvokableType opType = new BInvokableType(paramTypes, retType, null);
+        BInvokableType opType = new BInvokableType(typeEnv(), paramTypes, retType, null);
         BOperatorSymbol symbol = new BOperatorSymbol(name, rootPkgSymbol.pkgID, opType, rootPkgSymbol, this.builtinPos,
                                                      BUILTIN);
 

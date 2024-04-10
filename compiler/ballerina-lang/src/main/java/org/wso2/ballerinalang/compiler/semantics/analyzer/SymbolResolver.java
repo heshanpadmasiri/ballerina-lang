@@ -411,7 +411,7 @@ public class SymbolResolver extends BLangNodeTransformer<SymbolResolver.Analyzer
     private BSymbol createEqualityOperator(OperatorKind opKind, BType lhsType, BType rhsType) {
         List<BType> paramTypes = Lists.of(lhsType, rhsType);
         BType retType = symTable.booleanType;
-        BInvokableType opType = new BInvokableType(paramTypes, retType, null);
+        BInvokableType opType = new BInvokableType(symTable.typeEnv(), paramTypes, retType, null);
         return new BOperatorSymbol(names.fromString(opKind.value()), null, opType, null, symTable.builtinPos, VIRTUAL);
     }
 
@@ -427,19 +427,19 @@ public class SymbolResolver extends BLangNodeTransformer<SymbolResolver.Analyzer
 
     private BSymbol createBinaryComparisonOperator(OperatorKind opKind, BType lhsType, BType rhsType) {
         List<BType> paramTypes = Lists.of(lhsType, rhsType);
-        BInvokableType opType = new BInvokableType(paramTypes, symTable.booleanType, null);
+        BInvokableType opType = new BInvokableType(symTable.typeEnv(), paramTypes, symTable.booleanType, null);
         return new BOperatorSymbol(names.fromString(opKind.value()), null, opType, null, symTable.builtinPos, VIRTUAL);
     }
 
     private BSymbol createBinaryOperator(OperatorKind opKind, BType lhsType, BType rhsType, BType retType) {
         List<BType> paramTypes = Lists.of(lhsType, rhsType);
-        BInvokableType opType = new BInvokableType(paramTypes, retType, null);
+        BInvokableType opType = new BInvokableType(symTable.typeEnv(), paramTypes, retType, null);
         return new BOperatorSymbol(names.fromString(opKind.value()), null, opType, null, symTable.builtinPos, VIRTUAL);
     }
 
     BSymbol createUnaryOperator(OperatorKind kind, BType type, BType retType) {
         List<BType> paramTypes = Lists.of(type);
-        BInvokableType opType = new BInvokableType(paramTypes, retType, null);
+        BInvokableType opType = new BInvokableType(symTable.typeEnv(), paramTypes, retType, null);
         return new BOperatorSymbol(names.fromString(kind.value()), null, opType, null, symTable.builtinPos, VIRTUAL);
     }
 
@@ -1768,7 +1768,7 @@ public class SymbolResolver extends BLangNodeTransformer<SymbolResolver.Analyzer
             BInvokableTypeSymbol invokableTypeSymbol;
             BInvokableType invokableType;
             if (functionTypeNode.flagSet.contains(Flag.ANY_FUNCTION)) {
-                invokableType = new BInvokableType(null, null, null, null);
+                invokableType = new BInvokableType(symTable.typeEnv(), List.of(), null, null, null);
                 invokableType.flags = Flags.asMask(functionTypeNode.flagSet);
                 invokableTypeSymbol = Symbols.createInvokableTypeSymbol(SymTag.FUNCTION_TYPE,
                                                                         Flags.asMask(functionTypeNode.flagSet),
@@ -1783,7 +1783,7 @@ public class SymbolResolver extends BLangNodeTransformer<SymbolResolver.Analyzer
                         Flags.asMask(functionTypeNode.flagSet),
                         env.enclPkg.symbol.pkgID, functionTypeNode.getBType(),
                         env.scope.owner, functionTypeNode.pos, VIRTUAL);
-                invokableType = new BInvokableType(invokableTypeSymbol);
+                invokableType = new BInvokableType(symTable.typeEnv(), invokableTypeSymbol);
                 invokableTypeSymbol.type = invokableType;
                 invokableTypeSymbol.name =
                         Names.fromString(anonymousModelHelper.getNextAnonymousTypeKey(env.enclPkg.packageID));

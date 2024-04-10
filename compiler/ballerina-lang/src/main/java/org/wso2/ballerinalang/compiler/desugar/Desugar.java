@@ -705,8 +705,9 @@ public class Desugar extends BLangNodeVisitor {
         BType returnType = bLangFunction.returnTypeNode.getBType() == null ?
                 symResolver.resolveTypeNode(bLangFunction.returnTypeNode, env) :
                 bLangFunction.returnTypeNode.getBType();
-        BInvokableType invokableType = new BInvokableType(new ArrayList<>(), getRestType(bLangFunction),
-                                                          returnType, null);
+        BInvokableType invokableType =
+                new BInvokableType(symTable.typeEnv(), List.of(), getRestType(bLangFunction),
+                        returnType, null);
         BInvokableSymbol functionSymbol = Symbols.createFunctionSymbol(Flags.asMask(bLangFunction.flagSet),
                                                                        new Name(bLangFunction.name.value),
                                                                        new Name(bLangFunction.name.originalValue),
@@ -2110,7 +2111,9 @@ public class Desugar extends BLangNodeVisitor {
                 .map(param -> param.symbol)
                 .collect(Collectors.toList());
         functionSymbol.scope = env.scope;
-        functionSymbol.type = new BInvokableType(Collections.singletonList(getStringAnyTupleType()), constraint, null);
+        functionSymbol.type =
+                new BInvokableType(symTable.typeEnv(), Collections.singletonList(getStringAnyTupleType()), constraint,
+                        null);
         function.symbol = functionSymbol;
         rewrite(function, env);
         env.enclPkg.addFunction(function);
@@ -2396,7 +2399,7 @@ public class Desugar extends BLangNodeVisitor {
                 .map(param -> param.symbol)
                 .collect(Collectors.toList());
         functionSymbol.scope = env.scope;
-        functionSymbol.type = new BInvokableType(Collections.singletonList(getStringAnyTupleType()),
+        functionSymbol.type = new BInvokableType(symTable.typeEnv(), Collections.singletonList(getStringAnyTupleType()),
                                                  getRestType(functionSymbol), symTable.booleanType, null);
         function.symbol = functionSymbol;
         rewrite(function, env);
@@ -5671,7 +5674,7 @@ public class Desugar extends BLangNodeVisitor {
     BLangUnaryExpr createNotBinaryExpression(Location pos, BLangExpression expression) {
         List<BType> paramTypes = new ArrayList<>();
         paramTypes.add(symTable.booleanType);
-        BInvokableType type = new BInvokableType(paramTypes, symTable.booleanType,
+        BInvokableType type = new BInvokableType(symTable.typeEnv(), paramTypes, symTable.booleanType,
                 null);
         BOperatorSymbol notOperatorSymbol = new BOperatorSymbol(
                 names.fromString(OperatorKind.NOT.value()), symTable.rootPkgSymbol.pkgID, type, symTable.rootPkgSymbol,
@@ -5698,7 +5701,7 @@ public class Desugar extends BLangNodeVisitor {
         lambdaFunction.pos = pos;
         List<BType> paramTypes = new ArrayList<>();
         lambdaFunctionVariable.forEach(variable -> paramTypes.add(variable.symbol.type));
-        lambdaFunction.setBType(new BInvokableType(paramTypes, func.symbol.type.getReturnType(),
+        lambdaFunction.setBType(new BInvokableType(symTable.typeEnv(), paramTypes, func.symbol.type.getReturnType(),
                                                    null));
         return lambdaFunction;
     }
@@ -7907,8 +7910,8 @@ public class Desugar extends BLangNodeVisitor {
         funcSymbol.retType = funcNode.returnTypeNode.getBType();
         // Create function type.
         List<BType> paramTypes = paramSymbols.stream().map(paramSym -> paramSym.type).collect(Collectors.toList());
-        funcNode.setBType(new BInvokableType(paramTypes, getRestType(funcSymbol), funcNode.returnTypeNode.getBType(),
-                          funcSymbol.type.tsymbol));
+        funcNode.setBType(new BInvokableType(symTable.typeEnv(), paramTypes, getRestType(funcSymbol),
+                funcNode.returnTypeNode.getBType(), funcSymbol.type.tsymbol));
 
         lambdaFunction.function.pos = bLangArrowFunction.pos;
         lambdaFunction.function.body.pos = bLangArrowFunction.pos;
@@ -8165,7 +8168,7 @@ public class Desugar extends BLangNodeVisitor {
             param.flagSet.add(Flag.FINAL);
             initFunction.symbol.scope.define(paramSym.name, paramSym);
             initFunction.symbol.params.add(paramSym);
-            initFnType.paramTypes.add(param.getBType());
+            initFnType.addParamType(param.getBType());
             initFunction.requiredParams.add(param);
 
             BLangSimpleVarRef paramRef = ASTBuilderUtil.createVariableRef(initFunction.pos, paramSym);
@@ -8528,9 +8531,8 @@ public class Desugar extends BLangNodeVisitor {
                 annotAccessExpr.annotationSymbol.bvmAlias());
         binaryExpr.setBType(annotAccessExpr.getBType());
         binaryExpr.opSymbol = new BOperatorSymbol(names.fromString(OperatorKind.ANNOT_ACCESS.value()), null,
-                new BInvokableType(Lists.of(binaryExpr.lhsExpr.getBType(),
-                        binaryExpr.rhsExpr.getBType()),
-                        annotAccessExpr.getBType(), null), null,
+                new BInvokableType(symTable.typeEnv(), Lists.of(binaryExpr.lhsExpr.getBType(),
+                        binaryExpr.rhsExpr.getBType()), annotAccessExpr.getBType(), null), null,
                 symTable.builtinPos, VIRTUAL);
         result = rewriteExpr(binaryExpr);
     }
@@ -10190,8 +10192,8 @@ public class Desugar extends BLangNodeVisitor {
         }
 
         BLangFunction initFunction =
-                TypeDefBuilderHelper.createInitFunctionForStructureType(classDefinition.symbol, env, names,
-                        GENERATED_INIT_SUFFIX, classDefinition.getBType(), returnType);
+                TypeDefBuilderHelper.createInitFunctionForStructureType(symTable.typeEnv(), classDefinition.symbol, env,
+                        names, GENERATED_INIT_SUFFIX, classDefinition.getBType(), returnType);
         BObjectTypeSymbol typeSymbol = ((BObjectTypeSymbol) classDefinition.getBType().tsymbol);
         typeSymbol.generatedInitializerFunc = new BAttachedFunction(GENERATED_INIT_SUFFIX, initFunction.symbol,
                 (BInvokableType) initFunction.getBType(), null);
