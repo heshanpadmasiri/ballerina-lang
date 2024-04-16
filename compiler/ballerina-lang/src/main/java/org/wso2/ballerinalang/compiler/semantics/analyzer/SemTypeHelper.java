@@ -121,6 +121,7 @@ public final class SemTypeHelper {
             case TypeTags.READONLY:
             case TypeTags.ARRAY:
             case TypeTags.TUPLE:
+            case TypeTags.INVOKABLE:
                 return t.semType();
             default:
                 if (isFullSemType(t.tag)) {

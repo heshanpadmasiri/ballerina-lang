@@ -96,7 +96,8 @@ public class PredefinedType {
                     | (1 << BasicTypeCode.BT_INT.code)
                     | (1 << BasicTypeCode.BT_FLOAT.code)
                     | (1 << BasicTypeCode.BT_DECIMAL.code)
-                    | (1 << BasicTypeCode.BT_STRING.code);
+                    | (1 << BasicTypeCode.BT_STRING.code)
+                    | (1 << BasicTypeCode.BT_FUNCTION.code);
 
     public static final BasicTypeBitSet SIMPLE_OR_STRING =
             basicTypeUnion((1 << BasicTypeCode.BT_NIL.code)
@@ -106,7 +107,7 @@ public class PredefinedType {
                     | (1 << BasicTypeCode.BT_DECIMAL.code)
                     | (1 << BasicTypeCode.BT_STRING.code));
 
-    public static final SemType IMPLEMENTED_TYPES = union(SIMPLE_OR_STRING, LIST);
+    public static final SemType IMPLEMENTED_TYPES = union(FUNCTION, union(SIMPLE_OR_STRING, LIST));
     public static final SemType IMPLEMENTED_ANY_TYPE = intersect(ANY, IMPLEMENTED_TYPES);
 
     public static final int BDD_REC_ATOM_READONLY = 0;
