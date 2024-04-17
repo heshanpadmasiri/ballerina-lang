@@ -24,9 +24,13 @@ package io.ballerina.types;
  * @param retType   semtype of the return value
  * @since 2201.8.0
  */
-public record FunctionAtomicType(SemType paramType, SemType retType) implements AtomicType {
+public record FunctionAtomicType(SemType paramType, SemType retType, boolean isGeneric) implements AtomicType {
 
     public static FunctionAtomicType from(SemType paramType, SemType rest) {
-        return new FunctionAtomicType(paramType, rest);
+        return new FunctionAtomicType(paramType, rest, false);
+    }
+
+    public static FunctionAtomicType genericFrom(SemType paramType, SemType rest) {
+        return new FunctionAtomicType(paramType, rest, true);
     }
 }

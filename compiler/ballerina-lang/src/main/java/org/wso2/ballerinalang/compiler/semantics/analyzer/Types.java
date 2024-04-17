@@ -1725,7 +1725,7 @@ public class Types {
         return false;
     }
 
-    private boolean containsTypeParams(BInvokableType type) {
+    public static boolean containsTypeParams(BInvokableType type) {
         boolean hasParameterizedTypes = type.paramTypes.stream()
                 .anyMatch(t -> {
                     t = getImpliedType(t);

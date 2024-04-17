@@ -59,6 +59,11 @@ public class FunctionOps extends CommonOps implements BasicTypeOps {
             FunctionAtomicType t = cx.functionAtomType(neg.atom);
             SemType t0 = t.paramType();
             SemType t1 = t.retType();
+            if (t.isGeneric()) {
+                // FIXME:
+                return (Core.isSubtype(cx, params, t0))
+                        || functionPathIsEmpty(cx, params, pos, neg.next);
+            }
             return (Core.isSubtype(cx, t0, params) && functionPhi(cx, t0, Core.complement(t1), pos))
                     || functionPathIsEmpty(cx, params, pos, neg.next);
         }
