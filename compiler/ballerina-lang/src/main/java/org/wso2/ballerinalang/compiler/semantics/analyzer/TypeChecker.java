@@ -912,7 +912,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
             if (expectedType.tag == TypeTags.ARRAY) {
                 BArrayType arrayType = (BArrayType) expectedType;
                 if (arrayType.state == BArrayState.INFERRED) {
-                    arrayType.size = byteArray.length;
+                    arrayType.setSize(byteArray.length);
                     arrayType.state = BArrayState.CLOSED;
                 }
             }
@@ -1927,7 +1927,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
         } else if (spreadOpExprType.tag == TypeTags.ARRAY) {
             BArrayType bArrayType = (BArrayType) spreadOpExprType;
             if (bArrayType.state == BArrayState.CLOSED) {
-                for (int i = 0; i < bArrayType.size; i++) {
+                for (int i = 0; i < bArrayType.getSize(); i++) {
                     BType memberType = bArrayType.eType;
                     inferredTupleDetails.fixedMemberTypes.add(memberType);
                 }
@@ -1979,7 +1979,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
 
                 switch (spreadOpType.tag) {
                     case TypeTags.ARRAY:
-                        int arraySize = ((BArrayType) spreadOpType).size;
+                        int arraySize = ((BArrayType) spreadOpType).getSize();
                         if (arraySize >= 0) {
                             listExprSize += arraySize;
                             continue;
@@ -2005,11 +2005,12 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
         BType eType = arrayType.eType;
 
         if (arrayType.state == BArrayState.INFERRED) {
-            arrayType.size = listExprSize;
+            arrayType.setSize(listExprSize);
             arrayType.state = BArrayState.CLOSED;
-        } else if (arrayType.state != BArrayState.OPEN && arrayType.size != listExprSize) {
-            if (arrayType.size < listExprSize) {
-                dlog.error(listConstructor.pos, DiagnosticErrorCode.MISMATCHING_ARRAY_LITERAL_VALUES, arrayType.size,
+        } else if (arrayType.state != BArrayState.OPEN && arrayType.getSize() != listExprSize) {
+            if (arrayType.getSize() < listExprSize) {
+                dlog.error(listConstructor.pos, DiagnosticErrorCode.MISMATCHING_ARRAY_LITERAL_VALUES,
+                        arrayType.getSize(),
                         listExprSize);
                 return symTable.semanticError;
             }
@@ -2083,7 +2084,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
 
                 switch (spreadOpType.tag) {
                     case TypeTags.ARRAY:
-                        int arraySize = ((BArrayType) spreadOpType).size;
+                        int arraySize = ((BArrayType) spreadOpType).getSize();
                         if (arraySize >= 0) {
                             listExprSize += arraySize;
                             continue;
@@ -2153,7 +2154,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                 case TypeTags.ARRAY:
                     BArrayType spreadOpArray = (BArrayType) spreadOpReferredType;
                     if (spreadOpArray.state == BArrayState.CLOSED) {
-                        for (int i = 0; i < spreadOpArray.size && nonRestTypeIndex < memberTypeSize;
+                        for (int i = 0; i < spreadOpArray.getSize() && nonRestTypeIndex < memberTypeSize;
                              i++, nonRestTypeIndex++) {
                             if (types.typeIncompatible(spreadOpExpr.pos, spreadOpArray.eType,
                                     members.get(nonRestTypeIndex).type)) {
@@ -2161,7 +2162,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                             }
                         }
 
-                        if (remainNonRestCount < spreadOpArray.size) {
+                        if (remainNonRestCount < spreadOpArray.getSize()) {
                             if (types.typeIncompatible(spreadOpExpr.pos, spreadOpArray.eType, restType)) {
                                 return symTable.semanticError;
                             }
@@ -6120,8 +6121,8 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
         if (listType.tag == TypeTags.ARRAY) {
             BArrayType arrayType = (BArrayType) listType;
 
-            if (arrayType.state == BArrayState.CLOSED && (exprs.size() != arrayType.size)) {
-                dlog.error(pos, code, arrayType.size, exprs.size());
+            if (arrayType.state == BArrayState.CLOSED && (exprs.size() != arrayType.getSize())) {
+                dlog.error(pos, code, arrayType.getSize(), exprs.size());
                 return false;
             }
 
@@ -8797,7 +8798,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                 return arrayType.eType;
             }
             Long indexVal = getConstIndex(indexExpr);
-            return indexVal >= arrayType.size || indexVal < 0 ? symTable.semanticError : arrayType.eType;
+            return indexVal >= arrayType.getSize() || indexVal < 0 ? symTable.semanticError : arrayType.eType;
         }
 
         switch (tag) {
@@ -8807,7 +8808,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                 if (arrayType.state == BArrayState.OPEN) {
                     maxIndexValue = Long.MAX_VALUE;
                 } else {
-                    maxIndexValue = arrayType.size - 1;
+                    maxIndexValue = arrayType.getSize() - 1;
                 }
 
                 SemType allowedInts = PredefinedType.basicSubtype(BasicTypeCode.BT_INT,
