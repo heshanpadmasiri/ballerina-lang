@@ -52,6 +52,8 @@ public class BArrayType extends BType implements ArrayType {
     public BArrayType mutableType;
     public final Env env;
     private ListDefinition ld = null;
+    private int id = -1;
+    private static int nextId = 0;
 
     public BArrayType(Env env, BType elementType) {
         super(TypeTags.ARRAY, null);
@@ -91,7 +93,8 @@ public class BArrayType extends BType implements ArrayType {
         //   relaxation as well.
         if (ld != null && Math.abs(this.size) != size) {
             // This is dangerous since someone have already captured the SemType and using it.
-            throw new IllegalStateException("Size cannot be set after SemType is calculated");
+            // throw new IllegalStateException("Size cannot be set after SemType is calculated");
+            this.ld = null;
         }
         this.size = size;
     }
@@ -163,6 +166,9 @@ public class BArrayType extends BType implements ArrayType {
         //   if size < 0 && not -1 it means T[abs(size)] (and size was inferred)
         //   else it is the fixed size
         if (size != NO_FIXED_SIZE) {
+            if (size < 0) {
+                id = nextId++;
+            }
             return ld.defineListTypeWrapped(env, List.of(elementTypeSemType), Math.abs(size), NEVER, mut);
         } else {
             return ld.defineListTypeWrapped(env, List.of(), 0, elementTypeSemType, mut);

@@ -17,19 +17,27 @@
  */
 package io.ballerina.types.typeops;
 
+import io.ballerina.types.BasicSubtype;
+import io.ballerina.types.BasicTypeCode;
 import io.ballerina.types.BasicTypeOps;
 import io.ballerina.types.Bdd;
 import io.ballerina.types.Common;
+import io.ballerina.types.ComplexSemType;
 import io.ballerina.types.Conjunction;
 import io.ballerina.types.Context;
 import io.ballerina.types.Core;
+import io.ballerina.types.Env;
 import io.ballerina.types.FunctionAtomicType;
 import io.ballerina.types.PredefinedType;
 import io.ballerina.types.SemType;
 import io.ballerina.types.SubtypeData;
+import io.ballerina.types.subtypedata.BddAllOrNothing;
+import io.ballerina.types.subtypedata.BddNode;
 
 import java.io.PrintStream;
+import java.util.Optional;
 
+import static io.ballerina.types.Common.bddEvery;
 import static io.ballerina.types.Common.memoSubtypeIsEmpty;
 
 /**
@@ -59,14 +67,101 @@ public class FunctionOps extends CommonOps implements BasicTypeOps {
             FunctionAtomicType t = cx.functionAtomType(neg.atom);
             SemType t0 = t.paramType();
             SemType t1 = t.retType();
-            if (t.isGeneric()) {
-                // FIXME:
-                return (Core.isSubtype(cx, params, t0))
-                        || functionPathIsEmpty(cx, params, pos, neg.next);
-            }
+//            if (t.isGeneric()) {
+//                // FIXME:
+//                return (Core.isSubtype(cx, params, t0))
+//                        || functionPathIsEmpty(cx, params, pos, neg.next);
+//            }
             return (Core.isSubtype(cx, t0, params) && functionPhi(cx, t0, Core.complement(t1), pos))
                     || functionPathIsEmpty(cx, params, pos, neg.next);
         }
+    }
+
+    public static Boolean isGenericFunction(Context cx, SemType t) {
+        // get function subtype data
+        if (!(t instanceof ComplexSemType semType)) {
+            return false;
+        }
+        Optional<Bdd> functionSubtypeData = functionBdd(semType);
+        return functionSubtypeData.filter(bdd -> bddEvery(cx, bdd, null, null, FunctionOps::isGenericPredicate))
+                .isPresent();
+    }
+
+    private static Optional<Bdd> functionBdd(ComplexSemType semType) {
+        Optional<BasicSubtype> subtype =
+                Core.unpackComplexSemType(semType).stream()
+                        .filter(basicSubtype -> basicSubtype.basicTypeCode.equals(BasicTypeCode.BT_FUNCTION))
+                        .findFirst();
+        if (subtype.isEmpty()) {
+            return Optional.empty();
+        }
+        Bdd functionSubTypeData = (Bdd) subtype.get().subtypeData;
+        return Optional.of(functionSubTypeData);
+    }
+
+    public static boolean isSemTypeFunction(Context cx, SemType fnType) {
+        if (!Core.isSubtype(cx, fnType, PredefinedType.FUNCTION)) {
+            return false;
+        }
+        if (!(fnType instanceof ComplexSemType functionSemType)) {
+            return true;
+        }
+        Optional<Bdd> functionBdd = functionBdd(functionSemType);
+        assert functionBdd.isPresent();
+        Optional<FunctionAtomicType> functionAtomicType = bddFunctionAtomicType(cx.env, functionBdd.get());
+        assert functionAtomicType.isPresent();
+        FunctionAtomicType atom = functionAtomicType.get();
+        return !Core.isEmpty(cx, atom.paramType()) && !Core.isEmpty(cx, atom.retType());
+    }
+
+    public static Optional<Boolean> genericAssignable(Context cx, SemType caller, SemType genericTy) {
+        if (!(caller instanceof ComplexSemType callerSemType && genericTy instanceof ComplexSemType genericSemType)) {
+            return Optional.empty();
+        }
+        Optional<Bdd> callerBdd = functionBdd(callerSemType);
+        Optional<Bdd> genericBdd = functionBdd(genericSemType);
+        if (callerBdd.isEmpty() || genericBdd.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<FunctionAtomicType> callerFunctionAtomicType = bddFunctionAtomicType(cx.env, callerBdd.get());
+        Optional<FunctionAtomicType> genericFunctionAtomicType = bddFunctionAtomicType(cx.env, genericBdd.get());
+        if (callerFunctionAtomicType.isEmpty() || genericFunctionAtomicType.isEmpty()) {
+            return Optional.empty();
+        }
+        FunctionAtomicType callerAtom = callerFunctionAtomicType.get();
+        FunctionAtomicType genericAtom = genericFunctionAtomicType.get();
+        SemType resultantParamType = Core.intersect(callerAtom.paramType(), genericAtom.paramType());
+        SemType resultantRetType = Core.intersect(callerAtom.retType(), genericAtom.retType());
+
+        return Optional.of(!Core.isEmpty(cx, resultantParamType) && !Core.isEmpty(cx, resultantRetType));
+    }
+
+    private static Optional<FunctionAtomicType> bddFunctionAtomicType(Env env, Bdd bdd) {
+        if (!(bdd instanceof BddNode bddNode)) {
+            return Optional.empty();
+        }
+        if (isSimpleBddNode(bddNode)) {
+            return Optional.of(env.functionAtomType(bddNode.atom()));
+        }
+        return Optional.empty();
+    }
+
+    // TODO: move this to BddNode?
+    private static boolean isSimpleBddNode(BddNode bddNode) {
+        return bddNode.left() instanceof BddAllOrNothing left && bddNode.middle() instanceof BddAllOrNothing middle &&
+                bddNode.right() instanceof BddAllOrNothing right && left.isAll() && !middle.isAll() && !right.isAll();
+    }
+
+    private static boolean isGenericPredicate(Context cx, Conjunction pos, Conjunction neg) {
+        if (neg != null) {
+            // TODO: may be we need an error here
+            return false;
+        }
+        if (pos == null || pos.next != null) {
+            return false;
+        }
+        FunctionAtomicType t = cx.functionAtomType(pos.atom);
+        return t.isGeneric();
     }
 
     private static boolean functionPhi(Context cx, SemType t0, SemType t1, Conjunction pos) {

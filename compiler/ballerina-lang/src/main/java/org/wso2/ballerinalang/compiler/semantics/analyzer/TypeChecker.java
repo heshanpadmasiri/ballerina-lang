@@ -7187,6 +7187,9 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                     if (Symbols.isFlagOn(param.flags, Flags.INCLUDED)) {
                         populateIncludedRecordParams(param, includedRecordFields, includedRecordParamFieldNames);
                     }
+                    // TODO: 1. check if the param.type is a generic function
+                    //       2. if so intersect it with arg type
+                    //       3. pass that as the type
                     checkTypeParamExpr(arg, param.type, iExpr.langLibInvocation, data);
                     valueProvidedParams.add(param);
                     requiredParams.remove(param);

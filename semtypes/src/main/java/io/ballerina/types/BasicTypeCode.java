@@ -92,4 +92,17 @@ public class BasicTypeCode {
     public String toString() {
         return fieldNames.get(this.code);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof BasicTypeCode other)) {
+            return false;
+        }
+        return other.code == this.code;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.code;
+    }
 }

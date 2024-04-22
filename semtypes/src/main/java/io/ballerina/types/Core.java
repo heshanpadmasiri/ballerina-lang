@@ -28,6 +28,7 @@ import io.ballerina.types.subtypedata.FloatSubtype;
 import io.ballerina.types.subtypedata.IntSubtype;
 import io.ballerina.types.subtypedata.StringSubtype;
 import io.ballerina.types.subtypedata.TableSubtype;
+import io.ballerina.types.typeops.FunctionOps;
 import io.ballerina.types.typeops.SubtypePair;
 import io.ballerina.types.typeops.SubtypePairs;
 
@@ -820,5 +821,18 @@ public final class Core {
             return ComplexSemType.createComplexSemType(0,
                     BasicSubtype.from(typeCode, (ProperSubtypeData) subtypeData));
         }
+    }
+
+    // TODO: this is so we don't expose FunctionOps to outside is this a good idea?
+    public static Boolean isGenericFunction(Context cx, SemType ty) {
+        return FunctionOps.isGenericFunction(cx, ty);
+    }
+
+    public static Optional<Boolean> genericAssignable(Context cx, SemType caller, SemType genericTy) {
+        return FunctionOps.genericAssignable(cx, caller, genericTy);
+    }
+
+    public static boolean isSemTypeFunction(Context cx, SemType functionTy) {
+        return FunctionOps.isSemTypeFunction(cx, functionTy);
     }
 }

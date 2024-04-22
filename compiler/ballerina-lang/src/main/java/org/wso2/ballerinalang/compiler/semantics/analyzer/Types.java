@@ -877,7 +877,27 @@ public class Types {
 
         SemType semSource = SemTypeHelper.semTypeComponent(source);
         SemType semTarget = SemTypeHelper.semTypeComponent(target);
-        return SemTypes.isSubtype(semTypeCtx, semSource, semTarget) &&
+
+        boolean semTypeResult;
+        // TODO: ideally we should do this before here (TypeChecker:7550). But since we can only deal with semtypes
+        //   doing it here. Consider creating a BInvocationType to wrap the semtype instead?
+        // FIXME: handle partial matches (F|int < F|int|boolean)
+        if (isGenericFunction(target) && Core.isSubtype(semTypeCtx, semSource, PredefinedType.FUNCTION)) {
+            // TODO: extract to method
+            if (!Core.isSemTypeFunction(semTypeCtx, semSource) || !Core.isSemTypeFunction(semTypeCtx, semTarget)) {
+                semTypeResult = true;
+            } else {
+                Optional<Boolean> genericAssignable = Core.genericAssignable(semTypeCtx, semSource, semTarget);
+                if (genericAssignable.isEmpty()) {
+                    throw new IllegalStateException("Unsupported generic usage");
+                }
+                semTypeResult = genericAssignable.get();
+            }
+        } else {
+            semTypeResult = SemTypes.isSubtype(semTypeCtx, semSource, semTarget);
+        }
+
+        return semTypeResult &&
                 isAssignableInternal(SemTypeHelper.bTypeComponent(source),
                         SemTypeHelper.bTypeComponent(target), unresolvedTypes);
     }
@@ -7059,5 +7079,21 @@ public class Types {
     //  will have a dependency on compiler
     public Env typeEnv() {
         return semTypeCtx.env;
+    }
+
+    // TODO: better name, we don't use the term generic
+    public boolean isGenericFunction(BType type) {
+        if (type.tag == TypeTags.PARAMETERIZED_TYPE || type.isBTypeComponent) {
+            return false;
+        }
+        SemType semType = type.semType();
+        if (semType == null) {
+            return false;
+        }
+        SemType functionPart = Core.intersect(semType, PredefinedType.FUNCTION);
+        if (Core.isEmpty(semTypeCtx, functionPart)) {
+            return false;
+        }
+        return Core.isGenericFunction(semTypeCtx, semType);
     }
 }
