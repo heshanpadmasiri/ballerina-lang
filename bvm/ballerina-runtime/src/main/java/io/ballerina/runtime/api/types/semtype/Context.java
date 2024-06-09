@@ -32,6 +32,7 @@ import java.util.Objects;
  */
 public final class Context {
 
+    private static final int MEMO_MAX = 10_000;
     // Contains all BddMemo entries with isEmpty == PROVISIONAL
     private final List<BddMemo> memoStack = new ArrayList<>();
     public final Env env;

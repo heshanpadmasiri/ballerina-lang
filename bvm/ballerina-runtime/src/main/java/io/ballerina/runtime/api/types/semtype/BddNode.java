@@ -20,6 +20,7 @@ package io.ballerina.runtime.api.types.semtype;
 
 import java.util.Objects;
 
+// FIXME: override hashCode and equals
 /**
  * Internal node of a BDD, which represents a disjunction of conjunctions of atoms.
  *
@@ -31,6 +32,7 @@ public final class BddNode extends Bdd {
     private final Bdd left;
     private final Bdd middle;
     private final Bdd right;
+    private volatile Integer hashCode = null;
 
     BddNode(Atom atom, Bdd left, Bdd middle, Bdd right) {
         super(false, false);
@@ -74,6 +76,19 @@ public final class BddNode extends Bdd {
 
     @Override
     public int hashCode() {
+        Integer result = hashCode;
+        if (result == null) {
+            synchronized (this) {
+                result = hashCode;
+                if (result == null) {
+                    hashCode = result = computeHashCode();
+                }
+            }
+        }
+        return result;
+    }
+
+    private int computeHashCode() {
         return Objects.hash(atom, left, middle, right);
     }
 

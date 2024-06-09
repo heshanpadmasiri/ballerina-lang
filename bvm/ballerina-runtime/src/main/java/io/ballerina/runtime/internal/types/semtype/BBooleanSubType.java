@@ -21,6 +21,8 @@ package io.ballerina.runtime.internal.types.semtype;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.SubType;
 
+import java.util.Objects;
+
 /**
  * Runtime representation of BooleanSubType.
  *
@@ -128,6 +130,25 @@ public final class BBooleanSubType extends SubType {
     @Override
     public SubTypeData data() {
         return data.toData();
+    }
+
+    // This is instance controlled so only 4 possible instances exists. Default equals is therefore correct
+    @Override
+    public int hashCode() {
+        if (this == ALL) {
+            return 0;
+        }
+        if (this == NOTHING) {
+            return 1;
+        }
+        if (this == TRUE) {
+            return 2;
+        }
+        if (this == FALSE) {
+            return 3;
+        }
+        assert false : "unexpected BBooleanSubType instance";
+        return -1;
     }
 
     private record BBooleanSubTypeData(boolean isAll, boolean isNothing, boolean value) {

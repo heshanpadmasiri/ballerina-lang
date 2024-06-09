@@ -20,6 +20,8 @@ package io.ballerina.runtime.api.types.semtype;
 
 import io.ballerina.runtime.internal.types.semtype.SubTypeData;
 
+import java.util.Objects;
+
 /**
  * Describe set of operation supported by each basic Type.
  *
@@ -56,4 +58,18 @@ public abstract class SubType {
     }
 
     public abstract SubTypeData data();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SubType that = (SubType) o;
+        return Objects.equals(data(), that.data());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(data());
+    }
+
 }

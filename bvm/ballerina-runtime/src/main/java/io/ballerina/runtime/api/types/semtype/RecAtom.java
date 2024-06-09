@@ -19,6 +19,8 @@
 
 package io.ballerina.runtime.api.types.semtype;
 
+import java.util.Objects;
+
 /**
  * Represent a recursive type atom.
  *
@@ -43,6 +45,20 @@ public class RecAtom implements Atom {
 
     @Override
     public int index() {
+        return index;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o instanceof RecAtom recAtom) {
+            return recAtom.index == this.index;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
         return index;
     }
 }
