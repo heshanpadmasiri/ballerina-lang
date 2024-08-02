@@ -156,7 +156,7 @@ public class BXmlType extends BType implements XmlType, TypeWithShape {
         return this.intersectionType ==  null ? Optional.empty() : Optional.of(this.intersectionType);
     }
 
-    // FIXME: this class must also be a semtype class
+    // TODO: this class must also be a semtype class
     @Override
     SemType createSemType(Context cx) {
         SemType semType;

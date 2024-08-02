@@ -116,7 +116,7 @@ final class BTypeConverter {
     private static BTypeParts split(Context cx, Type type) {
         if (type instanceof SemType) {
             return new BTypeParts(from(cx, type), Collections.emptyList());
-            // FIXME:
+            // TODO:
         } else if (type instanceof BXmlType) {
             return new BTypeParts(from(cx, type), Collections.emptyList());
         } else if (type instanceof BUnionType unionType) {
