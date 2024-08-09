@@ -33,10 +33,8 @@ import io.ballerina.runtime.internal.types.semtype.BFloatSubType;
 import io.ballerina.runtime.internal.types.semtype.BIntSubType;
 import io.ballerina.runtime.internal.types.semtype.BListSubType;
 import io.ballerina.runtime.internal.types.semtype.BMappingSubType;
-import io.ballerina.runtime.internal.types.semtype.BObjectSubType;
 import io.ballerina.runtime.internal.types.semtype.BStringSubType;
 import io.ballerina.runtime.internal.types.semtype.BSubType;
-import io.ballerina.runtime.internal.types.semtype.BTableSubType;
 import io.ballerina.runtime.internal.types.semtype.FixedLengthArray;
 import io.ballerina.runtime.internal.types.semtype.ListDefinition;
 import io.ballerina.runtime.internal.types.semtype.MappingDefinition;
@@ -61,11 +59,9 @@ import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_LIST;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_MAPPING;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_OBJECT;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_REGEXP;
-import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_TABLE;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_TYPEDESC;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_XML;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.CODE_B_TYPE;
-import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.VT_INHERENTLY_IMMUTABLE;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.VT_MASK;
 import static io.ballerina.runtime.api.types.semtype.BddNode.bddAtom;
 import static io.ballerina.runtime.api.types.semtype.CellAtomicType.CellMutability.CELL_MUT_LIMITED;
@@ -96,18 +92,6 @@ public final class Builder {
 
     private static final SemType[] EMPTY_TYPES_ARR = new SemType[0];
 
-    private static final int BDD_REC_ATOM_OBJECT_READONLY = 1;
-    private static final RecAtom OBJECT_RO_REC_ATOM = RecAtom.createRecAtom(BDD_REC_ATOM_OBJECT_READONLY);
-
-    public static final BddNode MAPPING_SUBTYPE_OBJECT_RO = bddAtom(OBJECT_RO_REC_ATOM);
-    private static final ConcurrentLazySupplier<SemType> READONLY_TYPE = new ConcurrentLazySupplier<>(() -> unionOf(
-            SemType.from(VT_INHERENTLY_IMMUTABLE),
-            basicSubType(BT_LIST, BListSubType.createDelegate(bddSubtypeRo())),
-            basicSubType(BT_MAPPING, BMappingSubType.createDelegate(bddSubtypeRo())),
-            basicSubType(BT_OBJECT, BObjectSubType.createDelegate(MAPPING_SUBTYPE_OBJECT_RO)),
-            basicSubType(BT_TABLE, BTableSubType.createDelegate(listSubtypeThreeElementRO())),
-            basicSubType(BT_XML, XmlUtils.XML_SUBTYPE_RO)
-    ));
     private static final ConcurrentLazySupplier<SemType> MAPPING_RO = new ConcurrentLazySupplier<>(() ->
             basicSubType(BT_MAPPING, BMappingSubType.createDelegate(bddSubtypeRo()))
     );
@@ -205,7 +189,7 @@ public final class Builder {
     }
 
     public static SemType readonlyType() {
-        return READONLY_TYPE.get();
+        return PREDEFINED_TYPE_ENV.readonlyType();
     }
 
     static SemType basicTypeUnion(int bitset) {

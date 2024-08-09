@@ -22,6 +22,12 @@ import io.ballerina.runtime.api.constants.TypeConstants;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.semtype.Builder;
+import io.ballerina.runtime.api.types.semtype.Context;
+import io.ballerina.runtime.api.types.semtype.Core;
+import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.internal.TypeChecker;
+import io.ballerina.runtime.internal.types.semtype.TableUtils;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 import io.ballerina.runtime.internal.values.TableValue;
 import io.ballerina.runtime.internal.values.TableValueImpl;
@@ -160,5 +166,37 @@ public class BTableType extends BType implements TableType {
     @Override
     public boolean isAnydata() {
         return this.constraint.isAnydata();
+    }
+
+    @Override
+    public SemType createSemType() {
+        SemType constraintType = mutableSemTypeDependencyManager.getSemType(constraint, this);
+        boolean hasBType = false;
+        if (Core.containsBasicType(constraintType, Builder.bType())) {
+            hasBType = true;
+            constraintType = Core.intersect(constraintType, Builder.mappingType());
+        }
+        SemType semType;
+        Context cx = TypeChecker.context();
+        if (fieldNames.length > 0) {
+            semType = TableUtils.tableContainingKeySpecifier(cx, constraintType, fieldNames);
+        } else if (keyType != null) {
+            SemType keyConstraint = mutableSemTypeDependencyManager.getSemType(keyType, this);
+            if (Core.containsBasicType(keyConstraint, Builder.bType())) {
+                keyConstraint = Core.intersect(keyConstraint, Core.SEMTYPE_TOP);
+                hasBType = true;
+            }
+            semType = TableUtils.tableContainingKeyConstraint(cx, constraintType, keyConstraint);
+        } else {
+            semType = TableUtils.tableContaining(cx.env, constraintType);
+        }
+
+        if (isReadOnly()) {
+            semType = Core.intersect(semType, Builder.readonlyType());
+        }
+        if (hasBType) {
+            return Core.union(semType, Builder.wrapAsPureBType(this));
+        }
+        return semType;
     }
 }
