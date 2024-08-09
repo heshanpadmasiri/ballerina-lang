@@ -34,9 +34,11 @@ import io.ballerina.runtime.internal.types.semtype.MappingDefinition;
 import io.ballerina.runtime.internal.types.semtype.Member;
 import io.ballerina.runtime.internal.types.semtype.ObjectDefinition;
 import io.ballerina.runtime.internal.types.semtype.ObjectQualifiers;
+import io.ballerina.runtime.internal.types.semtype.TableUtils;
 import io.ballerina.runtime.internal.types.semtype.TypedescUtils;
 import io.ballerina.runtime.internal.types.semtype.XmlUtils;
 import org.ballerinalang.model.elements.Flag;
+import org.ballerinalang.model.tree.IdentifierNode;
 import org.ballerinalang.model.tree.NodeKind;
 import org.ballerinalang.model.tree.types.ArrayTypeNode;
 import org.ballerinalang.model.tree.types.TypeNode;
@@ -56,6 +58,7 @@ import org.wso2.ballerinalang.compiler.tree.types.BLangFunctionTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangIntersectionTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangObjectTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangRecordTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangTableTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangTupleTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangType;
 import org.wso2.ballerinalang.compiler.tree.types.BLangUnionTypeNode;
@@ -145,9 +148,28 @@ class RuntimeSemTypeResolver extends SemTypeResolver<SemType> {
             case FUNCTION_TYPE -> resolveFunctionTypeDesc(cx, mod, defn, depth, (BLangFunctionTypeNode) td);
             case OBJECT_TYPE -> resolveObjectTypeDesc(cx, mod, defn, depth, (BLangObjectTypeNode) td);
             case ERROR_TYPE -> resolveErrorTypeDesc(cx, mod, defn, depth, (BLangErrorType) td);
+            case TABLE_TYPE -> resolveTableTypeDesc(cx, mod, defn, depth, (BLangTableTypeNode) td);
             default -> throw new UnsupportedOperationException("type not implemented: " + td.getKind());
         };
     }
+
+    private SemType resolveTableTypeDesc(TypeTestContext<SemType> cx,
+                                         Map<String, BLangNode> mod, BLangTypeDefinition defn,
+                                         int depth, BLangTableTypeNode td) {
+        SemType tableConstraint = resolveTypeDesc(cx, mod, defn, depth + 1, td.constraint);
+        Context context = (Context) cx.getInnerContext();
+        if (td.tableKeySpecifier != null) {
+            List<IdentifierNode> fieldNameIdentifierList = td.tableKeySpecifier.fieldNameIdentifierList;
+            String[] fieldNames = fieldNameIdentifierList.stream().map(IdentifierNode::getValue).toArray(String[]::new);
+            return TableUtils.tableContainingKeySpecifier(context, tableConstraint, fieldNames);
+        }
+        if (td.tableKeyTypeConstraint != null) {
+            SemType keyConstraint = resolveTypeDesc(cx, mod, defn, depth + 1, td.tableKeyTypeConstraint.keyType);
+            return TableUtils.tableContainingKeyConstraint(context, tableConstraint, keyConstraint);
+        }
+        return TableUtils.tableContaining(context.env, tableConstraint);
+    }
+
 
     private SemType resolveErrorTypeDesc(TypeTestContext<SemType> cx, Map<String, BLangNode> mod,
                                          BLangTypeDefinition defn, int depth, BLangErrorType td) {

@@ -19,6 +19,7 @@
 package io.ballerina.runtime.api.types.semtype;
 
 import io.ballerina.runtime.internal.types.semtype.BCellSubType;
+import io.ballerina.runtime.internal.types.semtype.BListSubType;
 import io.ballerina.runtime.internal.types.semtype.BMappingSubType;
 import io.ballerina.runtime.internal.types.semtype.FixedLengthArray;
 
@@ -29,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_CELL;
+import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_LIST;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_MAPPING;
 import static io.ballerina.runtime.api.types.semtype.BddNode.bddAtom;
 import static io.ballerina.runtime.api.types.semtype.Builder.basicSubType;
@@ -216,6 +218,57 @@ final class PredefinedTypeEnv {
             ),
             initializedRecMappingAtoms::add
     );
+
+    private final Supplier<BddNode> listSubtypeMapping = new ConcurrentLazySupplier<>(
+            () -> bddAtom(atomListMapping.get()));
+    private final Supplier<SemType> mappingArray = new ConcurrentLazySupplier<>(
+            () -> basicSubType(BT_LIST, BListSubType.createDelegate(listSubtypeMapping.get())));
+    private final Supplier<CellAtomicType> cellAtomicMappingArray = new ConcurrentLazySupplierWithCallback<>(() ->
+            CellAtomicType.from(mappingArray.get(), CellAtomicType.CellMutability.CELL_MUT_LIMITED),
+            this::addInitializedCellAtom);
+    private final Supplier<TypeAtom> atomCellMappingArray = new ConcurrentLazySupplier<>(() -> {
+        CellAtomicType cellAtom = cellAtomicMappingArray.get();
+        return createTypeAtom(cellAtomIndex(cellAtom), cellAtom);
+    });
+    private final Supplier<SemType> cellSemTypeListSubtypeMapping = new ConcurrentLazySupplier<>(() ->
+            basicSubType(BT_CELL, BCellSubType.createDelegate(bddAtom(atomCellMappingArray.get()))));
+    private final Supplier<ListAtomicType> listAtomicThreeElement = new ConcurrentLazySupplierWithCallback<>(
+            () -> new ListAtomicType(
+                    FixedLengthArray.from(new SemType[]{cellSemTypeListSubtypeMapping.get(), cellSemTypeVal.get()}, 3),
+                    cellSemTypeVal.get()),
+            this::addInitializedListAtom
+    );
+    private final Supplier<TypeAtom> atomListThreeElement = new ConcurrentLazySupplier<>(() -> {
+        ListAtomicType listAtomic = listAtomicThreeElement.get();
+        return createTypeAtom(listAtomIndex(listAtomic), listAtomic);
+    });
+
+    private final Supplier<BddNode> listSubtypeMappingRO = new ConcurrentLazySupplier<>(() -> bddAtom(
+            atomListMappingRO.get()));
+    private final Supplier<SemType> mappingArrayRO = new ConcurrentLazySupplier<>(() -> basicSubType(
+            BT_LIST, BListSubType.createDelegate(listSubtypeMappingRO.get())));
+    private final Supplier<CellAtomicType> cellAtomicMappingArrayRO = new ConcurrentLazySupplierWithCallback<>(
+            () -> CellAtomicType.from(mappingArrayRO.get(), CellAtomicType.CellMutability.CELL_MUT_LIMITED),
+            this::addInitializedCellAtom
+    );
+    private final Supplier<TypeAtom> atomCellMappingArrayRO = new ConcurrentLazySupplier<>(() -> {
+        CellAtomicType cellAtom = cellAtomicMappingArrayRO.get();
+        return createTypeAtom(cellAtomIndex(cellAtom), cellAtom);
+    });
+    private final Supplier<SemType> cellSemTypeListSubtypeMappingRO = new ConcurrentLazySupplier<>(
+            () -> basicSubType(BT_CELL, BCellSubType.createDelegate(bddAtom(atomCellMappingArrayRO.get()))));
+    private final Supplier<ListAtomicType> listAtomicThreeElementRO = new ConcurrentLazySupplierWithCallback<>(
+            () -> new ListAtomicType(
+                    FixedLengthArray.from(new SemType[]{cellSemTypeListSubtypeMappingRO.get(), cellSemTypeVal.get()},
+                            3),
+                    cellSemTypeUndef.get()),
+            this::addInitializedListAtom
+    );
+
+    private final Supplier<TypeAtom> atomListThreeElementRO = new ConcurrentLazySupplier<>(() -> {
+        ListAtomicType listAtomic = listAtomicThreeElementRO.get();
+        return createTypeAtom(listAtomIndex(listAtomic), listAtomic);
+    });
 
     private PredefinedTypeEnv() {
     }
@@ -437,6 +490,14 @@ final class PredefinedTypeEnv {
 
     MappingAtomicType mappingAtomicObjectRO() {
         return mappingAtomicObjectRO.get();
+    }
+
+    TypeAtom atomListThreeElement() {
+        return atomListThreeElement.get();
+    }
+
+    TypeAtom atomListThreeElementRO() {
+        return atomListThreeElementRO.get();
     }
 
     // Due to some reason SpotBug thinks this method is overrideable if we don't put final here as well.

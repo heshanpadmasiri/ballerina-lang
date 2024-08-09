@@ -36,9 +36,11 @@ import io.ballerina.runtime.internal.types.semtype.BMappingSubType;
 import io.ballerina.runtime.internal.types.semtype.BObjectSubType;
 import io.ballerina.runtime.internal.types.semtype.BStringSubType;
 import io.ballerina.runtime.internal.types.semtype.BSubType;
+import io.ballerina.runtime.internal.types.semtype.BTableSubType;
 import io.ballerina.runtime.internal.types.semtype.FixedLengthArray;
 import io.ballerina.runtime.internal.types.semtype.ListDefinition;
 import io.ballerina.runtime.internal.types.semtype.MappingDefinition;
+import io.ballerina.runtime.internal.types.semtype.TableUtils;
 import io.ballerina.runtime.internal.types.semtype.XmlUtils;
 import io.ballerina.runtime.internal.values.AbstractObjectValue;
 import io.ballerina.runtime.internal.values.DecimalValue;
@@ -59,6 +61,7 @@ import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_LIST;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_MAPPING;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_OBJECT;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_REGEXP;
+import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_TABLE;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_TYPEDESC;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_XML;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.CODE_B_TYPE;
@@ -102,6 +105,7 @@ public final class Builder {
             basicSubType(BT_LIST, BListSubType.createDelegate(bddSubtypeRo())),
             basicSubType(BT_MAPPING, BMappingSubType.createDelegate(bddSubtypeRo())),
             basicSubType(BT_OBJECT, BObjectSubType.createDelegate(MAPPING_SUBTYPE_OBJECT_RO)),
+            basicSubType(BT_TABLE, BTableSubType.createDelegate(listSubtypeThreeElementRO())),
             basicSubType(BT_XML, XmlUtils.XML_SUBTYPE_RO)
     ));
     private static final ConcurrentLazySupplier<SemType> MAPPING_RO = new ConcurrentLazySupplier<>(() ->
@@ -127,6 +131,8 @@ public final class Builder {
             XmlUtils.xmlSingleton(XmlUtils.XML_PRIMITIVE_PI_RO | XmlUtils.XML_PRIMITIVE_PI_RW));
 
     private static final PredefinedTypeEnv PREDEFINED_TYPE_ENV = PredefinedTypeEnv.getInstance();
+    private static final BddNode LIST_SUBTYPE_THREE_ELEMENT = bddAtom(PREDEFINED_TYPE_ENV.atomListThreeElement());
+    private static final BddNode LIST_SUBTYPE_THREE_ELEMENT_RO = bddAtom(PREDEFINED_TYPE_ENV.atomListThreeElementRO());
 
     private Builder() {
     }
@@ -431,7 +437,8 @@ public final class Builder {
         Env env = context.env;
         ListDefinition listDef = new ListDefinition();
         MappingDefinition mapDef = new MappingDefinition();
-        SemType accum = unionOf(SIMPLE_OR_STRING, xmlType(), listDef.getSemType(env), mapDef.getSemType(env));
+        SemType tableTy = TableUtils.tableContaining(env, mapDef.getSemType(env));
+        SemType accum = unionOf(SIMPLE_OR_STRING, xmlType(), listDef.getSemType(env), mapDef.getSemType(env), tableTy);
         listDef.defineListTypeWrapped(env, EMPTY_TYPES_ARR, 0, accum, CELL_MUT_LIMITED);
         mapDef.defineMappingTypeWrapped(env, new MappingDefinition.Field[0], accum, CELL_MUT_LIMITED);
         context.anydataMemo = accum;
@@ -476,6 +483,14 @@ public final class Builder {
 
     public static SemType wrapAsPureBType(BType bType) {
         return basicSubType(BasicTypeCode.BT_B_TYPE, BSubType.wrap(bType));
+    }
+
+    public static BddNode listSubtypeThreeElement() {
+        return LIST_SUBTYPE_THREE_ELEMENT;
+    }
+
+    public static BddNode listSubtypeThreeElementRO() {
+        return LIST_SUBTYPE_THREE_ELEMENT_RO;
     }
 
     private static final class IntTypeCache {

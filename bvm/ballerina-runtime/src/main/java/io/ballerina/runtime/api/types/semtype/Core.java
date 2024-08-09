@@ -22,6 +22,7 @@ import io.ballerina.runtime.internal.types.semtype.AllOrNothing;
 import io.ballerina.runtime.internal.types.semtype.BFutureSubType;
 import io.ballerina.runtime.internal.types.semtype.BObjectSubType;
 import io.ballerina.runtime.internal.types.semtype.BSubType;
+import io.ballerina.runtime.internal.types.semtype.BTableSubType;
 import io.ballerina.runtime.internal.types.semtype.BTypedescSubType;
 import io.ballerina.runtime.internal.types.semtype.DelegatedSubType;
 import io.ballerina.runtime.internal.types.semtype.SubTypeData;
@@ -39,6 +40,7 @@ import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_LIST;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.BT_STRING;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.CODE_FUTURE;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.CODE_OBJECT;
+import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.CODE_TABLE;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.CODE_TYPEDESC;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.CODE_UNDEF;
 import static io.ballerina.runtime.api.types.semtype.BasicTypeCode.VT_MASK;
@@ -49,6 +51,7 @@ import static io.ballerina.runtime.api.types.semtype.CellAtomicType.CellMutabili
 import static io.ballerina.runtime.api.types.semtype.CellAtomicType.intersectCellAtomicType;
 import static io.ballerina.runtime.internal.types.semtype.BCellSubType.cellAtomType;
 import static io.ballerina.runtime.internal.types.semtype.BListSubType.bddListMemberTypeInnerVal;
+import static io.ballerina.runtime.internal.types.semtype.BMappingProj.mappingMemberTypeInner;
 
 /**
  * Contain functions defined in `core.bal` file.
@@ -376,7 +379,7 @@ public final class Core {
         return cellContaining(env, atomicType.ty(), undef().equals(atomicType.ty()) ? CELL_MUT_NONE : atomicType.mut());
     }
 
-    private static Optional<CellAtomicType> cellAtomicType(SemType t) {
+    public static Optional<CellAtomicType> cellAtomicType(SemType t) {
         SemType cell = Builder.cell();
         if (t.some() == 0) {
             return cell.equals(t) ? Optional.of(Builder.cellAtomicVal()) : Optional.empty();
@@ -417,6 +420,7 @@ public final class Core {
             case CODE_OBJECT -> BObjectSubType.createDelegate(bdd);
             case CODE_FUTURE -> BFutureSubType.createDelegate(bdd);
             case CODE_TYPEDESC -> BTypedescSubType.createDelegate(bdd);
+            case CODE_TABLE -> BTableSubType.createDelegate(bdd);
             default -> throw new IllegalArgumentException("Unexpected type code: " + typeCode);
         };
         return SemType.from(0, 1 << typeCode.code(), new SubType[]{subType});
@@ -428,5 +432,34 @@ public final class Core {
             result = union(result, semType);
         }
         return result;
+    }
+
+    public static SemType mappingMemberTypeInnerVal(Context cx, SemType t, SemType k) {
+        return diff(mappingMemberTypeInner(cx, t, k), Builder.undef());
+    }
+
+    public static Optional<ListAtomicType> listAtomicType(Context cx, SemType t) {
+        ListAtomicType listAtomicInner = Builder.listAtomicInner();
+        if (t.some() == 0) {
+            return Core.isSubtypeSimple(t, Builder.listType()) ? Optional.ofNullable(listAtomicInner) :
+                    Optional.empty();
+        }
+        Env env = cx.env;
+        if (!isSubtypeSimple(t, Builder.listType())) {
+            return Optional.empty();
+        }
+        return bddListAtomicType(env, (Bdd) getComplexSubtypeData(t, BT_LIST), listAtomicInner);
+    }
+
+    private static Optional<ListAtomicType> bddListAtomicType(Env env, Bdd bdd,
+                                                              ListAtomicType top) {
+        if (!(bdd instanceof BddNode bddNode)) {
+            if (bdd.isAll()) {
+                return Optional.ofNullable(top);
+            } else {
+                return Optional.empty();
+            }
+        }
+        return bddNode.isSimple() ? Optional.of(env.listAtomType(bddNode.atom())) : Optional.empty();
     }
 }
