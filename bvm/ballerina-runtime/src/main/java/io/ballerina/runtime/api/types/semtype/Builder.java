@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BRegexpValue;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTable;
 import io.ballerina.runtime.internal.types.BType;
 import io.ballerina.runtime.internal.types.TypeWithShape;
 import io.ballerina.runtime.internal.types.semtype.BBooleanSubType;
@@ -303,8 +304,15 @@ public final class Builder {
             return typeOfXml(cx, xmlValue);
         } else if (object instanceof BRegexpValue regexpValue) {
             return regexpValue.shapeOf();
+        } else if (object instanceof BTable table) {
+            return typeOfTable(cx, table);
         }
         return Optional.empty();
+    }
+
+    private static Optional<SemType> typeOfTable(Context cx, BTable table) {
+        TypeWithShape typeWithShape = (TypeWithShape) table.getType();
+        return typeWithShape.shapeOf(cx, table);
     }
 
     // Combine these methods maybe introduce a marker interface

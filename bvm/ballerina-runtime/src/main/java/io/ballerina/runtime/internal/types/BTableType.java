@@ -39,7 +39,7 @@ import java.util.Optional;
  *
  * @since 1.3.0
  */
-public class BTableType extends BType implements TableType {
+public class BTableType extends BType implements TableType, TypeWithShape {
 
     private final Type constraint;
     private Type keyType;
@@ -198,5 +198,11 @@ public class BTableType extends BType implements TableType {
             return Core.union(semType, Builder.wrapAsPureBType(this));
         }
         return semType;
+    }
+
+    @Override
+    public Optional<SemType> shapeOf(Context cx, Object object) {
+        // FIXME:
+        return Optional.of(getSemType());
     }
 }
