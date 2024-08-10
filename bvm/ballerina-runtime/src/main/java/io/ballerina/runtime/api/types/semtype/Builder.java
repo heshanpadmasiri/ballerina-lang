@@ -117,6 +117,7 @@ public final class Builder {
     private static final PredefinedTypeEnv PREDEFINED_TYPE_ENV = PredefinedTypeEnv.getInstance();
     private static final BddNode LIST_SUBTYPE_THREE_ELEMENT = bddAtom(PREDEFINED_TYPE_ENV.atomListThreeElement());
     private static final BddNode LIST_SUBTYPE_THREE_ELEMENT_RO = bddAtom(PREDEFINED_TYPE_ENV.atomListThreeElementRO());
+    private static final BddNode LIST_SUBTYPE_TWO_ELEMENT = bddAtom(PREDEFINED_TYPE_ENV.atomListTwoElement());
 
     private Builder() {
     }
@@ -412,6 +413,9 @@ public final class Builder {
         return from(BT_TYPEDESC);
     }
 
+    public static SemType streamType() {
+        return from(BasicTypeCode.BT_STREAM);
+    }
 
     public static SemType anyDataType(Context context) {
         SemType memo = context.anydataMemo;
@@ -475,6 +479,10 @@ public final class Builder {
 
     public static BddNode listSubtypeThreeElementRO() {
         return LIST_SUBTYPE_THREE_ELEMENT_RO;
+    }
+
+    public static BddNode listSubtypeTwoElement() {
+        return LIST_SUBTYPE_TWO_ELEMENT;
     }
 
     private static final class IntTypeCache {

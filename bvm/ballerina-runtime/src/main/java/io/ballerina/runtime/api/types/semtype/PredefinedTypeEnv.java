@@ -299,6 +299,17 @@ final class PredefinedTypeEnv {
             initializedRecMappingAtoms::add
     );
 
+    private final Supplier<ListAtomicType> listAtomicTwoElement = new ConcurrentLazySupplierWithCallback<>(
+            () -> new ListAtomicType(
+                    FixedLengthArray.from(new SemType[]{cellSemTypeVal.get()}, 2),
+                    cellSemTypeUndef.get()),
+            this::addInitializedListAtom
+    );
+    private final Supplier<TypeAtom> atomListTwoElement = new ConcurrentLazySupplier<>(() -> {
+        ListAtomicType listAtomic = listAtomicTwoElement.get();
+        return createTypeAtom(listAtomIndex(listAtomic), listAtomic);
+    });
+
     private PredefinedTypeEnv() {
     }
 
@@ -573,6 +584,10 @@ final class PredefinedTypeEnv {
 
     SemType cellSemTypeInner() {
         return cellSemTypeInner.get();
+    }
+
+    public Atom atomListTwoElement() {
+        return atomListTwoElement.get();
     }
 
     @FunctionalInterface

@@ -34,6 +34,7 @@ import io.ballerina.runtime.internal.types.semtype.MappingDefinition;
 import io.ballerina.runtime.internal.types.semtype.Member;
 import io.ballerina.runtime.internal.types.semtype.ObjectDefinition;
 import io.ballerina.runtime.internal.types.semtype.ObjectQualifiers;
+import io.ballerina.runtime.internal.types.semtype.StreamDefinition;
 import io.ballerina.runtime.internal.types.semtype.TableUtils;
 import io.ballerina.runtime.internal.types.semtype.TypedescUtils;
 import io.ballerina.runtime.internal.types.semtype.XmlUtils;
@@ -58,6 +59,7 @@ import org.wso2.ballerinalang.compiler.tree.types.BLangFunctionTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangIntersectionTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangObjectTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangRecordTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangStreamType;
 import org.wso2.ballerinalang.compiler.tree.types.BLangTableTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangTupleTypeNode;
 import org.wso2.ballerinalang.compiler.tree.types.BLangType;
@@ -149,8 +151,28 @@ class RuntimeSemTypeResolver extends SemTypeResolver<SemType> {
             case OBJECT_TYPE -> resolveObjectTypeDesc(cx, mod, defn, depth, (BLangObjectTypeNode) td);
             case ERROR_TYPE -> resolveErrorTypeDesc(cx, mod, defn, depth, (BLangErrorType) td);
             case TABLE_TYPE -> resolveTableTypeDesc(cx, mod, defn, depth, (BLangTableTypeNode) td);
+            case STREAM_TYPE -> resolveStreamTypeDesc(cx, mod, defn, depth, (BLangStreamType) td);
             default -> throw new UnsupportedOperationException("type not implemented: " + td.getKind());
         };
+    }
+
+    private SemType resolveStreamTypeDesc(TypeTestContext<SemType> cx, Map<String, BLangNode> mod,
+                                          BLangTypeDefinition defn, int depth, BLangStreamType td) {
+        if (td.constraint == null) {
+            return Builder.streamType();
+        }
+        Env env = (Env) cx.getInnerEnv();
+        Definition attachedDefinition = attachedDefinitions.get(td);
+        if (attachedDefinition != null) {
+            return attachedDefinition.getSemType(env);
+        }
+        StreamDefinition sd = new StreamDefinition();
+        attachedDefinitions.put(td, sd);
+
+        SemType valueType = resolveTypeDesc(cx, mod, defn, depth + 1, td.constraint);
+        SemType completionType = td.error == null ? Builder.nilType() :
+                resolveTypeDesc(cx, mod, defn, depth + 1, td.error);
+        return sd.define(env, valueType, completionType);
     }
 
     private SemType resolveTableTypeDesc(TypeTestContext<SemType> cx,
@@ -596,6 +618,8 @@ class RuntimeSemTypeResolver extends SemTypeResolver<SemType> {
             case NEVER -> Builder.neverType();
             case XML -> Builder.xmlType();
             case FUTURE -> Builder.futureType();
+            // FIXME: implement json type
+
             default -> throw new UnsupportedOperationException("Built-in ref type not implemented: " + td.typeKind);
         };
     }
