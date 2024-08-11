@@ -195,10 +195,10 @@ public class VariableReturnType {
         BRecordType recType = (BRecordType) td.getDescribingType();
         MapValueImpl person = new MapValueImpl(recType);
 
-        if (recType.getName().equals("Person")) {
+        if (recType.getName().contains("Person")) {
             person.put(NAME, JOHN_DOE);
             person.put(AGE, 20);
-        } else if (recType.getName().equals("Employee")) {
+        } else if (recType.getName().contains("Employee")) {
             person.put(NAME, JANE_DOE);
             person.put(AGE, 25);
             person.put(DESIGNATION, SOFTWARE_ENGINEER);
@@ -223,7 +223,7 @@ public class VariableReturnType {
         }
 
         MapValueImpl rec = new MapValueImpl(type2);
-        if (type2.getName().equals("Person")) {
+        if (type2.getName().contains("Person")) {
             rec.put(NAME, JOHN_DOE);
             rec.put(AGE, 20);
         } else {
@@ -276,10 +276,10 @@ public class VariableReturnType {
                 BRecordType recType = (BRecordType) type;
                 MapValueImpl person = new MapValueImpl(recType);
 
-                if (recType.getName().equals("Person")) {
+                if (recType.getName().contains("Person")) {
                     person.put(NAME, JOHN_DOE);
                     person.put(AGE, 20);
-                } else if (recType.getName().equals("Employee")) {
+                } else if (recType.getName().contains("Employee")) {
                     person.put(NAME, JANE_DOE);
                     person.put(AGE, 25);
                     person.put(DESIGNATION, SOFTWARE_ENGINEER);
