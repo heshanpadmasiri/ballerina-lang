@@ -243,17 +243,14 @@ public class BRecordType extends BStructureType implements RecordType, TypeWithS
         defn = md;
         Field[] fields = getFields().values().toArray(Field[]::new);
         MappingDefinition.Field[] mappingFields = new MappingDefinition.Field[fields.length];
-        boolean hasBTypePart = false;
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
             boolean isOptional = SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.OPTIONAL);
             SemType fieldType = mutableSemTypeDependencyManager.getSemType(field.getFieldType(), this);
             if (!isOptional && Core.isNever(fieldType)) {
                 return neverType();
-            } else if (!Core.isNever(Core.intersect(fieldType, Core.B_TYPE_TOP))) {
-                hasBTypePart = true;
-                fieldType = Core.intersect(fieldType, Core.SEMTYPE_TOP);
             }
+            assert !Core.containsBasicType(fieldType, Builder.bType()) : "Unexpected BType in record field";
             boolean isReadonly = SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.READONLY);
             if (Core.isNever(fieldType)) {
                 isReadonly = true;
@@ -264,16 +261,7 @@ public class BRecordType extends BStructureType implements RecordType, TypeWithS
         CellMutability mut = isReadOnly() ? CELL_MUT_NONE : CellMutability.CELL_MUT_LIMITED;
         SemType rest =
                 restFieldType != null ? mutableSemTypeDependencyManager.getSemType(restFieldType, this) : neverType();
-        if (!Core.isNever(Core.intersect(rest, Core.B_TYPE_TOP))) {
-            hasBTypePart = true;
-            rest = Core.intersect(rest, Core.SEMTYPE_TOP);
-        }
-        if (hasBTypePart) {
-            SemType semTypePart = md.defineMappingTypeWrapped(env, mappingFields, rest, mut);
-            SemType bTypePart = Builder.wrapAsPureBType(this);
-            resetSemType();
-            return Core.union(semTypePart, bTypePart);
-        }
+        assert !Core.containsBasicType(rest, Builder.bType()) : "Unexpected BType in record rest field";
         return md.defineMappingTypeWrapped(env, mappingFields, rest, mut);
     }
 

@@ -25,7 +25,6 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BRegexpValue;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTable;
-import io.ballerina.runtime.internal.types.BType;
 import io.ballerina.runtime.internal.types.TypeWithShape;
 import io.ballerina.runtime.internal.types.semtype.BBooleanSubType;
 import io.ballerina.runtime.internal.types.semtype.BCellSubType;
@@ -35,7 +34,6 @@ import io.ballerina.runtime.internal.types.semtype.BIntSubType;
 import io.ballerina.runtime.internal.types.semtype.BListSubType;
 import io.ballerina.runtime.internal.types.semtype.BMappingSubType;
 import io.ballerina.runtime.internal.types.semtype.BStringSubType;
-import io.ballerina.runtime.internal.types.semtype.BSubType;
 import io.ballerina.runtime.internal.types.semtype.FixedLengthArray;
 import io.ballerina.runtime.internal.types.semtype.ListDefinition;
 import io.ballerina.runtime.internal.types.semtype.MappingDefinition;
@@ -475,10 +473,6 @@ public final class Builder {
 
     public static MappingAtomicType mappingAtomicInner() {
         return MAPPING_ATOMIC_INNER.get();
-    }
-
-    public static SemType wrapAsPureBType(BType bType) {
-        return basicSubType(BasicTypeCode.BT_B_TYPE, BSubType.wrap(bType));
     }
 
     public static BddNode listSubtypeThreeElement() {

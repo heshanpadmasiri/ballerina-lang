@@ -227,16 +227,12 @@ public class BIntersectionType extends BType implements IntersectionType, TypeWi
             return Builder.neverType();
         }
         SemType result = mutableSemTypeDependencyManager.getSemType(constituentTypes.get(0), this);
-        boolean hasBType = Core.containsBasicType(mutableSemTypeDependencyManager.getSemType(effectiveType, this),
-                Builder.bType());
+        assert !Core.containsBasicType(result, Builder.bType()) : "Intersection constituent cannot be a BType";
         result = Core.intersect(result, Core.SEMTYPE_TOP);
         for (int i = 1; i < constituentTypes.size(); i++) {
             SemType memberType = mutableSemTypeDependencyManager.getSemType(constituentTypes.get(i), this);
-            memberType = Core.intersect(memberType, Core.SEMTYPE_TOP);
+            assert !Core.containsBasicType(memberType, Builder.bType()) : "Intersection constituent cannot be a BType";
             result = Core.intersect(result, memberType);
-        }
-        if (hasBType) {
-            return Core.union(result, Builder.wrapAsPureBType((BType) effectiveType));
         }
         return result;
     }

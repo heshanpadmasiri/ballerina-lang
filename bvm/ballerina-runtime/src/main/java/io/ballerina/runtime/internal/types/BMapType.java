@@ -192,14 +192,7 @@ public class BMapType extends BType implements MapType, TypeWithShape {
         MappingDefinition md = new MappingDefinition();
         defn = md;
         SemType restType = mutableSemTypeDependencyManager.getSemType(getConstrainedType(), this);
-        SemType pureBTypePart = Core.intersect(restType, Core.B_TYPE_TOP);
-        if (!Core.isNever(pureBTypePart)) {
-            SemType pureSemTypePart = Core.intersect(restType, Core.SEMTYPE_TOP);
-            SemType semTypePart = getSemTypePart(md, pureSemTypePart);
-            SemType bTypePart = Builder.wrapAsPureBType(this);
-            resetSemType();
-            return Core.union(semTypePart, bTypePart);
-        }
+        assert !Core.containsBasicType(restType, Builder.bType()) : "Map shouldn't have BTypes";
         return getSemTypePart(md, restType);
     }
 

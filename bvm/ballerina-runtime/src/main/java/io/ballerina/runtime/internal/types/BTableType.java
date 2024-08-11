@@ -171,21 +171,14 @@ public class BTableType extends BType implements TableType, TypeWithShape {
     @Override
     public SemType createSemType() {
         SemType constraintType = mutableSemTypeDependencyManager.getSemType(constraint, this);
-        boolean hasBType = false;
-        if (Core.containsBasicType(constraintType, Builder.bType())) {
-            hasBType = true;
-            constraintType = Core.intersect(constraintType, Builder.mappingType());
-        }
+        assert !Core.containsBasicType(constraintType, Builder.bType()) : "Table constraint cannot be a BType";
         SemType semType;
         Context cx = TypeChecker.context();
         if (fieldNames.length > 0) {
             semType = TableUtils.tableContainingKeySpecifier(cx, constraintType, fieldNames);
         } else if (keyType != null) {
             SemType keyConstraint = mutableSemTypeDependencyManager.getSemType(keyType, this);
-            if (Core.containsBasicType(keyConstraint, Builder.bType())) {
-                keyConstraint = Core.intersect(keyConstraint, Core.SEMTYPE_TOP);
-                hasBType = true;
-            }
+            assert !Core.containsBasicType(keyConstraint, Builder.bType()) : "Table key cannot be a BType";
             semType = TableUtils.tableContainingKeyConstraint(cx, constraintType, keyConstraint);
         } else {
             semType = TableUtils.tableContaining(cx.env, constraintType);
@@ -193,9 +186,6 @@ public class BTableType extends BType implements TableType, TypeWithShape {
 
         if (isReadOnly()) {
             semType = Core.intersect(semType, Builder.readonlyType());
-        }
-        if (hasBType) {
-            return Core.union(semType, Builder.wrapAsPureBType(this));
         }
         return semType;
     }

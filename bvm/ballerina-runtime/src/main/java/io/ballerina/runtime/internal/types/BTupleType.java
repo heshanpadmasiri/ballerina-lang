@@ -327,25 +327,14 @@ public class BTupleType extends BAnnotatableType implements TupleType, TypeWithS
             SemType memberType = mutableSemTypeDependencyManager.getSemType(tupleTypes.get(i), this);
             if (Core.isNever(memberType)) {
                 return neverType();
-            } else if (!Core.isNever(Core.intersect(memberType, Core.B_TYPE_TOP))) {
-                hasBTypePart = true;
-                memberType = Core.intersect(memberType, Core.SEMTYPE_TOP);
             }
+            assert !Core.containsBasicType(memberType, Builder.bType()) : "Tuple member cannot be a BType";
             memberTypes[i] = memberType;
         }
         CellAtomicType.CellMutability mut = isReadOnly() ? CELL_MUT_NONE :
                 CellAtomicType.CellMutability.CELL_MUT_LIMITED;
         SemType rest = restType != null ? mutableSemTypeDependencyManager.getSemType(restType, this) : neverType();
-        if (!Core.isNever(Core.intersect(rest, Core.B_TYPE_TOP))) {
-            hasBTypePart = true;
-            rest = Core.intersect(rest, Core.SEMTYPE_TOP);
-        }
-        if (hasBTypePart) {
-            SemType semTypePart = ld.defineListTypeWrapped(env, memberTypes, memberTypes.length, rest, mut);
-            SemType bTypePart = Builder.wrapAsPureBType(this);
-            resetSemType();
-            return Core.union(semTypePart, bTypePart);
-        }
+        assert !Core.containsBasicType(rest, Builder.bType()) : "Tuple rest type cannot be a BType";
         return ld.defineListTypeWrapped(env, memberTypes, memberTypes.length, rest, mut);
     }
 

@@ -227,7 +227,7 @@ public abstract class BType implements Type, SubTypeData, MutableSemType {
 
     @Override
     public SemType createSemType() {
-        return Builder.wrapAsPureBType(this);
+        throw new IllegalStateException("Child that are used for type checking must implement this method");
     }
 
     protected SemType getSemType() {
