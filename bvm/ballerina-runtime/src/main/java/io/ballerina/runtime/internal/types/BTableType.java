@@ -26,12 +26,14 @@ import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.api.values.BTable;
 import io.ballerina.runtime.internal.TypeChecker;
 import io.ballerina.runtime.internal.types.semtype.TableUtils;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 import io.ballerina.runtime.internal.values.TableValue;
 import io.ballerina.runtime.internal.values.TableValueImpl;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -172,6 +174,10 @@ public class BTableType extends BType implements TableType, TypeWithShape {
     public SemType createSemType() {
         SemType constraintType = mutableSemTypeDependencyManager.getSemType(constraint, this);
         assert !Core.containsBasicType(constraintType, Builder.bType()) : "Table constraint cannot be a BType";
+        return createSemTypeWithConstraint(constraintType);
+    }
+
+    private SemType createSemTypeWithConstraint(SemType constraintType) {
         SemType semType;
         Context cx = TypeChecker.context();
         if (fieldNames.length > 0) {
@@ -192,7 +198,19 @@ public class BTableType extends BType implements TableType, TypeWithShape {
 
     @Override
     public Optional<SemType> shapeOf(Context cx, Object object) {
-        // FIXME:
-        return Optional.of(getSemType());
+        if (!isReadOnly()) {
+            return Optional.of(getSemType());
+        }
+        BTable<?, ?> table = (BTable<?, ?>) object;
+        SemType cachedShape = table.shapeOf();
+        if (cachedShape != null) {
+            return Optional.of(cachedShape);
+        }
+        SemType constraintType = Builder.neverType();
+        for (var value : table.values()) {
+            SemType valueShape = Builder.shapeOf(cx, value).orElse(Builder.from(cx, constraint));
+            constraintType = Core.union(constraintType, valueShape);
+        }
+        return Optional.of(createSemTypeWithConstraint(constraintType));
     }
 }
