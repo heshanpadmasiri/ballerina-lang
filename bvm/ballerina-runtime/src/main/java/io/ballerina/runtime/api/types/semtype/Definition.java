@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org).
+ *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -14,20 +14,12 @@
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
- *
  */
 
-package io.ballerina.runtime.internal.types;
+package io.ballerina.runtime.api.types.semtype;
 
-import io.ballerina.runtime.api.types.semtype.Context;
-import io.ballerina.runtime.api.types.semtype.SemType;
+// NOTE: definitions are not thread safe
+public interface Definition {
 
-import java.util.Optional;
-
-public interface TypeWithShape {
-
-    Optional<SemType> shapeOf(Context cx, ShapeSupplier shapeSupplierFn, Object object);
-
-    // Calculate the shape assuming object is readonly. This is the shape of value spec calls looks like shape
-    Optional<SemType> readonlyShapeOf(Context cx, ShapeSupplier shapeSupplierFn, Object object);
+    SemType getSemType(Env env);
 }

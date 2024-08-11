@@ -23,9 +23,9 @@ import io.ballerina.runtime.api.types.semtype.BasicTypeCode;
 import io.ballerina.runtime.api.types.semtype.Bdd;
 import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.CellAtomicType;
+import io.ballerina.runtime.api.types.semtype.Definition;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
-import io.ballerina.runtime.api.types.semtype.SubType;
 
 import static io.ballerina.runtime.api.types.semtype.Core.createBasicSemType;
 import static io.ballerina.runtime.api.types.semtype.Core.subTypeData;

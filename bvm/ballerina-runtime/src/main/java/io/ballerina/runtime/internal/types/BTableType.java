@@ -197,7 +197,7 @@ public class BTableType extends BType implements TableType, TypeWithShape {
     }
 
     @Override
-    public Optional<SemType> shapeOf(Context cx, Object object) {
+    public Optional<SemType> shapeOf(Context cx, ShapeSupplier shapeSupplier, Object object) {
         if (!isReadOnly()) {
             return Optional.of(getSemType());
         }
@@ -206,11 +206,21 @@ public class BTableType extends BType implements TableType, TypeWithShape {
         if (cachedShape != null) {
             return Optional.of(cachedShape);
         }
+        SemType semtype = valueShape(cx, shapeSupplier, table);
+        return Optional.of(semtype);
+    }
+
+    @Override
+    public Optional<SemType> readonlyShapeOf(Context cx, ShapeSupplier shapeSupplierFn, Object object) {
+        return Optional.of(valueShape(cx, shapeSupplierFn, (BTable<?, ?>) object));
+    }
+
+    private SemType valueShape(Context cx, ShapeSupplier shapeSupplier, BTable<?, ?> table) {
         SemType constraintType = Builder.neverType();
         for (var value : table.values()) {
-            SemType valueShape = Builder.shapeOf(cx, value).orElse(Builder.from(cx, constraint));
+            SemType valueShape = shapeSupplier.get(cx, value).orElse(Builder.from(cx, constraint));
             constraintType = Core.union(constraintType, valueShape);
         }
-        return Optional.of(createSemTypeWithConstraint(constraintType));
+        return createSemTypeWithConstraint(constraintType);
     }
 }

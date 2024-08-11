@@ -25,6 +25,8 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BRegexpValue;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTable;
+import io.ballerina.runtime.api.values.BValue;
+import io.ballerina.runtime.api.values.PatternMatchableValue;
 import io.ballerina.runtime.internal.types.TypeWithShape;
 import io.ballerina.runtime.internal.types.semtype.BBooleanSubType;
 import io.ballerina.runtime.internal.types.semtype.BCellSubType;
@@ -271,6 +273,32 @@ public final class Builder {
         return new SubType[Integer.bitCount(some)];
     }
 
+    public static Optional<SemType> readonlyShapeOf(Context cx, Object object) {
+        if (object == null) {
+            return Optional.of(nilType());
+        } else if (object instanceof DecimalValue decimalValue) {
+            return Optional.of(decimalConst(decimalValue.value()));
+        } else if (object instanceof Double doubleValue) {
+            return Optional.of(floatConst(doubleValue));
+        } else if (object instanceof Number intValue) {
+            long value =
+                    intValue instanceof Byte byteValue ? Byte.toUnsignedLong(byteValue) : intValue.longValue();
+            return Optional.of(intConst(value));
+        } else if (object instanceof Boolean booleanValue) {
+            return Optional.of(booleanConst(booleanValue));
+        } else if (object instanceof BString stringValue) {
+            return Optional.of(stringConst(stringValue.getValue()));
+        } else if (object instanceof BValue bValue) {
+            Type type = bValue.getType();
+            if (type instanceof TypeWithShape typeWithShape) {
+                return typeWithShape.readonlyShapeOf(cx, Builder::readonlyShapeOf, object);
+            } else {
+                return Optional.empty();
+            }
+        }
+        return Optional.empty();
+    }
+
     // TODO: factor this to a separate class
     public static Optional<SemType> shapeOf(Context cx, Object object) {
         if (object == null) {
@@ -310,33 +338,33 @@ public final class Builder {
 
     private static Optional<SemType> typeOfTable(Context cx, BTable table) {
         TypeWithShape typeWithShape = (TypeWithShape) table.getType();
-        return typeWithShape.shapeOf(cx, table);
+        return typeWithShape.shapeOf(cx, Builder::shapeOf, table);
     }
 
     // Combine these methods maybe introduce a marker interface
     private static Optional<SemType> typeOfXml(Context cx, XmlValue xmlValue) {
         TypeWithShape typeWithShape = (TypeWithShape) xmlValue.getType();
-        return typeWithShape.shapeOf(cx, xmlValue);
+        return typeWithShape.shapeOf(cx, Builder::shapeOf, xmlValue);
     }
 
     private static Optional<SemType> typeOfError(Context cx, BError errorValue) {
         TypeWithShape typeWithShape = (TypeWithShape) errorValue.getType();
-        return typeWithShape.shapeOf(cx, errorValue);
+        return typeWithShape.shapeOf(cx, Builder::shapeOf, errorValue);
     }
 
     private static Optional<SemType> typeOfMap(Context cx, BMap mapValue) {
         TypeWithShape typeWithShape = (TypeWithShape) mapValue.getType();
-        return typeWithShape.shapeOf(cx, mapValue);
+        return typeWithShape.shapeOf(cx, Builder::shapeOf, mapValue);
     }
 
     private static Optional<SemType> typeOfObject(Context cx, AbstractObjectValue objectValue) {
         TypeWithShape typeWithShape = (TypeWithShape) objectValue.getType();
-        return typeWithShape.shapeOf(cx, objectValue);
+        return typeWithShape.shapeOf(cx, Builder::shapeOf, objectValue);
     }
 
     private static Optional<SemType> typeOfArray(Context cx, BArray arrayValue) {
         TypeWithShape typeWithShape = (TypeWithShape) arrayValue.getType();
-        return typeWithShape.shapeOf(cx, arrayValue);
+        return typeWithShape.shapeOf(cx, Builder::shapeOf, arrayValue);
     }
 
     public static SemType roCellContaining(Env env, SemType ty) {

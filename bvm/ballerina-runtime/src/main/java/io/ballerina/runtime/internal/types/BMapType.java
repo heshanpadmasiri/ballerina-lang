@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.CellAtomicType;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
+import io.ballerina.runtime.api.types.semtype.Definition;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.values.BMap;
@@ -203,7 +204,7 @@ public class BMapType extends BType implements MapType, TypeWithShape {
     }
 
     @Override
-    public Optional<SemType> shapeOf(Context cx, Object object) {
+    public Optional<SemType> shapeOf(Context cx, ShapeSupplier shapeSupplier, Object object) {
         if (!isReadOnly()) {
             return Optional.of(getSemType());
         }
@@ -213,24 +214,39 @@ public class BMapType extends BType implements MapType, TypeWithShape {
             return Optional.of(cachedShape);
         }
 
-        return readonlyShape(cx, value);
+        return readonlyShape(cx, shapeSupplier, value);
     }
 
-    static Optional<SemType> readonlyShape(Context cx, BMap value) {
+    @Override
+    public Optional<SemType> readonlyShapeOf(Context cx, ShapeSupplier shapeSupplierFn, Object object) {
+        return readonlyShape(cx, shapeSupplierFn, (BMap<?, ?>) object);
+    }
+
+    static Optional<SemType> readonlyShape(Context cx, ShapeSupplier shapeSupplier, BMap<?,?> value) {
         int nFields = value.size();
+        MappingDefinition md ;
+
+        Optional<Definition> readonlyShapeDefinition = value.getReadonlyShapeDefinition();
+        if (readonlyShapeDefinition.isPresent()) {
+            md = (MappingDefinition) readonlyShapeDefinition.get();
+            return Optional.of(md.getSemType(cx.env));
+        } else {
+            md = new MappingDefinition();
+            value.setReadonlyShapeDefinition(md);
+        }
         MappingDefinition.Field[] fields = new MappingDefinition.Field[nFields];
-        Map.Entry[] entries = (Map.Entry[]) value.entrySet().toArray(Map.Entry[]::new);
+        Map.Entry<?,?>[] entries = value.entrySet().toArray(Map.Entry[]::new);
         for (int i = 0; i < nFields; i++) {
-            Optional<SemType> valueType = Builder.shapeOf(cx, entries[i].getValue());
+            Optional<SemType> valueType = shapeSupplier.get(cx, entries[i].getValue());
             if (valueType.isEmpty()) {
                 return Optional.empty();
             }
             SemType fieldType = valueType.get();
             fields[i] = new MappingDefinition.Field(entries[i].getKey().toString(), fieldType, true, false);
         }
-        MappingDefinition md = new MappingDefinition();
         SemType semType = md.defineMappingTypeWrapped(cx.env, fields, Builder.neverType(), CELL_MUT_NONE);
         value.cacheShape(semType);
+        value.resetReadonlyShapeDefinition();
         return Optional.of(semType);
     }
 

@@ -347,7 +347,7 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
     }
 
     @Override
-    public synchronized Optional<SemType> shapeOf(Context cx, Object object) {
+    public synchronized Optional<SemType> shapeOf(Context cx, ShapeSupplier shapeSupplier, Object object) {
         AbstractObjectValue abstractObjectValue = (AbstractObjectValue) object;
         SemType cachedShape = abstractObjectValue.shapeOf();
         if (cachedShape != null) {
@@ -356,18 +356,22 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
         if (distinctIdSupplier == null) {
             distinctIdSupplier = new DistinctIdSupplier(env, typeIdSet);
         }
-        SemType shape = distinctIdSupplier.get().stream().map(ObjectDefinition::distinct).reduce(
-                valueShape(cx, abstractObjectValue), Core::intersect);
+        SemType shape = distinctIdSupplier.get().stream().map(ObjectDefinition::distinct)
+                .reduce(valueShape(cx, shapeSupplier, abstractObjectValue), Core::intersect);
         abstractObjectValue.cacheShape(shape);
         return Optional.of(shape);
     }
 
-    private SemType valueShape(Context cx, AbstractObjectValue object) {
+    @Override
+    public Optional<SemType> readonlyShapeOf(Context cx, ShapeSupplier shapeSupplierFn, Object object) {
+        return Optional.of(valueShape(cx, shapeSupplierFn, (AbstractObjectValue) object));
+    }
+
+    private SemType valueShape(Context cx, ShapeSupplier shapeSupplier, AbstractObjectValue object) {
         ObjectDefinition od = new ObjectDefinition();
         List<Member> members = new ArrayList<>();
         Set<String> seen = new HashSet<>(fields.size() + methodTypes.length);
         ObjectQualifiers qualifiers = getObjectQualifiers();
-        boolean hasBTypes = false;
         for (Entry<String, Field> entry : fields.entrySet()) {
             String name = entry.getKey();
             if (skipField(seen, name)) {
@@ -377,7 +381,7 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
             boolean isPublic = SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.PUBLIC);
             boolean isImmutable = qualifiers.readonly() | SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.READONLY) |
                     SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.FINAL);
-            SemType ty = fieldShape(cx, field, object, isImmutable);
+            SemType ty = fieldShape(cx, shapeSupplier, field, object, isImmutable);
             assert !Core.containsBasicType(ty, Builder.bType()) : "field can't have BType";
             members.add(new Member(name, ty, Member.Kind.Field,
                     isPublic ? Member.Visibility.Public : Member.Visibility.Private, isImmutable));
@@ -396,12 +400,13 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
         return od.define(env, qualifiers, members);
     }
 
-    private static SemType fieldShape(Context cx, Field field, AbstractObjectValue objectValue, boolean isImmutable) {
+    private static SemType fieldShape(Context cx, ShapeSupplier shapeSupplier, Field field,
+                                      AbstractObjectValue objectValue, boolean isImmutable) {
         if (!isImmutable) {
             return Builder.from(cx, field.getFieldType());
         }
         BString fieldName = StringUtils.fromString(field.getFieldName());
-        Optional<SemType> shape = Builder.shapeOf(cx, objectValue.get(fieldName));
+        Optional<SemType> shape = shapeSupplier.get(cx, objectValue.get(fieldName));
         assert !shape.isEmpty();
         return shape.get();
     }
@@ -445,7 +450,6 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
             Type[] pathSegmentTypes = method.pathSegmentTypes;
             FunctionType innerFn = method.getType();
             List<SemType> paramTypes = new ArrayList<>();
-            boolean hasBTypes = false;
             for (Type part : pathSegmentTypes) {
                 if (part == null) {
                     paramTypes.add(Builder.anyType());

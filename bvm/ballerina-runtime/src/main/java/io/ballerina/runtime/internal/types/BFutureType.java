@@ -115,7 +115,12 @@ public class BFutureType extends BType implements FutureType, TypeWithShape {
     }
 
     @Override
-    public Optional<SemType> shapeOf(Context cx, Object object) {
+    public Optional<SemType> shapeOf(Context cx, ShapeSupplier shapeSupplier, Object object) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<SemType> readonlyShapeOf(Context cx, ShapeSupplier shapeSupplierFn, Object object) {
         throw new UnsupportedOperationException();
     }
 }
