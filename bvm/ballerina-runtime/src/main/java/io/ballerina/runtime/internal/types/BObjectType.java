@@ -271,6 +271,9 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
 
     @Override
     public TypeIdSet getTypeIdSet() {
+        if (typeIdSet == null) {
+            return new BTypeIdSet();
+        }
         return new BTypeIdSet(new ArrayList<>(typeIdSet.ids));
     }
 
@@ -419,6 +422,14 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
         static MethodData fromMethod(MutableSemTypeDependencyManager dependencyManager, MutableSemType parent,
                                      MethodType method) {
             return new MethodData(method.getName(), method.getFlags(),
+                    dependencyManager.getSemType(method.getType(), parent));
+        }
+
+        static MethodData fromRemoteMethod(MutableSemTypeDependencyManager dependencyManager, MutableSemType parent,
+                                           MethodType method) {
+            // Remote methods need to be distinct with remote methods only there can be instance methods with the same
+            // name
+            return new MethodData("@remote_" + method.getName(), method.getFlags(),
                     dependencyManager.getSemType(method.getType(), parent));
         }
 
