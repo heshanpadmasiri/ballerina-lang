@@ -84,7 +84,7 @@ public final class TableUtils {
 
     private static SemType tableContaining(Env env, SemType tableConstraint, SemType normalizedKc, SemType normalizedKs,
                                            CellAtomicType.CellMutability mut) {
-        assert Core.isSubtypeSimple(tableConstraint, Builder.mappingType());
+        tableConstraint = Core.intersect(tableConstraint, Builder.mappingType());
         ListDefinition typeParamArrDef = new ListDefinition();
         SemType typeParamArray = typeParamArrDef.defineListTypeWrapped(env, EMPTY_SEMTYPE_ARR, 0, tableConstraint, mut);
 
