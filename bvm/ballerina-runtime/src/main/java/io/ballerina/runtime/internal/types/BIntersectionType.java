@@ -28,6 +28,10 @@ import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.internal.TypeChecker;
+import io.ballerina.runtime.internal.types.semtype.ErrorUtils;
+import io.ballerina.runtime.internal.types.semtype.ObjectDefinition;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -222,7 +226,6 @@ public class BIntersectionType extends BType implements IntersectionType, TypeWi
 
     @Override
     public SemType createSemType() {
-        Type effectiveType = getEffectiveType();
         if (constituentTypes.isEmpty()) {
             return Builder.neverType();
         }
@@ -233,6 +236,17 @@ public class BIntersectionType extends BType implements IntersectionType, TypeWi
             SemType memberType = mutableSemTypeDependencyManager.getSemType(constituentTypes.get(i), this);
             assert !Core.containsBasicType(memberType, Builder.bType()) : "Intersection constituent cannot be a BType";
             result = Core.intersect(result, memberType);
+        }
+        if (Core.isSubtypeSimple(result, Builder.errorType())) {
+            BErrorType effectiveErrorType = (BErrorType) effectiveType;
+            DistinctIdSupplier distinctIdSupplier =
+                    new DistinctIdSupplier(TypeChecker.context().env, effectiveErrorType.getTypeIdSet());
+            result = distinctIdSupplier.get().stream().map(ErrorUtils::errorDistinct).reduce(result, Core::intersect);
+        } else if (Core.isSubtypeSimple(result, Builder.objectType())) {
+            BObjectType effectiveObjectType = (BObjectType) effectiveType;
+            DistinctIdSupplier distinctIdSupplier =
+                    new DistinctIdSupplier(TypeChecker.context().env, effectiveObjectType.getTypeIdSet());
+            result = distinctIdSupplier.get().stream().map(ObjectDefinition::distinct).reduce(result, Core::intersect);
         }
         return result;
     }

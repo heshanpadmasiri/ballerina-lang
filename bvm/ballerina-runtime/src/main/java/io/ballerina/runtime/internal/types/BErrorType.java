@@ -157,6 +157,9 @@ public class BErrorType extends BAnnotatableType implements ErrorType, TypeWithS
         if (!(details instanceof BMap errorDetails)) {
             return Optional.empty();
         }
+        if (distinctIdSupplier == null) {
+            distinctIdSupplier = new DistinctIdSupplier(TypeChecker.context().env, getTypeIdSet());
+        }
         return BMapType.readonlyShape(cx, errorDetails)
                 .map(ErrorUtils::errorDetail)
                 .map(err -> distinctIdSupplier.get().stream().map(ErrorUtils::errorDistinct)
