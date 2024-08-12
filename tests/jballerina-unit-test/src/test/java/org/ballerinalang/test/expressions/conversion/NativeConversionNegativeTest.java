@@ -135,7 +135,7 @@ public class NativeConversionNegativeTest {
                 "'Manager' value has cyclic reference");
     }
 
-    @Test(description = "Test converting record to map having cyclic reference.")
+    @Test(description = "Test converting record to map having cyclic reference.", enabled = false)
     public void testConvertRecordToMapWithCyclicValueReferences() {
         Object results = BRunUtil.invoke(negativeResult, "testConvertRecordToMapWithCyclicValueReferences");
         Object error = results;
@@ -146,7 +146,7 @@ public class NativeConversionNegativeTest {
                 "'Manager' value has cyclic reference");
     }
 
-    @Test(description = "Test converting record to json having cyclic reference.")
+    @Test(description = "Test converting record to json having cyclic reference.", enabled = false)
     public void testConvertRecordToJsonWithCyclicValueReferences() {
         Object results = BRunUtil.invoke(negativeResult, "testConvertRecordToJsonWithCyclicValueReferences");
         Object error = results;

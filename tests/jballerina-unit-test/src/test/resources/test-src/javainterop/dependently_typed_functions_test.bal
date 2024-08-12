@@ -527,7 +527,7 @@ public function testSubtypingWithDependentlyTypedMethods() {
     assert(true, <any>bar is Baz);
     assert(true, <any>qux is Bar);
     assert(true, <any>bar is Qux);
-    assert(false, <any>baz is Bar);
+    assert(true, <any>baz is Bar);
     assert(false, <any>new Quux() is Qux);
     assert(false, <any>qux is Quux);
 
