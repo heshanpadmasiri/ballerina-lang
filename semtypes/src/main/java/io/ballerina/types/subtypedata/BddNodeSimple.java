@@ -27,7 +27,7 @@ import io.ballerina.types.Bdd;
  * @param atom Atom this node represents
  * @since 2201.10.0
  */
-public record BddNodeSimple(Atom atom) implements BddNode {
+record BddNodeSimple(Atom atom) implements BddNode {
 
     @Override
     public Bdd left() {
