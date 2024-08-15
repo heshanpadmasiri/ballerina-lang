@@ -143,7 +143,7 @@ public class BStreamType extends BType implements StreamType {
     }
 
     @Override
-    public SemType createSemType() {
+    public synchronized SemType createSemType() {
         if (constraint == null) {
             return Builder.streamType();
         }

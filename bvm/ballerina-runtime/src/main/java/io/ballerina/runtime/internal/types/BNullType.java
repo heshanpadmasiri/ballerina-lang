@@ -78,10 +78,5 @@ public class BNullType extends BSemTypeWrapper<BNullType.BNullTypeImpl> implemen
         public boolean isReadOnly() {
             return true;
         }
-
-        @Override
-        public SemType createSemType() {
-            return Builder.nilType();
-        }
     }
 }
