@@ -281,9 +281,7 @@ public final class Core {
         }
         for (SubType subType : t.subTypeData()) {
             assert subType != null : "subtype array must not be sparse";
-            if (subType instanceof BSubType) {
-                continue;
-            }
+            assert !(subType instanceof BSubType) : "expect pure semtype";
             if (!subType.isEmpty(cx)) {
                 return false;
             }

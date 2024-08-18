@@ -42,7 +42,7 @@ import java.util.function.Predicate;
  */
 final class BCellSubTypeImpl extends BCellSubType implements DelegatedSubType {
 
-    public final Bdd inner;
+    private final Bdd inner;
 
     BCellSubTypeImpl(Bdd inner) {
         super(inner.isAll(), inner.isNothing());
@@ -51,18 +51,18 @@ final class BCellSubTypeImpl extends BCellSubType implements DelegatedSubType {
 
     @Override
     public SubType union(SubType other) {
-        if (!(other instanceof BCellSubTypeImpl otherCell)) {
-            throw new IllegalArgumentException("union of different subtypes");
+        if (other instanceof BCellSubType otherCell) {
+            return createDelegate(inner.union(otherCell.inner()));
         }
-        return createDelegate(inner.union(otherCell.inner));
+        throw new IllegalArgumentException("union of different subtypes");
     }
 
     @Override
     public SubType intersect(SubType other) {
-        if (!(other instanceof BCellSubTypeImpl otherCell)) {
-            throw new IllegalArgumentException("intersect of different subtypes");
+        if (other instanceof BCellSubType otherCell) {
+            return createDelegate(inner.intersect(otherCell.inner()));
         }
-        return createDelegate(inner.intersect(otherCell.inner));
+        throw new IllegalArgumentException("intersect of different subtypes");
     }
 
     @Override
@@ -77,11 +77,11 @@ final class BCellSubTypeImpl extends BCellSubType implements DelegatedSubType {
 
     @Override
     public SubType diff(SubType other) {
-        if (!(other instanceof BCellSubTypeImpl otherCell)) {
-            throw new IllegalArgumentException("diff of different subtypes");
+        if (other instanceof BCellSubType otherCell) {
+            return createDelegate(inner.diff(otherCell.inner()));
         }
+        throw new IllegalArgumentException("diff of different subtypes");
 
-        return createDelegate(inner.diff(otherCell.inner));
     }
 
     @Override
