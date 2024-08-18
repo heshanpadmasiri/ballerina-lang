@@ -43,6 +43,6 @@ public abstract sealed class BCellSubType extends SubType implements DelegatedSu
                 atomicType.mut() != CellAtomicType.CellMutability.CELL_MUT_LIMITED) {
             return new BCellSubTypeImpl(bdd);
         }
-        return new BCellSubTypeSimple(ty);
+        return new BCellSubTypeSimple(ty, bddNode);
     }
 }

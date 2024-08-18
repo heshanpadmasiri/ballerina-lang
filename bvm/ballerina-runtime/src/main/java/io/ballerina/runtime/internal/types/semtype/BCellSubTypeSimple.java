@@ -24,6 +24,11 @@ final class BCellSubTypeSimple extends BCellSubType implements DelegatedSubType 
         this.type = type;
     }
 
+    BCellSubTypeSimple(SemType type, BddNode bddNode) {
+        this(type);
+        inner = bddNode;
+    }
+
     @Override
     public SubType union(SubType other) {
         if (other instanceof BCellSubTypeSimple simple) {
