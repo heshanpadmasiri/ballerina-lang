@@ -290,10 +290,7 @@ public class TypeChecker {
      * @return true if the value belongs to the given type, false otherwise
      */
     public static boolean checkIsType(List<String> errors, Object sourceVal, Type sourceType, Type targetType) {
-        if (checkIsType(sourceVal, targetType)) {
-            return true;
-        }
-        return couldShapeBeDifferent(sourceType) && isSubTypeWithShape(context(), sourceVal, targetType);
+        return checkIsType(sourceVal, targetType);
     }
 
     // This is just an optimization since shapes are not cached, when in doubt return false
@@ -329,7 +326,7 @@ public class TypeChecker {
         assert readonlyShape.isPresent();
         SemType shape = readonlyShape.get();
         SemType targetSemType = targetType;
-        if (Core.isSubType(context(), shape, NUMERIC_TYPE) && allowNumericConversion) {
+        if (Core.isSubType(cx, shape, NUMERIC_TYPE) && allowNumericConversion) {
             targetSemType = appendNumericConversionTypes(targetSemType);
         }
         return Core.isSubType(cx, shape, targetSemType);
@@ -615,7 +612,7 @@ public class TypeChecker {
 
     private static boolean isSubTypeWithShape(Context cx, Object sourceValue, SemType target) {
         return Builder.shapeOf(cx, sourceValue)
-                .map(source -> Core.isSubType(context(), source, target))
+                .map(source -> Core.isSubType(cx, source, target))
                 .orElse(false);
     }
 
