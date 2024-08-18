@@ -123,4 +123,9 @@ public class BFutureType extends BType implements FutureType, TypeWithShape {
     public Optional<SemType> readonlyShapeOf(Context cx, ShapeSupplier shapeSupplierFn, Object object) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public boolean couldShapeBeDifferent() {
+        return false;
+    }
 }

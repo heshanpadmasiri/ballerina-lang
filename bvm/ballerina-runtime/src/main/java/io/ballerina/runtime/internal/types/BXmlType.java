@@ -201,6 +201,11 @@ public class BXmlType extends BType implements XmlType, TypeWithShape {
     }
 
     @Override
+    public boolean couldShapeBeDifferent() {
+        return true;
+    }
+
+    @Override
     public Optional<SemType> readonlyShapeOf(Context cx, ShapeSupplier shapeSupplierFn, Object object) {
         return readonlyShapeOf(object);
     }
