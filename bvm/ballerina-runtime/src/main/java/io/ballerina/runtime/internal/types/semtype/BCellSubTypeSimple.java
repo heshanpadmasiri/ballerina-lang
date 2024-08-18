@@ -1,6 +1,7 @@
 package io.ballerina.runtime.internal.types.semtype;
 
 import io.ballerina.runtime.api.types.semtype.BasicTypeCode;
+import io.ballerina.runtime.api.types.semtype.BddNode;
 import io.ballerina.runtime.api.types.semtype.CellAtomicType;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
@@ -15,6 +16,7 @@ import static io.ballerina.runtime.api.types.semtype.BddNode.bddAtom;
 final class BCellSubTypeSimple extends BCellSubType implements DelegatedSubType {
 
     private final SemType type;
+    private BddNode inner;
 
     BCellSubTypeSimple(SemType type) {
         super(type.all() == BasicTypeCode.VT_MASK, type.all() == 0);
@@ -59,11 +61,14 @@ final class BCellSubTypeSimple extends BCellSubType implements DelegatedSubType 
 
     @Override
     public SubType inner() {
-        // create a bdd for our semtype and return it (may be cache it as well)
+        if (inner != null) {
+            return inner;
+        }
         CellAtomicType atomicCell = CellAtomicType.from(type, CellAtomicType.CellMutability.CELL_MUT_LIMITED);
         Env env = TypeChecker.context().env;
         TypeAtom atom = env.cellAtom(atomicCell);
-        return bddAtom(atom);
+        inner = bddAtom(atom);
+        return inner;
     }
 
     @Override
