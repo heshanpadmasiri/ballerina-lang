@@ -358,16 +358,20 @@ public class TypeChecker {
     }
 
     public static Type getType(Object value) {
+        if (value instanceof BValue bValue) {
+            if (!(value instanceof BObject bObject)) {
+                return bValue.getType();
+            }
+            return bObject.getOriginalType();
+        }
         if (value == null) {
             return TYPE_NULL;
         } else if (value instanceof Number number) {
             return getNumberType(number);
         } else if (value instanceof Boolean booleanValue) {
             return BBooleanType.singletonType(booleanValue);
-        } else if (value instanceof BObject bObject) {
-            return bObject.getOriginalType();
         }
-        return ((BValue) value).getType();
+        throw new IllegalArgumentException("unexpected value type");
     }
 
     private static Type getNumberType(Number number) {
@@ -627,6 +631,9 @@ public class TypeChecker {
     }
 
     private static SemType widenedType(Context cx, Object value) {
+        if (value instanceof BValue bValue) {
+            return bValue.widenedType(cx);
+        }
         if (value == null) {
             return Builder.nilType();
         } else if (value instanceof Double) {
@@ -637,11 +644,8 @@ public class TypeChecker {
             return Builder.stringType();
         } else if (value instanceof Boolean) {
             return Builder.booleanType();
-        } else if (value instanceof DecimalValue) {
-            return Builder.decimalType();
-        } else {
-            return ((BValue) value).widenedType(cx);
         }
+        throw new IllegalArgumentException("Unexpected object type");
     }
 
     private static SemType createInherentlyImmutableType() {
