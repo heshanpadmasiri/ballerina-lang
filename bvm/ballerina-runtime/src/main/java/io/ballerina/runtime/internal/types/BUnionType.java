@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.flags.TypeFlags;
 import io.ballerina.runtime.api.types.IntersectionType;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.SelectivelyImmutableReferenceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
@@ -452,8 +453,7 @@ public class BUnionType extends BType implements UnionType, SelectivelyImmutable
                     this.addMember(newArrayType);
                     continue;
                 }
-            } else if (member instanceof BMapType) {
-                BMapType mapType = (BMapType) member;
+            } else if (member instanceof MapType mapType) {
                 if (mapType.getConstrainedType() == unionType) {
                     BMapType newMapType = new BMapType(this, this.readonly);
                     this.addMember(newMapType);
@@ -465,8 +465,7 @@ public class BUnionType extends BType implements UnionType, SelectivelyImmutable
                     BTableType newTableType = new BTableType(this, tableType.isReadOnly());
                     this.addMember(newTableType);
                     continue;
-                } else if (tableType.getConstrainedType() instanceof BMapType) {
-                    BMapType mapType = (BMapType) tableType.getConstrainedType();
+                } else if (tableType.getConstrainedType() instanceof MapType mapType) {
                     if (mapType.getConstrainedType() == unionType) {
                         BMapType newMapType = new BMapType(this);
                         BTableType newTableType = new BTableType(newMapType,
