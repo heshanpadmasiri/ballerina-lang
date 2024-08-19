@@ -113,6 +113,7 @@ public class MapUtils {
     }
 
     private static boolean containsNilType(Type type) {
+        // FIXME:
         type = TypeUtils.getImpliedType(type);
         int tag = type.getTag();
         if (tag == TypeTags.UNION_TAG) {
