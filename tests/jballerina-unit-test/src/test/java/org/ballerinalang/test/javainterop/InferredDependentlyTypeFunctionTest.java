@@ -168,7 +168,7 @@ public class InferredDependentlyTypeFunctionTest {
         validateError(negativeResult, index++, "incompatible types: expected '(stream<boolean>|readonly)', found '" +
                 "(readonly|IntStream|handle)'", 146, 34);
         validateError(negativeResult, index++, "cannot infer the 'typedesc' argument for parameter 'td' with " +
-                "'(readonly|handle)' as the contextually-expected type mapping to return type '(readonly|td|handle)'",
+                        "'(readonly|handle)' as the contextually-expected type mapping to return type '(readonly|td|handle)'",
                 147, 25);
         validateError(negativeResult, index++, "cannot infer the 'typedesc' argument for parameter 'td': expected" +
                 " an argument for the parameter or a contextually-expected type to infer the argument", 151, 13);
@@ -204,7 +204,7 @@ public class InferredDependentlyTypeFunctionTest {
         validateError(negativeResult, index++, "cannot infer the 'typedesc' argument for parameter 'td': expected " +
                 "an argument for the parameter or a contextually-expected type to infer the argument", 186, 52);
         validateError(negativeResult, index++, "cannot infer the 'typedesc' argument for parameter 'td': expected " +
-                        "an argument for the parameter or a contextually-expected type to infer the argument", 196, 5);
+                "an argument for the parameter or a contextually-expected type to infer the argument", 196, 5);
         validateError(negativeResult, index++, "cannot infer the 'typedesc' argument for parameter 'td2': expected " +
                 "an argument for the parameter or a contextually-expected type to infer the argument", 197, 5);
         validateError(negativeResult, index++, "variable assignment is required", 197, 5);

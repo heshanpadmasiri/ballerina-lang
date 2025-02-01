@@ -56,7 +56,7 @@ public class DependentlyTypedFunctionsTest {
         validateError(errors, indx++, "incompatible types: expected 'boolean', found 'int'", 35, 17);
         validateError(errors, indx++, "incompatible types: expected 'float', found 'int'", 37, 15);
         validateError(errors, indx++, "incompatible types: expected 'typedesc<(int|float|decimal|string|boolean)>', "
-                          + "found 'typedesc<json>'", 41, 23);
+                + "found 'typedesc<json>'", 41, 23);
         validateError(errors, indx++, "unknown type 'aTypeVar'", 44, 60);
         validateError(errors, indx++, "incompatible types: expected 'map<int>', found 'map<other>'", 51, 18);
         validateError(errors, indx++, "incompatible types: expected 'int', found 'customType'", 61, 13);
@@ -67,28 +67,28 @@ public class DependentlyTypedFunctionsTest {
                 "'map<ballerina/lang.value:0.0.0:Cloneable>'", 82, 83);
         validateError(errors, indx++, "unknown type 'detail'", 82, 83);
         validateError(errors, indx++,
-                      "a function with a non-'external' function body cannot be a dependently-typed function", 89, 45);
+                "a function with a non-'external' function body cannot be a dependently-typed function", 89, 45);
         validateError(errors, indx++,
-                      "a function with a non-'external' function body cannot be a dependently-typed function", 89, 67);
+                "a function with a non-'external' function body cannot be a dependently-typed function", 89, 67);
         validateError(errors, indx++, "default value for a 'typedesc' parameter used in the return type" +
                 " should be a reference to a type", 93, 29);
         validateError(errors, indx++, "unknown type 'NonExistentParam'", 103, 77);
         validateError(errors, indx++, "invalid parameter reference: expected 'typedesc', found 'string'", 109, 54);
         validateError(errors, indx++,
-                      "a function with a non-'external' function body cannot be a dependently-typed function", 115, 45);
+                "a function with a non-'external' function body cannot be a dependently-typed function", 115, 45);
         validateError(errors, indx++, "invalid parameter reference: expected 'typedesc', found 'string'", 115, 45);
         validateError(errors, indx++, "incompatible types: expected 'function (typedesc<(string|int)>) " +
                 "returns (string)', found 'function (typedesc<(int|string)>) returns (aTypeVar)'", 126, 61);
         validateError(errors, indx++, "mismatched function signatures: expected 'public function get" +
                 "(typedesc<anydata>) returns (td|error)', found 'public function get(typedesc<anydata>) returns" +
                 " (other|error)'", 140, 5);
-        validateError(errors, indx++, "a function with a non-'external' function body cannot be a dependently-typed " +
-                "function", 140, 64);
+        validateError(errors, indx++,
+                "a function with a non-'external' function body cannot be a dependently-typed function", 140, 64);
         validateError(errors, indx++, "mismatched function signatures: expected 'public function get" +
                 "(typedesc<anydata>) returns (td|error)', found 'public function get(typedesc<anydata>) returns" +
                 " (other|error)'", 144, 5);
-        validateError(errors, indx++, "a function with a non-'external' function body cannot be a dependently-typed " +
-                "function", 144, 64);
+        validateError(errors, indx++,
+                "a function with a non-'external' function body cannot be a dependently-typed function", 144, 64);
         validateError(errors, indx++, "incompatible types: expected 'Bar', found 'Baz'", 176, 15);
         validateError(errors, indx++, "incompatible types: expected 'Quux', found 'Qux'", 180, 17);
         validateError(errors, indx++, "incompatible types: expected 'Qux', found 'Quux'", 181, 15);
@@ -103,20 +103,20 @@ public class DependentlyTypedFunctionsTest {
         validateError(errors, indx++, "incompatible types: expected 'int', found 'string'", 200, 13);
         validateError(errors, indx++, "incompatible types: expected 'int', found 'string'", 201, 13);
         validateError(errors, indx++, "incompatible types: expected 'future<int>', found 'future<(IntOrString|error)>'",
-                      209, 21);
+                209, 21);
         validateError(errors, indx++,
-                      "incompatible types: expected '(int|string|error)', found 'future<(IntOrString|error)>'",
-                      210, 26);
+                "incompatible types: expected '(int|string|error)', found 'future<(IntOrString|error)>'",
+                210, 26);
         validateError(errors, indx++,
-                      "incompatible types: expected 'future<(int|string)>', found 'future<(IntOrString|error)>'",
-                      211, 28);
+                "incompatible types: expected 'future<(int|string)>', found 'future<(IntOrString|error)>'",
+                211, 28);
         validateError(errors, indx++, "incompatible types: expected 'future<int>', found 'future<(int|error)>'",
-                      213, 21);
+                213, 21);
         validateError(errors, indx++, "incompatible types: expected 'string', found 'future<(string|error)>'",
-                      214, 16);
+                214, 16);
         validateError(errors, indx++,
-                      "incompatible types: expected 'future<(string|error)>', found 'future<(int|error)>'",
-                      215, 30);
+                "incompatible types: expected 'future<(string|error)>', found 'future<(int|error)>'",
+                215, 30);
         validateError(errors, indx++, "incompatible types: expected '(int|error)', found '(string|error)'", 246, 19);
         validateError(errors, indx++, "incompatible types: expected '(string|error)', found '(int|error)'", 249, 22);
         validateError(errors, indx++, "incompatible types: expected '(string|boolean)', found '(j|boolean)'", 252, 24);
@@ -124,11 +124,11 @@ public class DependentlyTypedFunctionsTest {
                 "int i; typedesc<(int|string)> j; |})', found '[int]'", 252, 44);
         validateError(errors, indx++, "missing required parameter 'j' in call to 'getWithRestParam()'", 254, 24);
         validateError(errors, indx++, "incompatible types: expected '(int|boolean)', found '(string|boolean)'", 257,
-                      21);
+                21);
         validateError(errors, indx++, "incompatible types: expected '(string|boolean)', found '(int|boolean)'", 260,
-                      24);
+                24);
         validateError(errors, indx++, "incompatible types: expected '(string|boolean)', found '(j|k|boolean)'", 263,
-                      24);
+                24);
         validateError(errors, indx++, "incompatible types: expected '([typedesc<(int|string)>,typedesc<int>," +
                 "typedesc<int>...]|record {| typedesc<(int|string)> j; typedesc<int> k; |})', found " +
                 "'[typedesc<string>]'", 263, 55);
@@ -147,12 +147,12 @@ public class DependentlyTypedFunctionsTest {
         validateError(errors, indx++, "incompatible types: expected '(string|error)', found '(int|error)'", 301, 22);
         validateError(errors, indx++, "incompatible types: expected '(int|error)', found '(string|error)'", 304, 19);
         validateError(errors, indx++, "incompatible types: expected '(int|boolean)', found '(string|boolean)'", 307,
-                      21);
+                21);
         validateError(errors, indx++, "incompatible types: expected '(string|boolean)', found '(j|boolean)'", 310, 24);
         validateError(errors, indx++, "incompatible types: expected '([typedesc<(int|string)>,int...]|record {| " +
                 "typedesc<(int|string)> j; |})', found 'record {| |} & readonly'", 310, 47);
         validateError(errors, indx++, "incompatible types: expected '(string|boolean)', found '(string|int|boolean)'",
-                      313, 24);
+                313, 24);
         validateError(errors, indx++, "incompatible types: expected 'int', found 'string'", 338, 14);
         validateError(errors, indx++, "incompatible types: expected 'string', found 'int'", 339, 17);
         validateError(errors, indx++, "incompatible types: expected 'string', found 'int'", 340, 17);
@@ -185,22 +185,25 @@ public class DependentlyTypedFunctionsTest {
     }
 
     @Test(expectedExceptions = BLangTestException.class,
-          expectedExceptionsMessageRegExp = "error: \\{ballerina\\}TypeCastError \\{\"message\":\"incompatible types:" +
-                  " 'map' cannot be cast to 'map<anydata>'.*")
+            expectedExceptionsMessageRegExp =
+                    "error: \\{ballerina\\}TypeCastError \\{\"message\":\"incompatible types:" +
+                            " 'map' cannot be cast to 'map<anydata>'.*")
     public void testRuntimeCastError() {
         BRunUtil.invoke(result, "testRuntimeCastError");
     }
 
     @Test(expectedExceptions = BLangTestException.class,
-          expectedExceptionsMessageRegExp = "error: \\{ballerina\\}TypeCastError \\{\"message\":\"incompatible types:" +
-                  " 'Person' cannot be cast to 'int'.*")
+            expectedExceptionsMessageRegExp =
+                    "error: \\{ballerina\\}TypeCastError \\{\"message\":\"incompatible types:" +
+                            " 'PersonDTFT' cannot be cast to 'int'.*")
     public void testCastingForInvalidValues() {
         BRunUtil.invoke(result, "testCastingForInvalidValues");
     }
 
     @Test(expectedExceptions = BLangTestException.class,
-          expectedExceptionsMessageRegExp = "error: \\{ballerina\\}TypeCastError \\{\"message\":\"incompatible types:" +
-                  " 'string' cannot be cast to 'int'.*")
+            expectedExceptionsMessageRegExp =
+                    "error: \\{ballerina\\}TypeCastError \\{\"message\":\"incompatible types:" +
+                            " 'string' cannot be cast to 'int'.*")
     public void testFunctionAssignment() {
         BRunUtil.invoke(result, "testFunctionAssignment");
     }

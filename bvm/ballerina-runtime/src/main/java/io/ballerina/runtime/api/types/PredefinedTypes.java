@@ -64,66 +64,66 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.XML_LANG_LIB;
  */
 public final class PredefinedTypes {
 
-    private static final Module EMPTY_MODULE = new Module(null, null, null);
+    public static final Module EMPTY_MODULE = new Module(null, null, null);
 
     public static final IntegerType TYPE_INT = new BIntegerType(TypeConstants.INT_TNAME, EMPTY_MODULE);
     public static final IntegerType TYPE_INT_SIGNED_8 =
             new BIntegerType(TypeConstants.SIGNED8, new Module(BALLERINA_BUILTIN_PKG_PREFIX, INT_LANG_LIB, null),
-                             TypeTags.SIGNED8_INT_TAG);
+                    TypeTags.SIGNED8_INT_TAG);
     public static final IntegerType TYPE_INT_SIGNED_16 =
             new BIntegerType(TypeConstants.SIGNED16, new Module(BALLERINA_BUILTIN_PKG_PREFIX, INT_LANG_LIB, null),
-                             TypeTags.SIGNED16_INT_TAG);
+                    TypeTags.SIGNED16_INT_TAG);
     public static final IntegerType TYPE_INT_SIGNED_32 =
             new BIntegerType(TypeConstants.SIGNED32, new Module(BALLERINA_BUILTIN_PKG_PREFIX, INT_LANG_LIB, null),
-                             TypeTags.SIGNED32_INT_TAG);
+                    TypeTags.SIGNED32_INT_TAG);
     public static final IntegerType TYPE_INT_UNSIGNED_8 =
             new BIntegerType(TypeConstants.UNSIGNED8, new Module(BALLERINA_BUILTIN_PKG_PREFIX, INT_LANG_LIB, null),
-                             TypeTags.UNSIGNED8_INT_TAG);
+                    TypeTags.UNSIGNED8_INT_TAG);
     public static final IntegerType TYPE_INT_UNSIGNED_16 =
             new BIntegerType(TypeConstants.UNSIGNED16, new Module(BALLERINA_BUILTIN_PKG_PREFIX, INT_LANG_LIB, null),
-                             TypeTags.UNSIGNED16_INT_TAG);
+                    TypeTags.UNSIGNED16_INT_TAG);
     public static final IntegerType TYPE_INT_UNSIGNED_32 =
             new BIntegerType(TypeConstants.UNSIGNED32, new Module(BALLERINA_BUILTIN_PKG_PREFIX, INT_LANG_LIB, null),
-                             TypeTags.UNSIGNED32_INT_TAG);
+                    TypeTags.UNSIGNED32_INT_TAG);
     public static final BooleanType TYPE_BOOLEAN = new BBooleanType(TypeConstants.BOOLEAN_TNAME, EMPTY_MODULE);
     public static final ByteType TYPE_BYTE = new BByteType(TypeConstants.BYTE_TNAME, EMPTY_MODULE);
     public static final FloatType TYPE_FLOAT = new BFloatType(TypeConstants.FLOAT_TNAME, EMPTY_MODULE);
     public static final DecimalType TYPE_DECIMAL = new BDecimalType(TypeConstants.DECIMAL_TNAME, EMPTY_MODULE);
     public static final StringType TYPE_STRING = new BStringType(TypeConstants.STRING_TNAME, EMPTY_MODULE);
     public static final StringType TYPE_STRING_CHAR = new BStringType(TypeConstants.CHAR,
-                                                                      new Module(BALLERINA_BUILTIN_PKG_PREFIX,
-                                                                                 STRING_LANG_LIB, null),
-                                                                      TypeTags.CHAR_STRING_TAG);
+            new Module(BALLERINA_BUILTIN_PKG_PREFIX,
+                    STRING_LANG_LIB, null),
+            TypeTags.CHAR_STRING_TAG);
 
     public static final ReadonlyType TYPE_READONLY = new BReadonlyType(TypeConstants.READONLY_TNAME, EMPTY_MODULE);
     public static final XmlType TYPE_ELEMENT = new BXmlType(TypeConstants.XML_ELEMENT,
-                                                            new Module(BALLERINA_BUILTIN_PKG_PREFIX, XML_LANG_LIB,
-                                                                       null), TypeTags.XML_ELEMENT_TAG, false);
+            new Module(BALLERINA_BUILTIN_PKG_PREFIX, XML_LANG_LIB,
+                    null), TypeTags.XML_ELEMENT_TAG, false);
     public static final Type TYPE_READONLY_ELEMENT = ReadOnlyUtils.setImmutableTypeAndGetEffectiveType(TYPE_ELEMENT);
 
     public static final XmlType TYPE_PROCESSING_INSTRUCTION = new BXmlType(TypeConstants.XML_PI,
-                                                                           new Module(BALLERINA_BUILTIN_PKG_PREFIX,
-                                                                                      XML_LANG_LIB, null),
-                                                                           TypeTags.XML_PI_TAG, false);
+            new Module(BALLERINA_BUILTIN_PKG_PREFIX,
+                    XML_LANG_LIB, null),
+            TypeTags.XML_PI_TAG, false);
     public static final Type TYPE_READONLY_PROCESSING_INSTRUCTION =
             ReadOnlyUtils.setImmutableTypeAndGetEffectiveType(TYPE_PROCESSING_INSTRUCTION);
 
     public static final XmlType TYPE_COMMENT = new BXmlType(TypeConstants.XML_COMMENT,
-                                                            new Module(BALLERINA_BUILTIN_PKG_PREFIX, XML_LANG_LIB,
-                                                                       null), TypeTags.XML_COMMENT_TAG, false);
+            new Module(BALLERINA_BUILTIN_PKG_PREFIX, XML_LANG_LIB,
+                    null), TypeTags.XML_COMMENT_TAG, false);
     public static final Type TYPE_READONLY_COMMENT = ReadOnlyUtils.setImmutableTypeAndGetEffectiveType(TYPE_COMMENT);
 
     public static final XmlType TYPE_TEXT = new BXmlType(TypeConstants.XML_TEXT,
-                                                         new Module(BALLERINA_BUILTIN_PKG_PREFIX, XML_LANG_LIB, null),
-                                                         TypeTags.XML_TEXT_TAG, true);
+            new Module(BALLERINA_BUILTIN_PKG_PREFIX, XML_LANG_LIB, null),
+            TypeTags.XML_TEXT_TAG, true);
 
     public static final Type TYPE_XML_NEVER = new BXmlType(TypeConstants.XML_TNAME, new BNeverType(EMPTY_MODULE),
-                                              EMPTY_MODULE, true);
+            EMPTY_MODULE, true);
 
     public static final Type TYPE_XML = new BXmlType(TypeConstants.XML_TNAME,
-                                                     new BUnionType(Arrays.asList(TYPE_ELEMENT, TYPE_COMMENT,
-                                                                                  TYPE_PROCESSING_INSTRUCTION,
-                                                                                  TYPE_TEXT)), EMPTY_MODULE);
+            new BUnionType(Arrays.asList(TYPE_ELEMENT, TYPE_COMMENT,
+                    TYPE_PROCESSING_INSTRUCTION,
+                    TYPE_TEXT)), EMPTY_MODULE);
 
     public static final Type TYPE_READONLY_XML = ReadOnlyUtils.setImmutableTypeAndGetEffectiveType(TYPE_XML);
     public static final Type TYPE_XML_ELEMENT_SEQUENCE = new BXmlType(PredefinedTypes.TYPE_ELEMENT, false);

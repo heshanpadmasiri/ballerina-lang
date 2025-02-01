@@ -198,10 +198,10 @@ public final class VariableReturnType {
         BRecordType recType = (BRecordType) td.getDescribingType();
         MapValueImpl<BString, Object> person = new MapValueImpl<>(recType);
 
-        if (recType.getName().equals("Person")) {
+        if (recType.getName().contains("Person")) {
             person.put(NAME, JOHN_DOE);
             person.put(AGE, 20);
-        } else if (recType.getName().equals("Employee")) {
+        } else if (recType.getName().contains("Employee")) {
             person.put(NAME, JANE_DOE);
             person.put(AGE, 25);
             person.put(DESIGNATION, SOFTWARE_ENGINEER);
@@ -226,7 +226,7 @@ public final class VariableReturnType {
         }
 
         MapValueImpl<BString, Object> rec = new MapValueImpl<>(type2);
-        if (type2.getName().equals("Person")) {
+        if (type2.getName().contains("Person")) {
             rec.put(NAME, JOHN_DOE);
             rec.put(AGE, 20);
         } else {
@@ -279,10 +279,10 @@ public final class VariableReturnType {
                 BRecordType recType = (BRecordType) type;
                 MapValueImpl<BString, Object> person = new MapValueImpl<>(recType);
 
-                if (recType.getName().equals("Person")) {
+                if (recType.getName().contains("Person")) {
                     person.put(NAME, JOHN_DOE);
                     person.put(AGE, 20);
-                } else if (recType.getName().equals("Employee")) {
+                } else if (recType.getName().contains("Employee")) {
                     person.put(NAME, JANE_DOE);
                     person.put(AGE, 25);
                     person.put(DESIGNATION, SOFTWARE_ENGINEER);
@@ -352,7 +352,7 @@ public final class VariableReturnType {
         return ((BTypeReferenceType) typedesc.getDescribingType()).getAnnotations();
     }
 
-    public static Object getAnnotationValue2(Object value, BTypedesc typedesc, BString annotationName, 
+    public static Object getAnnotationValue2(Object value, BTypedesc typedesc, BString annotationName,
                                              int min, int max) {
         Type describingType = typedesc.getDescribingType();
         BMap<BString, Object> annotations = ((AnnotatableType) describingType).getAnnotations();

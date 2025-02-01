@@ -18,15 +18,17 @@
 package io.ballerina.runtime.internal.values;
 
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.semtype.Context;
+import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.values.BFunctionPointer;
 import io.ballerina.runtime.api.values.BLink;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.internal.BalRuntime;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -41,20 +43,20 @@ public class FPValue implements BFunctionPointer, RefValue {
     final Type type;
     private BTypedesc typedesc;
     public Function<Object[], Object> function;
+    public boolean isIsolated;
     public String name;
-    public StrandMetadata metadata;
 
     public FPValue(Function<Object[], Object> function, Type type, String name, boolean isIsolated) {
         this.function = function;
         this.type = type;
         this.name = name;
-        this.metadata = new StrandMetadata(isIsolated, null);
+        this.isIsolated = isIsolated;
     }
 
     @Override
     public Object call(Runtime runtime, Object... t) {
         BalRuntime balRuntime = (BalRuntime) runtime;
-        return balRuntime.scheduler.callFP(this, metadata, t);
+        return balRuntime.scheduler.callFP(this, null, t);
     }
 
     @Override
@@ -101,5 +103,10 @@ public class FPValue implements BFunctionPointer, RefValue {
     @Override
     public String toString() {
         return RuntimeConstants.EMPTY;
+    }
+
+    @Override
+    public Optional<SemType> inherentTypeOf(Context cx) {
+        return Optional.of(SemType.tryInto(cx, getType()));
     }
 }

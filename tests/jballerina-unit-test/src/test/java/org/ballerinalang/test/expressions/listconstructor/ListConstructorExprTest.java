@@ -65,20 +65,20 @@ public class ListConstructorExprTest {
                 "invalid usage of list constructor: type '[NoFillerObject,NoFillerObject]'" +
                         " does not have a filler value", 46, 56);
         BAssertUtil.validateError(resultNegative, i++, "incompatible types: expected '[record {| int id; string name;" +
-                                          " int city; |},record {| anydata...; |},boolean,string]', found '[record {|" +
-                                          " int id; string name; string city; |},record {| int id; string name; " +
-                                          "int age; |},int,string]'", 65, 40);
+                " int city; |},record {| anydata...; |},boolean,string]', found '[record {|" +
+                " int id; string name; string city; |},record {| int id; string name; " +
+                "int age; |},int,string]'", 65, 40);
         BAssertUtil.validateError(resultNegative, i++, "incompatible types: expected 'record {| int id; string name; " +
-                                          "string age; |}', found 'record {| int id; string name; int age; |}'",
-                                  71, 13);
+                        "string age; |}', found 'record {| int id; string name; int age; |}'",
+                71, 13);
         BAssertUtil.validateError(resultNegative, i++, "incompatible types: expected 'float', found 'int'",
-                                  72, 16);
+                72, 16);
         BAssertUtil.validateError(resultNegative, i++, "incompatible types: expected 'readonly', found 'int[]'", 80,
-                                  23);
+                23);
         BAssertUtil.validateError(resultNegative, i++, "incompatible types: expected 'readonly', found 'future'",
-                                  80, 28);
+                80, 28);
         BAssertUtil.validateError(resultNegative, i++, "incompatible types: expected '(readonly|int[])', " +
-                                          "found '[int,map<(boolean|int)>]'", 89, 25);
+                "found '[int,map<(boolean|int)>]'", 89, 25);
         BAssertUtil.validateError(resultNegative, i++, "ambiguous type '(boolean[][]|readonly)'", 93, 31);
         BAssertUtil.validateError(resultNegative, i++, "unknown type 'Foo'", 97, 5);
         BAssertUtil.validateError(resultNegative, i++, "incompatible types: 'int' cannot be cast to 'string'", 97, 23);

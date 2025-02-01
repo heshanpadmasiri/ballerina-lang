@@ -119,15 +119,15 @@ public class SelectivelyImmutableTypeTest {
         validateError(result, index++, "cannot update 'readonly' record field 'details' in 'Employee'", 136, 5);
         validateError(result, index++, "cannot update 'readonly' record field 'details' in 'Employee'", 140, 5);
         validateError(result, index++, "incompatible types: expected '(Department & readonly)', found 'Department'",
-                      145, 14);
+                145, 14);
         validateError(result, index++, "incompatible types: expected '(Department & readonly)', found 'Department'",
-                      146, 17);
+                146, 17);
 
         validateError(result, index++, "invalid intersection type with 'readonly', 'table<Bar> key(name)' can never " +
-                              "be 'readonly'", 159, 5);
+                "be 'readonly'", 159, 5);
         validateError(result, index++, "cannot infer type of the object from 'other'", 160, 26);
         validateError(result, index++, "invalid intersection type with 'readonly', 'Baz' can never be 'readonly'", 171,
-                      5);
+                5);
         validateError(result, index++, "cannot update 'readonly' value of type '(Config & readonly)'", 194, 5);
         validateError(result, index++, "cannot update 'readonly' value of type 'MyConfig'", 197, 5);
 
@@ -149,7 +149,7 @@ public class SelectivelyImmutableTypeTest {
         validateError(result, index++, "cannot update 'readonly' value of type " +
                 "'record {| readonly int i; (anydata & readonly)...; |} & readonly'", 259, 5);
         validateError(result, index++, "cannot update 'readonly' value of type 'object { final int j; } & readonly'",
-                      262, 5);
+                262, 5);
 
         validateError(result, index++, "invalid intersection type with 'readonly', 'NeverReadOnlyClass' can never be " +
                 "'readonly'", 276, 5);
@@ -163,11 +163,11 @@ public class SelectivelyImmutableTypeTest {
                 "'NonReadOnlyClass'", 299, 38);
 
         validateError(result, index++, "cannot define a variable of type 'never' or equivalent to type 'never'",
-                      303, 5);
+                303, 5);
         validateError(result, index++, "incompatible types: expected 'never?', found 'int'", 305, 52);
 
         validateError(result, index++, "invalid intersection type with 'readonly', 'Grault' can never be 'readonly'",
-                      313, 5);
+                313, 5);
 
         validateError(result, index++, "incompatible types: expected 'never?', found 'stream<int>'", 321, 27);
         validateError(result, index++, "incompatible types: expected 'record {| never a?; |} & readonly', " +
@@ -179,19 +179,19 @@ public class SelectivelyImmutableTypeTest {
         validateError(result, index++, "missing non-defaultable required record field 'a'", 333, 23);
         validateError(result, index++, "incompatible types: expected 'never', found 'int'", 333, 29);
         validateError(result, index++, "invalid intersection type with 'readonly', 'R3' can never be 'readonly'",
-                      345, 6);
+                345, 6);
         validateError(result, index++, "invalid intersection type with 'readonly', 'R4' can never be 'readonly'",
-                      346, 5);
+                346, 5);
         validateError(result, index++, "incompatible types: expected 'ImmutableXmlElement', found 'xml:Text'",
-                      352, 29);
+                352, 29);
         validateError(result, index++, "incompatible types: expected 'ImmutableXmlElement', found 'xml:Element'",
-                      355, 29);
+                355, 29);
         validateError(result, index++, "incompatible types: expected '(xml:Text|ImmutableXmlElement)', found " +
                 "'xml:Element'", 363, 12);
         validateError(result, index++, "incompatible types: expected '(string|error)', found '(anydata & readonly)'",
-                      372, 22);
+                372, 22);
         validateError(result, index++, "incompatible types: expected '(string|error)', found '(json & readonly)'", 375,
-                      22);
+                22);
         validateError(result, index++, "incompatible types: expected '(json & readonly)', found '(anydata & readonly)'"
                 , 384, 25);
         validateError(result, index++, "incompatible types: expected '(json & readonly)[]', found 'MyJson[]'", 403, 29);
@@ -249,9 +249,9 @@ public class SelectivelyImmutableTypeTest {
 
         // lang.value
         validateError(result, index++, "cannot update 'readonly' value of type '(map<json> & readonly)'",
-                      77, 20);
+                77, 20);
         validateError(result, index++, "cannot update 'readonly' value of type '(map<json> & readonly)'",
-                      78, 20);
+                78, 20);
 
         // lang.xml
         validateError(result, index++, "cannot update 'readonly' value of type '(xml:Element & readonly)'", 85, 5);

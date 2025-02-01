@@ -120,14 +120,14 @@ public class StaticMethodTest {
         args[1] = new HandleValue(2);
         args[2] = new HandleValue(3);
         Object returns = BRunUtil.invoke(result, "testAcceptThreeParamsAndReturnSomething", args);
-        
+
         Assert.assertEquals(((HandleValue) returns).getValue(), 6);
     }
 
     @Test(description = "Test static java method that returns error value as objects")
     public void testReturnObjectValueOrError() {
         Object returns = BRunUtil.invoke(result, "getObjectOrError");
-        
+
         Assert.assertEquals(((BError) returns).getMessage(), "some reason");
     }
 
@@ -162,8 +162,9 @@ public class StaticMethodTest {
     }
 
     @Test(expectedExceptions = BLangTestException.class,
-          expectedExceptionsMessageRegExp = ".*Invalid update of record field: modification not allowed on readonly " +
-                  "value.*")
+            expectedExceptionsMessageRegExp =
+                    ".*Invalid update of record field: modification not allowed on readonly " +
+                            "value.*")
     public void testCreateRawDetails() {
         BRunUtil.invoke(result, "testCreateRawDetails");
     }
