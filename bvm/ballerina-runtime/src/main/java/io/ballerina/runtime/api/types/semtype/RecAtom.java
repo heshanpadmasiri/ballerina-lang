@@ -31,6 +31,9 @@ public final class RecAtom implements Atom {
     private final int index;
     private static final int BDD_REC_ATOM_READONLY = 0;
     private static final RecAtom ZERO = new RecAtom(BDD_REC_ATOM_READONLY);
+    static {
+        ZERO.ready();
+    }
     private final CountDownLatch readySignal = new CountDownLatch(1);
 
     private RecAtom(int index) {
@@ -42,6 +45,12 @@ public final class RecAtom implements Atom {
             return ZERO;
         }
         return new RecAtom(index);
+    }
+
+    public static RecAtom createUnBlockedRecAtom(int index) {
+        RecAtom rec = createRecAtom(index);
+        rec.ready();
+        return rec;
     }
 
     public static RecAtom createDistinctRecAtom(int index) {

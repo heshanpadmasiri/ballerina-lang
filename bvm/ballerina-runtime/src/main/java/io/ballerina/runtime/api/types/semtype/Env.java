@@ -22,11 +22,9 @@ import io.ballerina.runtime.internal.types.semtype.CellAtomicType;
 import io.ballerina.runtime.internal.types.semtype.FunctionAtomicType;
 import io.ballerina.runtime.internal.types.semtype.ListAtomicType;
 import io.ballerina.runtime.internal.types.semtype.MappingAtomicType;
-import io.ballerina.runtime.internal.types.semtype.MutableSemType;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,8 +32,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -73,8 +69,6 @@ public final class Env {
     private final Map<CellSemTypeCacheKey, SemType> cellTypeCache = new HashMap<>();
 
     private final AtomicInteger distinctAtomCount = new AtomicInteger(0);
-
-    private final AtomicLong pendingTypeResolutions = new AtomicLong(0);
 
     private Env() {
         this.atomTable = new WeakHashMap<>();
@@ -230,6 +224,7 @@ public final class Env {
     private static <E extends AtomicType> E getRecAtomType(ReadWriteLock lock, List<E> recAtomList, RecAtom rec) {
         lock.readLock().lock();
         try {
+            rec.waitUntilReady();
             assert recAtomList.get(rec.index()) != null;
             return recAtomList.get(rec.index());
         } finally {
@@ -280,96 +275,4 @@ public final class Env {
         }
     }
 
-    // When it comes to types there are 2 distinct stages, first we need to resolve types (ie turn type
-    // descriptor in to a semtype) and then do the type checking. In the compiler there is a clear temporal separation
-    // between these stages, but in runtime since we allow creating type dynamically we must allow them to interleave.
-    // As result, we have to treat both these stages of the type check. When a type is being used for type checking
-    // it is resolved (modifying the type after this point is undefined behaviour). To understand concurrency model for
-    // type checking we can break up type checking to 2 phases as type resolution and type checking. To allow
-    // concurrent type checking we need ensure fallowing invariants.
-    // 1. Phase 1 should be able to run in a non-blocking manner. Assume we are checking T1 < T2 and T3 < T4
-    //    concurrently with T1 depending on T3 and T4 depending on T2. If they are blocking we can have a deadlock.
-    // 2. Before starting phase 2 all the types involved in the type check must be resolved. In above example T3 which
-    //    is needed for first type check is being resolved as a part of the second type check.
-    // Furthermore, ideally we shouldn't resolve the same type multiple times and both type checks should be able to
-    // run parallel as much as possible.
-    // Given each (strand) thread has its own context, it is easier to reason about concurrency using Context. First
-    // we require all phase changes to go via the context which will synchronize with other contexts via the shared Env.
-    // First we allow any number of context to enter phase 1 and run without blocking(property 1). When context
-    // need to move to phase 2 it must wait for all contexts in phase 1 to finish. To prevent starvation when a
-    // context has indicated that it needs to move to phase 2 we stop any new context from entering phase 1. When all
-    // the contexts have reached phase 2 again they all can continue in parallel. At the same time we can allow new
-    // context to enter phase 1.
-
-    void enterTypeResolutionPhase(Context cx, MutableSemType t) throws InterruptedException {
-        pendingTypeResolutions.incrementAndGet();
-    }
-
-    void exitTypeResolutionPhaseAbruptly(Context cx, Exception ex) {
-        try {
-            pendingTypeResolutions.decrementAndGet();
-            releaseLock((ReentrantReadWriteLock) atomLock);
-            releaseLock((ReentrantReadWriteLock) recListLock);
-            releaseLock((ReentrantReadWriteLock) recMapLock);
-            releaseLock((ReentrantReadWriteLock) recFunctionLock);
-        } catch (Exception ignored) {
-            throw new RuntimeException("Failed to release locks", ex);
-        }
-    }
-
-    private void releaseLock(ReentrantReadWriteLock lock) {
-        if (lock.writeLock().isHeldByCurrentThread()) {
-            lock.writeLock().unlock();
-        }
-        if (lock.getReadHoldCount() > 0) {
-            lock.readLock().unlock();
-        }
-    }
-
-    void exitTypeResolutionPhase(Context cx) {
-        long res = pendingTypeResolutions.decrementAndGet();
-        assert res >= 0;
-    }
-
-    void enterTypeCheckingPhase(Context cx, SemType t1, SemType t2) {
-        assert pendingTypeResolutions.get() >= 0;
-        while (pendingTypeResolutions.get() != 0) {
-            LockSupport.parkNanos(Duration.ofNanos(10).toNanos());
-        }
-    }
-
-    void exitTypeCheckingPhase(Context cx) {
-
-    }
-
-    void registerAbruptTypeCheckEnd(Context context, Exception ex) {
-    }
-
-    // These are helper methods for diagnostics that needs access to internal state of the environment
-    List<ListAtomicType> getRecListAtomsCopy() {
-        recListLock.readLock().lock();
-        try {
-            return new ArrayList<>(this.recListAtoms);
-        } finally {
-            recListLock.readLock().unlock();
-        }
-    }
-
-    List<MappingAtomicType> getRecMappingAtomsCopy() {
-        recMapLock.readLock().lock();
-        try {
-            return new ArrayList<>(this.recMappingAtoms);
-        } finally {
-            recMapLock.readLock().unlock();
-        }
-    }
-
-    List<FunctionAtomicType> getRecFunctionAtomsCopy() {
-        recFunctionLock.readLock().lock();
-        try {
-            return new ArrayList<>(this.recFunctionAtoms);
-        } finally {
-            recFunctionLock.readLock().unlock();
-        }
-    }
 }
