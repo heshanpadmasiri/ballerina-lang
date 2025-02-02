@@ -5,13 +5,12 @@ import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.internal.types.semtype.MutableSemType;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Formatter;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class TypeCheckLogger {
 
@@ -23,23 +22,7 @@ public class TypeCheckLogger {
         String diagnosticEnable = System.getenv("BAL_LOG_TYPE_CHECK");
         if ("true".equalsIgnoreCase(diagnosticEnable)) {
             enabled = true;
-            LogConfig config = getConfig();
-            logger = Logger.getLogger(TypeCheckLogger.class.getName());
-            Formatter formater = new LogFormater();
-            config.filePath.ifPresent(filePath -> {
-                try {
-                    FileHandler fileHandler = new FileHandler(filePath);
-                    fileHandler.setFormatter(formater);
-                    logger.addHandler(fileHandler);
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to initialize typecheck logger", e);
-                }
-            });
-            if (!config.isSilent) {
-                ConsoleHandler consoleHandler = new ConsoleHandler();
-                consoleHandler.setFormatter(formater);
-                logger.addHandler(consoleHandler);
-            }
+            logger = new Logger(getConfig());
         } else {
             enabled = false;
             logger = null;
@@ -127,11 +110,80 @@ public class TypeCheckLogger {
 
     }
 
-    private static class LogFormater extends Formatter {
+    // Can't use java.util.logger since some library is modifying the global log level at runtime, breaking everything
+    private final class Logger {
 
-        @Override
-        public String format(LogRecord record) {
-            return String.format("%1$tc %2$s%n", record.getMillis(), record.getMessage());
+        private final FileWritter fileWritter;
+        private final ConsoleWritter consoleWritter;
+
+        private Logger(LogConfig config) {
+            if (config.filePath().isPresent()) {
+                fileWritter = new FileWritter(config.filePath().get());
+            } else {
+                fileWritter = null;
+            }
+            if (!config.isSilent) {
+                consoleWritter = new ConsoleWritter();
+            } else {
+                consoleWritter = null;
+            }
+        }
+
+        public void info(String message) {
+            String formattedMessage = String.format("[INFO] [%d] %s", System.nanoTime(), message);
+            writeIfAvailable(fileWritter, formattedMessage);
+            writeIfAvailable(consoleWritter, formattedMessage);
+        }
+
+        private static void writeIfAvailable(Writer writer, String message) {
+            if (writer != null) {
+                writer.write(message);
+            }
+        }
+
+        private interface Writer {
+
+            void write(String message);
+        }
+
+        private final class FileWritter implements Writer {
+
+            private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(100);
+
+            private FileWritter(String filePath) {
+                Thread thread = new Thread(() -> {
+                    // Open file
+                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+                        while (true) {
+                            try {
+                                String message = queue.take();
+                                writer.write(message);
+                                writer.newLine();
+                                writer.flush();
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                thread.setDaemon(true);
+                thread.start();
+            }
+
+            @Override
+            public void write(String message) {
+                queue.add(message);
+            }
+        }
+
+        private final class ConsoleWritter implements Writer {
+
+            public void write(String message) {
+                System.out.println(message);
+            }
         }
     }
 }
