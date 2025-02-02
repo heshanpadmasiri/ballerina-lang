@@ -19,6 +19,8 @@
 
 package io.ballerina.runtime.api.types.semtype;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * Represent a recursive type atom.
  *
@@ -29,6 +31,7 @@ public final class RecAtom implements Atom {
     private final int index;
     private static final int BDD_REC_ATOM_READONLY = 0;
     private static final RecAtom ZERO = new RecAtom(BDD_REC_ATOM_READONLY);
+    private final CountDownLatch readySignal = new CountDownLatch(1);
 
     private RecAtom(int index) {
         this.index = index;
@@ -64,5 +67,17 @@ public final class RecAtom implements Atom {
     @Override
     public int hashCode() {
         return index;
+    }
+
+    public void ready() {
+        readySignal.countDown();
+    }
+
+    public void waitUntilReady() {
+        try {
+            readySignal.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

@@ -192,30 +192,15 @@ public final class Context {
     }
 
     public ListAtomicType listAtomType(Atom atom) {
-        if (atom instanceof RecAtom recAtom) {
-            assert this.env.getRecListAtomType(recAtom) != null;
-            return this.env.getRecListAtomType(recAtom);
-        } else {
-            return (ListAtomicType) ((TypeAtom) atom).atomicType();
-        }
+        return env.listAtomType(atom);
     }
 
     public MappingAtomicType mappingAtomType(Atom atom) {
-        if (atom instanceof RecAtom recAtom) {
-            assert this.env.getRecMappingAtomType(recAtom) != null;
-            return this.env.getRecMappingAtomType(recAtom);
-        } else {
-            return (MappingAtomicType) ((TypeAtom) atom).atomicType();
-        }
+        return env.mappingAtomType(atom);
     }
 
     public FunctionAtomicType functionAtomicType(Atom atom) {
-        if (atom instanceof RecAtom recAtom) {
-            assert this.env.getRecFunctionAtomType(recAtom) != null;
-            return this.env.getRecFunctionAtomType(recAtom);
-        } else {
-            return (FunctionAtomicType) ((TypeAtom) atom).atomicType();
-        }
+        return env.functionAtomType(atom);
     }
 
     public TypeCheckCache<CacheableTypeDescriptor> getTypeCheckCache(CacheableTypeDescriptor typeDescriptor) {

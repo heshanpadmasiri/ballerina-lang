@@ -148,39 +148,19 @@ public final class Env {
     }
 
     public RecAtom recListAtom() {
-        recListLock.writeLock().lock();
-        try {
-            int result = this.recListAtoms.size();
-            // represents adding () in nballerina
-            this.recListAtoms.add(null);
-            return RecAtom.createRecAtom(result);
-        } finally {
-            recListLock.writeLock().unlock();
-        }
+        return allocateRecAtom(recListLock, recListAtoms);
     }
 
     public void setRecListAtomType(RecAtom rec, ListAtomicType atomicType) {
-        // NOTE: this is fine since we are not actually changing the recList
-        recListLock.readLock().lock();
-        try {
-            this.recListAtoms.set(rec.index(), atomicType);
-        } finally {
-            recListLock.readLock().unlock();
-        }
-
+        setRecAtomType(recListLock, recListAtoms, rec, atomicType);
     }
 
     public Atom listAtom(ListAtomicType atomicType) {
         return this.typeAtom(atomicType);
     }
 
-    public ListAtomicType getRecListAtomType(RecAtom ra) {
-        recListLock.readLock().lock();
-        try {
-            return this.recListAtoms.get(ra.index());
-        } finally {
-            recListLock.readLock().unlock();
-        }
+    private ListAtomicType getRecListAtomType(RecAtom ra) {
+        return getRecAtomType(recListLock, recListAtoms, ra);
     }
 
     public ListAtomicType listAtomType(Atom atom) {
@@ -192,66 +172,80 @@ public final class Env {
     }
 
     public RecAtom recMappingAtom() {
-        recMapLock.writeLock().lock();
-        try {
-            int result = this.recMappingAtoms.size();
-            // represents adding () in nballerina
-            this.recMappingAtoms.add(null);
-            return RecAtom.createRecAtom(result);
-        } finally {
-            recMapLock.writeLock().unlock();
-        }
+        return allocateRecAtom(recMapLock, recMappingAtoms);
     }
 
     public void setRecMappingAtomType(RecAtom rec, MappingAtomicType atomicType) {
-        recMapLock.readLock().lock();
-        try {
-            this.recMappingAtoms.set(rec.index(), atomicType);
-        } finally {
-            recMapLock.readLock().unlock();
-        }
+        setRecAtomType(recMapLock, recMappingAtoms, rec, atomicType);
     }
 
     public TypeAtom mappingAtom(MappingAtomicType atomicType) {
         return this.typeAtom(atomicType);
     }
 
-    public MappingAtomicType getRecMappingAtomType(RecAtom recAtom) {
-        recMapLock.readLock().lock();
-        try {
-            return this.recMappingAtoms.get(recAtom.index());
-        } finally {
-            recMapLock.readLock().unlock();
+    private MappingAtomicType getRecMappingAtomType(RecAtom recAtom) {
+        return getRecAtomType(recMapLock, recMappingAtoms, recAtom);
+    }
+
+    public MappingAtomicType mappingAtomType(Atom atom) {
+        if (atom instanceof RecAtom recAtom) {
+            return this.getRecMappingAtomType(recAtom);
+        } else {
+            return (MappingAtomicType) ((TypeAtom) atom).atomicType();
         }
     }
 
     public RecAtom recFunctionAtom() {
-        recFunctionLock.writeLock().lock();
-        try {
-            int result = this.recFunctionAtoms.size();
-            // represents adding () in nballerina
-            this.recFunctionAtoms.add(null);
-            return RecAtom.createRecAtom(result);
-        } finally {
-            recFunctionLock.writeLock().unlock();
-        }
+        return allocateRecAtom(recFunctionLock, recFunctionAtoms);
     }
 
     public void setRecFunctionAtomType(RecAtom rec, FunctionAtomicType atomicType) {
-        recFunctionLock.readLock().lock();
-        try {
-            this.recFunctionAtoms.set(rec.index(), atomicType);
-        } finally {
-            recFunctionLock.readLock().unlock();
+        setRecAtomType(recFunctionLock, recFunctionAtoms, rec, atomicType);
+    }
+
+    private FunctionAtomicType getRecFunctionAtomType(RecAtom recAtom) {
+        return getRecAtomType(recFunctionLock, recFunctionAtoms, recAtom);
+    }
+
+    public FunctionAtomicType functionAtomType(Atom atom) {
+        if (atom instanceof RecAtom recAtom) {
+            return this.getRecFunctionAtomType(recAtom);
+        } else {
+            return (FunctionAtomicType) ((TypeAtom) atom).atomicType();
         }
     }
 
-    public FunctionAtomicType getRecFunctionAtomType(RecAtom recAtom) {
-        recFunctionLock.readLock().lock();
+    private static <E extends AtomicType> void setRecAtomType(ReadWriteLock lock, List<E> recAtomList, RecAtom rec,
+                                                              E atomicType) {
+        // NOTE: this is fine since we are not actually changing the recList
+        lock.readLock().lock();
         try {
-            return this.recFunctionAtoms.get(recAtom.index());
+            recAtomList.set(rec.index(), atomicType);
+            rec.ready();
         } finally {
-            recFunctionLock.readLock().unlock();
+            lock.readLock().unlock();
+        }
+    }
+
+    private static <E extends AtomicType> E getRecAtomType(ReadWriteLock lock, List<E> recAtomList, RecAtom rec) {
+        lock.readLock().lock();
+        try {
+            assert recAtomList.get(rec.index()) != null;
+            return recAtomList.get(rec.index());
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    private static <E extends AtomicType> RecAtom allocateRecAtom(ReadWriteLock lock, List<E> recAtomList) {
+        lock.writeLock().lock();
+        try {
+            int result = recAtomList.size();
+            // represents adding () in nballerina
+            recAtomList.add(null);
+            return RecAtom.createRecAtom(result);
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
