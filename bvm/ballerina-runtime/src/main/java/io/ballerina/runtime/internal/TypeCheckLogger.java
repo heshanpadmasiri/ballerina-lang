@@ -9,8 +9,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class TypeCheckLogger {
 
@@ -148,7 +148,7 @@ public class TypeCheckLogger {
 
         private final class FileWritter implements Writer {
 
-            private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(100);
+            private final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
 
             private FileWritter(String filePath) {
                 Thread thread = new Thread(() -> {
