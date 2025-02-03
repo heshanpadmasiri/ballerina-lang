@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.ConcurrentLazySupplier;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.values.DecimalValue;
 
 import java.math.BigDecimal;
@@ -92,6 +93,11 @@ public final class BDecimalType extends BSemTypeWrapper<BDecimalType.BDecimalTyp
         @Override
         public BType clone() {
             return super.clone();
+        }
+
+        @Override
+        public StructuredLookupKey getStructuredLookupKey() {
+            return null;
         }
     }
 }

@@ -29,13 +29,17 @@ import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.internal.types.semtype.CellAtomicType;
 import io.ballerina.runtime.internal.types.semtype.DefinitionContainer;
 import io.ballerina.runtime.internal.types.semtype.ListDefinition;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.values.AbstractArrayValue;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 import io.ballerina.runtime.internal.values.TupleValueImpl;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -43,6 +47,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.ballerina.runtime.api.types.semtype.Builder.getNeverType;
 import static io.ballerina.runtime.internal.types.semtype.CellAtomicType.CellMutability.CELL_MUT_NONE;
@@ -70,6 +75,7 @@ public class BTupleType extends BAnnotatableType implements TupleType, TypeWithS
     private String cachedToString;
     private final DefinitionContainer<ListDefinition> defn = new DefinitionContainer<>();
     private final DefinitionContainer<ListDefinition> acceptedTypeDefn = new DefinitionContainer<>();
+    private Reference<StructuredLookupKey> lookupKey;
 
     /**
      * Create a {@code BTupleType} which represents the tuple type.
@@ -374,6 +380,22 @@ public class BTupleType extends BAnnotatableType implements TupleType, TypeWithS
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return tupleTypes.stream().filter(each -> each instanceof MayBeDependentType)
                 .anyMatch(each -> ((MayBeDependentType) each).isDependentlyTyped(visited));
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.TUPLE);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        Stream<StructuredLookupKey> children = tupleTypes.stream().map(StructuredLookupKey::from);
+        if (restType != null) {
+            children = Stream.concat(children, Stream.of(new StructuredLookupKey(StructuredLookupKey.Kind.REST,
+                    new TypeCheckCacheKey[]{StructuredLookupKey.from(restType)})));
+        }
+        structuredLookupKey.setChildren(children.toArray(StructuredLookupKey[]::new));
+        return structuredLookupKey;
     }
 
     @Override

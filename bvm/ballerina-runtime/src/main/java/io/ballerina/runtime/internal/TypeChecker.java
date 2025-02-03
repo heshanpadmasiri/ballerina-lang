@@ -639,13 +639,9 @@ public final class TypeChecker {
 
     private static boolean isSubTypeWithCache(Context cx, CacheableTypeDescriptor source,
                                               CacheableTypeDescriptor target) {
-        if (!source.shouldCache() || !target.shouldCache()) {
-            return isSubTypeInner(cx, source, target);
-        }
         Optional<Boolean> cachedResult = source.cachedTypeCheckResult(cx, target);
         logger.typeCheckCachedResult(cx, source, target, cachedResult);
         if (cachedResult.isPresent()) {
-            assert cachedResult.get() == isSubTypeInner(cx, source, target);
             return cachedResult.get();
         }
         boolean result = isSubTypeInner(cx, source, target);

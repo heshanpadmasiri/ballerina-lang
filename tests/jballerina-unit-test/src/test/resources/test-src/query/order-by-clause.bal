@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-type Student record {|
+type StudentOBC record {|
    int id;
    string? fname;
    float fee;
@@ -22,63 +22,63 @@ type Student record {|
    boolean isUndergrad;
 |};
 
-type Person record {|
+type PersonOBC record {|
     string firstName;
     string lastName;
     int age;
 |};
 
-type Customer record {|
+type CustomerOBC record {|
     readonly int id;
     readonly string name;
     int noOfItems;
 |};
 
-type CustomerProfile record {|
+type CustomerProfileOBC record {|
     string name;
     int age;
     int noOfItems;
 |};
 
-type Employee record {|
+type EmployeeOBC record {|
     string name;
-    Address address;
+    AddressOBC address;
     map<float?> tokens;
     int[] noOfShifts;
 |};
 
-type Address record {|
+type AddressOBC record {|
     int unitNo;
     string street;
 |};
 
-type PaymentInfo record {|
+type PaymentInfoOBC record {|
     int custId;
     string modeOfPayment;
 |};
 
-type CustomerTable table<Customer> key(id, name);
+type CustomerTableOBC table<CustomerOBC> key(id, name);
 
-type CustomerValue record {|
-  Customer value;
+type CustomerValueOBC record {|
+  CustomerOBC value;
 |};
 
-type PersonValue record {|
-    Person value;
+type PersonValueOBC record {|
+    PersonOBC value;
 |};
 
-function getCustomer(record {| Customer value; |}? returnedVal) returns Customer? {
-    if (returnedVal is CustomerValue) {
+function getCustomer(record {| CustomerOBC value; |}? returnedVal) returns CustomerOBC? {
+    if (returnedVal is CustomerValueOBC) {
        return returnedVal.value;
     } else {
        return ();
     }
 }
 
-function getPersonValue((record {| Person value; |}|error?)|(record {| Person value; |}?) returnedVal)
-returns PersonValue? {
+function getPersonValue((record {| PersonOBC value; |}|error?)|(record {| PersonOBC value; |}?) returnedVal)
+returns PersonValueOBC? {
     var result = returnedVal;
-    if (result is PersonValue) {
+    if (result is PersonValueOBC) {
         return result;
     } else {
         return ();
@@ -88,14 +88,14 @@ returns PersonValue? {
 function testQueryExprWithOrderByClause() returns boolean {
     boolean testPassed = true;
 
-    Student s1 = {id: 1, fname: "John", fee: 2000.56, impact: 0.4, isUndergrad: true};
-    Student s2 = {id: 2, fname: "John", fee: 2000.56, impact: 0.45, isUndergrad: true};
-    Student s3 = {id: 2, fname: (), fee: 4000.56, impact: 0.4, isUndergrad: true};
-    Student s4 = {id: 2, fname: "Kate", fee: 2000.56, impact: 0.4, isUndergrad: true};
+    StudentOBC s1 = {id: 1, fname: "John", fee: 2000.56, impact: 0.4, isUndergrad: true};
+    StudentOBC s2 = {id: 2, fname: "John", fee: 2000.56, impact: 0.45, isUndergrad: true};
+    StudentOBC s3 = {id: 2, fname: (), fee: 4000.56, impact: 0.4, isUndergrad: true};
+    StudentOBC s4 = {id: 2, fname: "Kate", fee: 2000.56, impact: 0.4, isUndergrad: true};
 
-    Student[] studentList = [s1, s2, s3, s4];
+    StudentOBC[] studentList = [s1, s2, s3, s4];
 
-    Student[] opStudentList = from var student in studentList
+    StudentOBC[] opStudentList = from var student in studentList
        order by student.fname descending, student.impact
        select student;
 
@@ -110,14 +110,14 @@ function testQueryExprWithOrderByClause() returns boolean {
 function testQueryExprWithOrderByClause2() returns boolean {
     boolean testPassed = true;
 
-    Student s1 = {id: 1, fname: "John", fee: 2000.56, impact: 0.4, isUndergrad: true};
-    Student s2 = {id: 2, fname: "John", fee: 2000.56, impact: 0.45, isUndergrad: false};
-    Student s3 = {id: 2, fname: (), fee: 4000.56, impact: 0.4, isUndergrad: false};
-    Student s4 = {id: 2, fname: "Kate", fee: 2000.56, impact: 0.4, isUndergrad: true};
+    StudentOBC s1 = {id: 1, fname: "John", fee: 2000.56, impact: 0.4, isUndergrad: true};
+    StudentOBC s2 = {id: 2, fname: "John", fee: 2000.56, impact: 0.45, isUndergrad: false};
+    StudentOBC s3 = {id: 2, fname: (), fee: 4000.56, impact: 0.4, isUndergrad: false};
+    StudentOBC s4 = {id: 2, fname: "Kate", fee: 2000.56, impact: 0.4, isUndergrad: true};
 
-    Student[] studentList = [s1, s2, s3, s4];
+    StudentOBC[] studentList = [s1, s2, s3, s4];
 
-    Student[] opStudentList = from var student in studentList
+    StudentOBC[] opStudentList = from var student in studentList
        order by student.isUndergrad ascending, student.fee
        select student;
 
@@ -129,19 +129,19 @@ function testQueryExprWithOrderByClause2() returns boolean {
     return testPassed;
 }
 
-function testQueryExprWithOrderByClause3() returns Customer[] {
-    Customer c1 = {id: 1, name: "Melina", noOfItems: 12};
-    Customer c2 = {id: 5, name: "James", noOfItems: 5};
-    Customer c3 = {id: 7, name: "James", noOfItems: 25};
-    Customer c4 = {id: 0, name: "James", noOfItems: 25};
+function testQueryExprWithOrderByClause3() returns CustomerOBC[] {
+    CustomerOBC c1 = {id: 1, name: "Melina", noOfItems: 12};
+    CustomerOBC c2 = {id: 5, name: "James", noOfItems: 5};
+    CustomerOBC c3 = {id: 7, name: "James", noOfItems: 25};
+    CustomerOBC c4 = {id: 0, name: "James", noOfItems: 25};
 
-    Person p1 = {firstName: "Amy", lastName: "Melina", age: 23};
-    Person p2 = {firstName: "Frank", lastName: "James", age: 30};
+    PersonOBC p1 = {firstName: "Amy", lastName: "Melina", age: 23};
+    PersonOBC p2 = {firstName: "Frank", lastName: "James", age: 30};
 
-    Customer[] customerList = [c1, c2, c3, c4];
-    Person[] personList = [p1, p2];
+    CustomerOBC[] customerList = [c1, c2, c3, c4];
+    PersonOBC[] personList = [p1, p2];
 
-    Customer[] opCustomerList = from var customer in customerList
+    CustomerOBC[] opCustomerList = from var customer in customerList
            from var person in personList
            let string customerName = "Johns"
            where person.lastName == "James"
@@ -158,18 +158,18 @@ function testQueryExprWithOrderByClause3() returns Customer[] {
 function testQueryExprWithOrderByClauseReturnTable() returns boolean {
     boolean testPassed = true;
 
-    Customer c1 = {id: 1, name: "Melina", noOfItems: 12};
-    Customer c2 = {id: 2, name: "James", noOfItems: 5};
-    Customer c3 = {id: 3, name: "James", noOfItems: 25};
-    Customer c4 = {id: 4, name: "James", noOfItems: 25};
+    CustomerOBC c1 = {id: 1, name: "Melina", noOfItems: 12};
+    CustomerOBC c2 = {id: 2, name: "James", noOfItems: 5};
+    CustomerOBC c3 = {id: 3, name: "James", noOfItems: 25};
+    CustomerOBC c4 = {id: 4, name: "James", noOfItems: 25};
 
-    Person p1 = {firstName: "Amy", lastName: "Melina", age: 23};
-    Person p2 = {firstName: "Frank", lastName: "James", age: 30};
+    PersonOBC p1 = {firstName: "Amy", lastName: "Melina", age: 23};
+    PersonOBC p2 = {firstName: "Frank", lastName: "James", age: 30};
 
-    Customer[] customerList = [c1, c2, c3, c4];
-    Person[] personList = [p1, p2];
+    CustomerOBC[] customerList = [c1, c2, c3, c4];
+    PersonOBC[] personList = [p1, p2];
 
-    CustomerTable|error customerTable = table key(id, name) from var customer in customerList
+    CustomerTableOBC|error customerTable = table key(id, name) from var customer in customerList
          from var person in personList
          where person.firstName == "Frank"
          order by customer.noOfItems descending, customer.id
@@ -180,9 +180,9 @@ function testQueryExprWithOrderByClauseReturnTable() returns boolean {
              noOfItems: customer.noOfItems
          };
 
-    if (customerTable is CustomerTable) {
+    if (customerTable is CustomerTableOBC) {
         var itr = customerTable.iterator();
-        Customer? customer = getCustomer(itr.next());
+        CustomerOBC? customer = getCustomer(itr.next());
         testPassed = testPassed && customer == customerList[2];
         customer = getCustomer(itr.next());
         testPassed = testPassed && customer == customerList[3];
@@ -198,19 +198,19 @@ function testQueryExprWithOrderByClauseReturnTable() returns boolean {
 function testQueryExprWithOrderByClauseReturnStream() returns boolean {
     boolean testPassed = true;
 
-    Person p1 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
-    Person p2 = {firstName: "John", lastName: "David", age: 33};
-    Person p3 = {firstName: "John", lastName: "Fonseka", age: 28};
-    Person p4 = {firstName: "John", lastName: "Fonseka", age: 30};
-    Person p5 = {firstName: "John", lastName: "Fonseka", age: 20};
+    PersonOBC p1 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
+    PersonOBC p2 = {firstName: "John", lastName: "David", age: 33};
+    PersonOBC p3 = {firstName: "John", lastName: "Fonseka", age: 28};
+    PersonOBC p4 = {firstName: "John", lastName: "Fonseka", age: 30};
+    PersonOBC p5 = {firstName: "John", lastName: "Fonseka", age: 20};
 
-    Customer c1 = {id: 1, name: "John", noOfItems: 25};
-    Customer c2 = {id: 2, name: "Frank", noOfItems: 20};
+    CustomerOBC c1 = {id: 1, name: "John", noOfItems: 25};
+    CustomerOBC c2 = {id: 2, name: "Frank", noOfItems: 20};
 
-    Person[] personList = [p1, p2, p3, p4, p5];
-    Customer[] customerList = [c1, c2];
+    PersonOBC[] personList = [p1, p2, p3, p4, p5];
+    CustomerOBC[] customerList = [c1, c2];
 
-    stream<Person> outputPersonStream = stream from var person in personList.toStream()
+    stream<PersonOBC> outputPersonStream = stream from var person in personList.toStream()
         from var customer in customerList
         let string newLastName = "Turin"
         let string newFirstName = "Johnas"
@@ -223,7 +223,7 @@ function testQueryExprWithOrderByClauseReturnStream() returns boolean {
             age: person.age
         };
 
-    record {| Person value; |}? person = getPersonValue(outputPersonStream.next());
+    record {| PersonOBC value; |}? person = getPersonValue(outputPersonStream.next());
     testPassed = testPassed && person?.value?.firstName == "Johnas" && person?.value?.lastName == "Turin" &&
     person?.value?.age == 30;
 
@@ -245,19 +245,19 @@ function testQueryExprWithOrderByClauseReturnStream() returns boolean {
     return testPassed;
 }
 
-function testQueryExprWithOrderByClauseAndJoin() returns CustomerProfile[] {
-    Customer c1 = {id: 1, name: "Melina", noOfItems: 12};
-    Customer c2 = {id: 2, name: "James", noOfItems: 5};
-    Customer c3 = {id: 3, name: "James", noOfItems: 25};
-    Customer c4 = {id: 4, name: "James", noOfItems: 25};
+function testQueryExprWithOrderByClauseAndJoin() returns CustomerProfileOBC[] {
+    CustomerOBC c1 = {id: 1, name: "Melina", noOfItems: 12};
+    CustomerOBC c2 = {id: 2, name: "James", noOfItems: 5};
+    CustomerOBC c3 = {id: 3, name: "James", noOfItems: 25};
+    CustomerOBC c4 = {id: 4, name: "James", noOfItems: 25};
 
-    Person p1 = {firstName: "Amy", lastName: "Melina", age: 23};
-    Person p2 = {firstName: "Frank", lastName: "James", age: 30};
+    PersonOBC p1 = {firstName: "Amy", lastName: "Melina", age: 23};
+    PersonOBC p2 = {firstName: "Frank", lastName: "James", age: 30};
 
-    Customer[] customerList = [c1, c2, c3, c4];
-    Person[] personList = [p1, p2];
+    CustomerOBC[] customerList = [c1, c2, c3, c4];
+    PersonOBC[] personList = [p1, p2];
 
-    CustomerProfile[] customerProfileList = from var customer in customerList
+    CustomerProfileOBC[] customerProfileList = from var customer in customerList
          join var person in personList
          on customer.name equals person.lastName
          order by customer.noOfItems
@@ -273,18 +273,18 @@ function testQueryExprWithOrderByClauseAndJoin() returns CustomerProfile[] {
 function testQueryExprWithOrderByClauseHavingUserDefinedOrderKeyFunction() returns boolean {
     boolean testPassed = true;
 
-    Employee e1 = {name: "Frank", address: {unitNo: 111, street: "Main Street"}, tokens: {one:1, two:2, three:3},
+    EmployeeOBC e1 = {name: "Frank", address: {unitNo: 111, street: "Main Street"}, tokens: {one:1, two:2, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e2 = {name: "James", address: {unitNo: 222, street: "Main Street"}, tokens: {one:1, two:2, three:3},
+    EmployeeOBC e2 = {name: "James", address: {unitNo: 222, street: "Main Street"}, tokens: {one:1, two:2, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e3 = {name: "James", address: {unitNo: 222, street: "Cross Street"}, tokens: {one:1, two:2, three:3},
+    EmployeeOBC e3 = {name: "James", address: {unitNo: 222, street: "Cross Street"}, tokens: {one:1, two:2, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e4 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:1, two:2, three:3},
+    EmployeeOBC e4 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:1, two:2, three:3},
     noOfShifts: [1, 2, 3]};
 
-    Employee[] empList = [e1, e2, e3, e4];
+    EmployeeOBC[] empList = [e1, e2, e3, e4];
 
-    Employee[] opEmpList = from var emp in empList
+    EmployeeOBC[] opEmpList = from var emp in empList
         order by emp.address.unitNo descending, emp.address.street.toLowerAscii()
         select emp;
 
@@ -299,20 +299,20 @@ function testQueryExprWithOrderByClauseHavingUserDefinedOrderKeyFunction() retur
 function testQueryExprWithOrderByClauseHavingUserDefinedOrderKeyFunction2() returns boolean {
     boolean testPassed = true;
 
-    Employee e1 = {name: "Frank", address: {unitNo: 111, street: "Main Street"}, tokens: {one:1, two:2, three:3},
+    EmployeeOBC e1 = {name: "Frank", address: {unitNo: 111, street: "Main Street"}, tokens: {one:1, two:2, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e2 = {name: "James", address: {unitNo: 222, street: "Main Street"}, tokens: {one:11, two:2, three:3},
+    EmployeeOBC e2 = {name: "James", address: {unitNo: 222, street: "Main Street"}, tokens: {one:11, two:2, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e3 = {name: "James", address: {unitNo: 222, street: "Cross Street"}, tokens: {one:111, two:2, three:3},
+    EmployeeOBC e3 = {name: "James", address: {unitNo: 222, street: "Cross Street"}, tokens: {one:111, two:2, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e4 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:1111, two:2, three:3},
+    EmployeeOBC e4 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:1111, two:2, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e5 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:1111, two:2, three:3},
+    EmployeeOBC e5 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:1111, two:2, three:3},
     noOfShifts: [3, 2, 3]};
 
-    Employee[] empList = [e1, e2, e3, e4, e5];
+    EmployeeOBC[] empList = [e1, e2, e3, e4, e5];
 
-    Employee[] opEmpList = from var emp in empList
+    EmployeeOBC[] opEmpList = from var emp in empList
         order by emp.name, emp.tokens["one"] descending, emp.noOfShifts[0] descending
         select emp;
 
@@ -325,19 +325,19 @@ function testQueryExprWithOrderByClauseHavingUserDefinedOrderKeyFunction2() retu
     return testPassed;
 }
 
-function testQueryExprWithOrderByClauseHavingUserDefinedOrderKeyFunction3() returns CustomerProfile[] {
-    Customer c1 = {id: 1, name: "Melina", noOfItems: 12};
-    Customer c2 = {id: 2, name: "James", noOfItems: 5};
-    Customer c3 = {id: 3, name: "James", noOfItems: 25};
-    Customer c4 = {id: 4, name: "James", noOfItems: 25};
+function testQueryExprWithOrderByClauseHavingUserDefinedOrderKeyFunction3() returns CustomerProfileOBC[] {
+    CustomerOBC c1 = {id: 1, name: "Melina", noOfItems: 12};
+    CustomerOBC c2 = {id: 2, name: "James", noOfItems: 5};
+    CustomerOBC c3 = {id: 3, name: "James", noOfItems: 25};
+    CustomerOBC c4 = {id: 4, name: "James", noOfItems: 25};
 
-    Person p1 = {firstName: "Amy", lastName: "Melina", age: 23};
-    Person p2 = {firstName: "Frank", lastName: "James", age: 30};
+    PersonOBC p1 = {firstName: "Amy", lastName: "Melina", age: 23};
+    PersonOBC p2 = {firstName: "Frank", lastName: "James", age: 30};
 
-    Customer[] customerList = [c1, c2, c3, c4];
-    Person[] personList = [p1, p2];
+    CustomerOBC[] customerList = [c1, c2, c3, c4];
+    PersonOBC[] personList = [p1, p2];
 
-    CustomerProfile[] customerProfileList = from var customer in customerList
+    CustomerProfileOBC[] customerProfileList = from var customer in customerList
          join var person in personList
          on customer.name equals person.lastName
          order by incrementCount(0), customer.noOfItems descending
@@ -353,24 +353,24 @@ function testQueryExprWithOrderByClauseHavingUserDefinedOrderKeyFunction3() retu
 function testQueryExprWithOrderByClauseHavingNaNNilValues() returns boolean {
     boolean testPassed = true;
 
-    Employee e1 = {name: "Frank", address: {unitNo: 111, street: "Main Street"}, tokens: {one:1, two:2, three:3},
+    EmployeeOBC e1 = {name: "Frank", address: {unitNo: 111, street: "Main Street"}, tokens: {one:1, two:2, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e2 = {name: "James", address: {unitNo: 222, street: "Main Street"}, tokens: {one:11, two:(), three:3},
+    EmployeeOBC e2 = {name: "James", address: {unitNo: 222, street: "Main Street"}, tokens: {one:11, two:(), three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e3 = {name: "James", address: {unitNo: 222, street: "Cross Street"}, tokens: {one:11, two:(0.0/0.0),
+    EmployeeOBC e3 = {name: "James", address: {unitNo: 222, street: "Cross Street"}, tokens: {one:11, two:(0.0/0.0),
     three:3}, noOfShifts: [1, 2, 3]};
-    Employee e4 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:11, two:4, three:3},
+    EmployeeOBC e4 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:11, two:4, three:3},
     noOfShifts: [1, 2, 3]};
-    Employee e5 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:11, two:4, three:()},
+    EmployeeOBC e5 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:11, two:4, three:()},
     noOfShifts: [1, 2, 3]};
-    Employee e6 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:11, two:4,
+    EmployeeOBC e6 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:11, two:4,
     three:(0.0/0.0)}, noOfShifts: [1, 2, 3]};
-    Employee e7 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:11, two:4, three:55},
+    EmployeeOBC e7 = {name: "Frank", address: {unitNo: 111, street: "Cross Street"}, tokens: {one:11, two:4, three:55},
     noOfShifts: [1, 2, 3]};
 
-    Employee[] empList = [e1, e2, e3, e4, e5, e6, e7];
+    EmployeeOBC[] empList = [e1, e2, e3, e4, e5, e6, e7];
 
-    Employee[] opEmpList = from var emp in empList
+    EmployeeOBC[] opEmpList = from var emp in empList
         order by emp.tokens["two"] descending, emp.tokens["three"] ascending
         select emp;
 
@@ -386,13 +386,13 @@ function testQueryExprWithOrderByClauseHavingNaNNilValues() returns boolean {
 }
 
 function testQueryExprWithOrderByClauseReturnString() returns string {
-    Person p1 = {firstName: "Amy", lastName: "Melina", age: 34};
-    Person p2 = {firstName: "Frank", lastName: "James", age: 30};
-    Person p3 = {firstName: "Melina", lastName: "Kodel", age: 72};
-    Person p4 = {firstName: "Terrence", lastName: "Lewis", age: 19};
-    Person p5 = {firstName: "Meghan", lastName: "Markle", age: 55};
+    PersonOBC p1 = {firstName: "Amy", lastName: "Melina", age: 34};
+    PersonOBC p2 = {firstName: "Frank", lastName: "James", age: 30};
+    PersonOBC p3 = {firstName: "Melina", lastName: "Kodel", age: 72};
+    PersonOBC p4 = {firstName: "Terrence", lastName: "Lewis", age: 19};
+    PersonOBC p5 = {firstName: "Meghan", lastName: "Markle", age: 55};
 
-    Person[] personList = [p1, p2, p3, p4, p5];
+    PersonOBC[] personList = [p1, p2, p3, p4, p5];
 
     string outputNameString = from var person in personList
          order by person.age descending
@@ -426,21 +426,21 @@ function testQueryExprWithOrderByClauseReturnXML() returns xml {
     return  authors;
 }
 
-function testQueryExprWithOrderByClauseAndInnerQueries() returns CustomerProfile[] {
-    Customer c1 = {id: 1, name: "Melina", noOfItems: 62};
-    Customer c2 = {id: 5, name: "James", noOfItems: 5};
-    Customer c3 = {id: 9, name: "James", noOfItems: 25};
-    Customer c4 = {id: 0, name: "James", noOfItems: 25};
-    Customer c5 = {id: 2, name: "James", noOfItems: 30};
+function testQueryExprWithOrderByClauseAndInnerQueries() returns CustomerProfileOBC[] {
+    CustomerOBC c1 = {id: 1, name: "Melina", noOfItems: 62};
+    CustomerOBC c2 = {id: 5, name: "James", noOfItems: 5};
+    CustomerOBC c3 = {id: 9, name: "James", noOfItems: 25};
+    CustomerOBC c4 = {id: 0, name: "James", noOfItems: 25};
+    CustomerOBC c5 = {id: 2, name: "James", noOfItems: 30};
 
-    Person p1 = {firstName: "Jennifer", lastName: "Melina", age: 23};
-    Person p2 = {firstName: "Frank", lastName: "James", age: 30};
-    Person p3 = {firstName: "Zeth", lastName: "James", age: 50};
+    PersonOBC p1 = {firstName: "Jennifer", lastName: "Melina", age: 23};
+    PersonOBC p2 = {firstName: "Frank", lastName: "James", age: 30};
+    PersonOBC p3 = {firstName: "Zeth", lastName: "James", age: 50};
 
-    Customer[] customerList = [c1, c2, c3, c4, c5];
-    Person[] personList = [p1, p2, p3];
+    CustomerOBC[] customerList = [c1, c2, c3, c4, c5];
+    PersonOBC[] personList = [p1, p2, p3];
 
-    CustomerProfile[] customerProfileList = from var customer in (stream from var c in customerList
+    CustomerProfileOBC[] customerProfileList = from var customer in (stream from var c in customerList
                                                                     order by c.id descending limit 4 select c)
          join var person in (from var p in personList order by p.firstName descending limit 2 select p)
          on customer.name equals person.lastName
@@ -455,32 +455,32 @@ function testQueryExprWithOrderByClauseAndInnerQueries() returns CustomerProfile
     return customerProfileList;
 }
 
-function testQueryExprWithOrderByClauseAndInnerQueries2() returns CustomerProfile[] {
-    Customer c1 = {id: 1, name: "Melina", noOfItems: 62};
-    Customer c2 = {id: 5, name: "James", noOfItems: 5};
-    Customer c3 = {id: 9, name: "James", noOfItems: 25};
-    Customer c4 = {id: 0, name: "James", noOfItems: 25};
-    Customer c5 = {id: 2, name: "James", noOfItems: 30};
-    Customer c6 = {id: 3, name: "Melina", noOfItems: 20};
+function testQueryExprWithOrderByClauseAndInnerQueries2() returns CustomerProfileOBC[] {
+    CustomerOBC c1 = {id: 1, name: "Melina", noOfItems: 62};
+    CustomerOBC c2 = {id: 5, name: "James", noOfItems: 5};
+    CustomerOBC c3 = {id: 9, name: "James", noOfItems: 25};
+    CustomerOBC c4 = {id: 0, name: "James", noOfItems: 25};
+    CustomerOBC c5 = {id: 2, name: "James", noOfItems: 30};
+    CustomerOBC c6 = {id: 3, name: "Melina", noOfItems: 20};
 
-    Person p1 = {firstName: "Jennifer", lastName: "Melina", age: 23};
-    Person p2 = {firstName: "Frank", lastName: "James", age: 30};
-    Person p3 = {firstName: "Zeth", lastName: "James", age: 50};
+    PersonOBC p1 = {firstName: "Jennifer", lastName: "Melina", age: 23};
+    PersonOBC p2 = {firstName: "Frank", lastName: "James", age: 30};
+    PersonOBC p3 = {firstName: "Zeth", lastName: "James", age: 50};
 
-    PaymentInfo i1 = {custId: 1, modeOfPayment: "cash"};
-    PaymentInfo i2 = {custId: 9, modeOfPayment: "debit card"};
-    PaymentInfo i3 = {custId: 1, modeOfPayment: "creadit card"};
-    PaymentInfo i4 = {custId: 5, modeOfPayment: "cash"};
-    PaymentInfo i5 = {custId: 9, modeOfPayment: "cash"};
-    PaymentInfo i6 = {custId: 0, modeOfPayment: "cash"};
-    PaymentInfo i7 = {custId: 2, modeOfPayment: "cash"};
-    PaymentInfo i8 = {custId: 3, modeOfPayment: "cash"};
+    PaymentInfoOBC i1 = {custId: 1, modeOfPayment: "cash"};
+    PaymentInfoOBC i2 = {custId: 9, modeOfPayment: "debit card"};
+    PaymentInfoOBC i3 = {custId: 1, modeOfPayment: "creadit card"};
+    PaymentInfoOBC i4 = {custId: 5, modeOfPayment: "cash"};
+    PaymentInfoOBC i5 = {custId: 9, modeOfPayment: "cash"};
+    PaymentInfoOBC i6 = {custId: 0, modeOfPayment: "cash"};
+    PaymentInfoOBC i7 = {custId: 2, modeOfPayment: "cash"};
+    PaymentInfoOBC i8 = {custId: 3, modeOfPayment: "cash"};
 
-    Customer[] customerList = [c1, c2, c3, c4, c5, c6];
-    Person[] personList = [p1, p2, p3];
-    PaymentInfo[] paymentList = [i1, i2, i3, i4, i5, i6, i7, i8];
+    CustomerOBC[] customerList = [c1, c2, c3, c4, c5, c6];
+    PersonOBC[] personList = [p1, p2, p3];
+    PaymentInfoOBC[] paymentList = [i1, i2, i3, i4, i5, i6, i7, i8];
 
-    CustomerProfile[] customerProfileList = from var customer in (stream from var c in customerList
+    CustomerProfileOBC[] customerProfileList = from var customer in (stream from var c in customerList
                                                                     order by c.id descending limit 4 select c)
          join var person in (from var p in personList order by p.firstName descending limit 2 select p)
          on customer.name equals person.lastName

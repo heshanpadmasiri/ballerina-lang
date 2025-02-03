@@ -27,8 +27,11 @@ import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.api.values.BTable;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.types.semtype.TableUtils;
+import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 import io.ballerina.runtime.internal.values.TableValue;
 import io.ballerina.runtime.internal.values.TableValueImpl;
@@ -50,6 +53,8 @@ public class BTableType extends BType implements TableType, TypeWithShape {
     private final boolean readonly;
     private IntersectionType immutableType;
     private IntersectionType intersectionType = null;
+    private final StructuredLookupKey lookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.TABLE,
+            new TypeCheckCacheKey[]{new UniqueLookupKey()});
 
     public BTableType(Type constraint, String[] fieldNames, boolean readonly) {
         this(constraint, readonly);
@@ -241,13 +246,17 @@ public class BTableType extends BType implements TableType, TypeWithShape {
     }
 
     @Override
-    public boolean shouldCache() {
-        // TODO: remove this once we have fixed equals
-        return false;
+    public boolean isAnonType() {
+        return true;
     }
 
     @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return constraint instanceof MayBeDependentType constraintType && constraintType.isDependentlyTyped(visited);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        return this.lookupKey;
     }
 }

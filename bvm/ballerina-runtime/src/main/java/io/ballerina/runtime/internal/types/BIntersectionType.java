@@ -29,9 +29,13 @@ import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.internal.types.semtype.ErrorUtils;
 import io.ballerina.runtime.internal.types.semtype.ObjectDefinition;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,6 +68,7 @@ public class BIntersectionType extends BType implements IntersectionType, TypeWi
 
     private String cachedToString;
     private boolean resolving;
+    private Reference<StructuredLookupKey> lookupKey;
 
     public BIntersectionType(Module pkg, Type[] constituentTypes, Type effectiveType,
                              int typeFlags, boolean readonly) {
@@ -236,6 +241,18 @@ public class BIntersectionType extends BType implements IntersectionType, TypeWi
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return constituentTypes.stream().filter(each -> each instanceof MayBeDependentType)
                 .anyMatch(type -> ((MayBeDependentType) type).isDependentlyTyped(visited));
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.INTERSECTION);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        structuredLookupKey.setChildren(constituentTypes.stream().map(StructuredLookupKey::from).toArray(
+                TypeCheckCacheKey[]::new));
+        return structuredLookupKey;
     }
 
     private SemType createSemTypeInner(Context cx, Function<Type, SemType> semTypeFunction) {

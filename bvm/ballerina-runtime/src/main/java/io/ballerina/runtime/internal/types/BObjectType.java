@@ -37,6 +37,7 @@ import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -49,6 +50,8 @@ import io.ballerina.runtime.internal.types.semtype.ListDefinition;
 import io.ballerina.runtime.internal.types.semtype.Member;
 import io.ballerina.runtime.internal.types.semtype.ObjectDefinition;
 import io.ballerina.runtime.internal.types.semtype.ObjectQualifiers;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
+import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 import io.ballerina.runtime.internal.utils.ValueUtils;
 import io.ballerina.runtime.internal.values.AbstractObjectValue;
 
@@ -88,6 +91,8 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
     private final DefinitionContainer<ObjectDefinition> defn = new DefinitionContainer<>();
     private final DefinitionContainer<ObjectDefinition> acceptedTypeDefn = new DefinitionContainer<>();
     private volatile DistinctIdSupplier distinctIdSupplier;
+    private final StructuredLookupKey lookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.OBJECT,
+            new TypeCheckCacheKey[]{new UniqueLookupKey()});
 
     /**
      * Create a {@code BObjectType} which represents the user defined struct type.
@@ -540,5 +545,11 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return fields.values().stream().map(Field::getFieldType).filter(each -> each instanceof MayBeDependentType)
                 .anyMatch(each -> ((MayBeDependentType) each).isDependentlyTyped(visited));
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        // TODO: need to think how to handle distinct, and names
+        return lookupKey;
     }
 }

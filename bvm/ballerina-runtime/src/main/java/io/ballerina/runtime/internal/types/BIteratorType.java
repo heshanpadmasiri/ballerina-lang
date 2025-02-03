@@ -20,6 +20,9 @@ package io.ballerina.runtime.internal.types;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.types.IteratorType;
 import io.ballerina.runtime.api.types.TypeTags;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
+import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 import io.ballerina.runtime.internal.values.IteratorValue;
 
 /**
@@ -28,6 +31,9 @@ import io.ballerina.runtime.internal.values.IteratorValue;
  * @since 0.995.0
  */
 public class BIteratorType extends BType implements IteratorType {
+
+    private final StructuredLookupKey lookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.ITERATOR,
+            new TypeCheckCacheKey[]{new UniqueLookupKey()});
 
     public BIteratorType(String typeName, Module pkg) {
         super(typeName, pkg, IteratorValue.class);
@@ -46,5 +52,10 @@ public class BIteratorType extends BType implements IteratorType {
     @Override
     public int getTag() {
         return TypeTags.ITERATOR_TAG;
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        return lookupKey;
     }
 }

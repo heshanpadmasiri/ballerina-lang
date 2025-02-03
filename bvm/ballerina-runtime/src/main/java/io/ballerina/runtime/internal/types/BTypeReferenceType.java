@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -140,6 +141,11 @@ public class BTypeReferenceType extends BAnnotatableType implements Intersectabl
     @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return getReferredType() instanceof MayBeDependentType refType && refType.isDependentlyTyped(visited);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        return StructuredLookupKey.from(referredType);
     }
 
     @Override

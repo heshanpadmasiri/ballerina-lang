@@ -25,8 +25,12 @@ import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.internal.types.semtype.FutureUtils;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.Set;
 
@@ -38,7 +42,7 @@ import java.util.Set;
 public class BFutureType extends BType implements FutureType {
 
     private final Type constraint;
-
+    private Reference<StructuredLookupKey> lookupKey;
     /**
      * Create a {@code {@link BFutureType}} which represents the future value.
      *
@@ -111,5 +115,16 @@ public class BFutureType extends BType implements FutureType {
     @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return constraint instanceof MayBeDependentType constraintType && constraintType.isDependentlyTyped(visited);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.FUTURE);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        structuredLookupKey.setChildren(new TypeCheckCacheKey[]{StructuredLookupKey.from(constraint)});
+        return structuredLookupKey;
     }
 }

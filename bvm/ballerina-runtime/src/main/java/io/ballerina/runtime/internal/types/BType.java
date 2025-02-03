@@ -26,10 +26,14 @@ import io.ballerina.runtime.api.types.semtype.CacheableTypeDescriptor;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.TypeCheckCache;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheFactory;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.internal.TypeCheckLogger;
 import io.ballerina.runtime.internal.TypeChecker;
 import io.ballerina.runtime.internal.types.semtype.MutableSemType;
+import io.ballerina.runtime.internal.types.semtype.NamedLookupKey;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -58,7 +62,7 @@ public abstract non-sealed class BType extends SemType
     private Type cachedReferredType = null;
     private Type cachedImpliedType = null;
     private volatile SemType cachedSemType = null;
-    private volatile TypeCheckCache<CacheableTypeDescriptor> typeCheckCache;
+    private volatile TypeCheckCache typeCheckCache;
     private final ReadWriteLock typeCacheLock = new ReentrantReadWriteLock();
 
     protected BType(String typeName, Module pkg, Class<? extends Object> valueClass) {
@@ -288,14 +292,21 @@ public abstract non-sealed class BType extends SemType
         }
     }
 
+    public boolean isAnonType() {
+        return this.pkg == null || this.typeName == null || this.typeName.isEmpty() || this.typeName.contains("$anon");
+    }
+
     @Override
-    public boolean shouldCache() {
-        return this.pkg != null && this.typeName != null && !this.typeName.contains("$anon");
+    public TypeCheckCacheKey getLookupKey() {
+        if (isAnonType()) {
+            return StructuredLookupKey.from(this);
+        }
+        return new NamedLookupKey(this.pkg, this.typeName);
     }
 
     @Override
     public final Optional<Boolean> cachedTypeCheckResult(Context cx, CacheableTypeDescriptor other) {
-        initializeCacheIfNeeded(cx);
+        initializeCacheIfNeeded();
         typeCacheLock.readLock().lock();
         try {
             return typeCheckCache.cachedTypeCheckResult(other);
@@ -304,7 +315,7 @@ public abstract non-sealed class BType extends SemType
         }
     }
 
-    private void initializeCacheIfNeeded(Context cx) {
+    private void initializeCacheIfNeeded() {
         typeCacheLock.readLock().lock();
         boolean shouldInitialize = typeCheckCache == null;
         typeCacheLock.readLock().unlock();
@@ -314,7 +325,7 @@ public abstract non-sealed class BType extends SemType
         try {
             typeCacheLock.writeLock().lock();
             if (typeCheckCache == null) {
-                typeCheckCache = cx.getTypeCheckCache(this);
+                typeCheckCache = TypeCheckCacheFactory.getTypeCheckCache(this);
             }
         } finally {
             typeCacheLock.writeLock().unlock();
@@ -343,4 +354,6 @@ public abstract non-sealed class BType extends SemType
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return false;
     }
+
+    public abstract StructuredLookupKey getStructuredLookupKey();
 }

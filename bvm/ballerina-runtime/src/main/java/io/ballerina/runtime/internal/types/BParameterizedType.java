@@ -23,7 +23,11 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Set;
 
 /**
@@ -35,6 +39,7 @@ public class BParameterizedType extends BType implements ParameterizedType {
 
     private final Type paramValueType;
     private final int paramIndex;
+    private Reference<StructuredLookupKey> lookupKey;
 
     public BParameterizedType(Type paramValueType, int paramIndex) {
         super(null, null, null);
@@ -93,5 +98,16 @@ public class BParameterizedType extends BType implements ParameterizedType {
     @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return true;
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.TUPLE);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        structuredLookupKey.setChildren(new TypeCheckCacheKey[]{StructuredLookupKey.from(paramValueType)});
+        return structuredLookupKey;
     }
 }

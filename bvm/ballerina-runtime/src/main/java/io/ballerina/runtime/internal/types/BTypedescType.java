@@ -27,10 +27,14 @@ import io.ballerina.runtime.api.types.TypedescType;
 import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.types.semtype.TypedescUtils;
 import io.ballerina.runtime.internal.values.TypedescValue;
 import io.ballerina.runtime.internal.values.TypedescValueImpl;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Set;
 
 /**
@@ -41,6 +45,7 @@ import java.util.Set;
 public class BTypedescType extends BType implements TypedescType {
 
     private final Type constraint;
+    private Reference<StructuredLookupKey> lookupKey;
 
     public BTypedescType(String typeName, Module pkg) {
         super(typeName, pkg, Object.class);
@@ -106,5 +111,16 @@ public class BTypedescType extends BType implements TypedescType {
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return constraint instanceof MayBeDependentType constraintType &&
                 constraintType.isDependentlyTyped(visited);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.TYPE_DESC);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        structuredLookupKey.setChildren(new TypeCheckCacheKey[]{StructuredLookupKey.from(constraint)});
+        return structuredLookupKey;
     }
 }

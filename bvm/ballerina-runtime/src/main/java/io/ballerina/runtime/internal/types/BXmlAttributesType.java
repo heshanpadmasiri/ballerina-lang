@@ -20,6 +20,9 @@ package io.ballerina.runtime.internal.types;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.XmlAttributesType;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
+import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 
 /**
  * {@code BXMLAttributesType} represents the type of an xml-attribute-map in ballerina.
@@ -28,6 +31,8 @@ import io.ballerina.runtime.api.types.XmlAttributesType;
  */
 public class BXmlAttributesType extends BType implements XmlAttributesType {
 
+    private final StructuredLookupKey lookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.XML_ATTRIBUTE,
+            new TypeCheckCacheKey[]{new UniqueLookupKey()});
     /**
      * Create a {@code BXMLAttributesType} represents the type an xml-attribute-map in ballerina.
      *
@@ -51,5 +56,10 @@ public class BXmlAttributesType extends BType implements XmlAttributesType {
     @Override
     public int getTag() {
         return TypeTags.XML_ATTRIBUTES_TAG;
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        return lookupKey;
     }
 }

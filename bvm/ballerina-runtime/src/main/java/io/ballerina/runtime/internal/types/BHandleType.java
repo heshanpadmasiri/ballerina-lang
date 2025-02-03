@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.ConcurrentLazySupplier;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.values.RefValue;
 
 /**
@@ -79,6 +80,11 @@ public final class BHandleType extends BSemTypeWrapper<BHandleType.BHandleTypeIm
         @Override
         public boolean isReadOnly() {
             return true;
+        }
+
+        @Override
+        public StructuredLookupKey getStructuredLookupKey() {
+            return null;
         }
 
     }

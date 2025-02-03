@@ -28,6 +28,8 @@ import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.types.semtype.XmlUtils;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 import io.ballerina.runtime.internal.values.XmlComment;
@@ -37,6 +39,8 @@ import io.ballerina.runtime.internal.values.XmlSequence;
 import io.ballerina.runtime.internal.values.XmlText;
 import io.ballerina.runtime.internal.values.XmlValue;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Optional;
 
 /**
@@ -52,6 +56,7 @@ public class BXmlType extends BType implements XmlType, TypeWithShape {
     private final boolean readonly;
     private IntersectionType immutableType;
     private IntersectionType intersectionType = null;
+    private Reference<StructuredLookupKey> lookupKey;
 
     /**
      * Create a {@code BXMLType} which represents the boolean type.
@@ -170,6 +175,21 @@ public class BXmlType extends BType implements XmlType, TypeWithShape {
             semType = XmlUtils.xmlSequence(contraintSemtype);
         }
         return isReadOnly() ? Core.intersect(Builder.getReadonlyType(), semType) : semType;
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.TUPLE);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        if (constraint != null) {
+            structuredLookupKey.setChildren(new TypeCheckCacheKey[]{StructuredLookupKey.from(constraint)});
+        } else {
+            structuredLookupKey.setChildren(new TypeCheckCacheKey[]{StructuredLookupKey.TOP});
+        }
+        return structuredLookupKey;
     }
 
     private SemType pickTopType() {

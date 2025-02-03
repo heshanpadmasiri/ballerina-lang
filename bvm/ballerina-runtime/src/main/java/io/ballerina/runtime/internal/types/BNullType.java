@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.ConcurrentLazySupplier;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 
 import java.util.function.Supplier;
 
@@ -81,6 +82,11 @@ public sealed class BNullType extends BSemTypeWrapper<BNullType.BNullTypeImpl> i
         @Override
         public boolean isReadOnly() {
             return true;
+        }
+
+        @Override
+        public StructuredLookupKey getStructuredLookupKey() {
+            return null;
         }
     }
 }

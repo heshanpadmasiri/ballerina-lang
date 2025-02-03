@@ -28,8 +28,11 @@ import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.internal.types.semtype.ErrorUtils;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
+import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 import io.ballerina.runtime.internal.values.ErrorValue;
 import io.ballerina.runtime.internal.values.MapValueImpl;
 
@@ -47,6 +50,8 @@ public class BErrorType extends BAnnotatableType implements ErrorType, TypeWithS
     public BTypeIdSet typeIdSet;
     private IntersectionType intersectionType = null;
     private volatile DistinctIdSupplier distinctIdSupplier;
+    private final StructuredLookupKey lookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.ERROR,
+            new TypeCheckCacheKey[]{new UniqueLookupKey()});
 
     public BErrorType(String typeName, Module pkg, Type detailType) {
         super(typeName, pkg, ErrorValue.class);
@@ -153,6 +158,12 @@ public class BErrorType extends BAnnotatableType implements ErrorType, TypeWithS
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return detailType instanceof MayBeDependentType mayBeDependentType &&
                 mayBeDependentType.isDependentlyTyped(visited);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        // TODO: need to think how to handle distinct types
+        return lookupKey;
     }
 
     private boolean isTopType() {

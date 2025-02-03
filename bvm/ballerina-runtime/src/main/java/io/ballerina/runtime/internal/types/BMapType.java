@@ -29,13 +29,17 @@ import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.internal.types.semtype.CellAtomicType;
 import io.ballerina.runtime.internal.types.semtype.DefinitionContainer;
 import io.ballerina.runtime.internal.types.semtype.MappingDefinition;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.values.MapValueImpl;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +67,7 @@ public class BMapType extends BType implements MapType, TypeWithShape, Cloneable
     private IntersectionType intersectionType = null;
     private final DefinitionContainer<MappingDefinition> defn = new DefinitionContainer<>();
     private final DefinitionContainer<MappingDefinition> acceptedTypeDefn = new DefinitionContainer<>();
+    private Reference<StructuredLookupKey> lookupKey;
 
     public BMapType(Type constraint) {
         this(constraint, false);
@@ -284,5 +289,16 @@ public class BMapType extends BType implements MapType, TypeWithShape, Cloneable
     @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return constraint instanceof MayBeDependentType constraintType && constraintType.isDependentlyTyped(visited);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.MAP);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        structuredLookupKey.setChildren(new TypeCheckCacheKey[]{StructuredLookupKey.from(constraint)});
+        return structuredLookupKey;
     }
 }

@@ -35,6 +35,7 @@ import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BFunctionPointer;
 import io.ballerina.runtime.api.values.BMap;
@@ -43,6 +44,8 @@ import io.ballerina.runtime.internal.scheduling.Scheduler;
 import io.ballerina.runtime.internal.types.semtype.CellAtomicType.CellMutability;
 import io.ballerina.runtime.internal.types.semtype.DefinitionContainer;
 import io.ballerina.runtime.internal.types.semtype.MappingDefinition;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
+import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 import io.ballerina.runtime.internal.values.MapValue;
 import io.ballerina.runtime.internal.values.MapValueImpl;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
@@ -77,6 +80,8 @@ public class BRecordType extends BStructureType implements RecordType, TypeWithS
     private final DefinitionContainer<MappingDefinition> defn = new DefinitionContainer<>();
     private final DefinitionContainer<MappingDefinition> acceptedTypeDefn = new DefinitionContainer<>();
     private byte couldInhereTypeBeDifferentCache = 0;
+    private final StructuredLookupKey lookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.FUNCTION,
+            new TypeCheckCacheKey[]{new UniqueLookupKey()});
 
     private final Map<String, BFunctionPointer> defaultValues = new LinkedHashMap<>();
 
@@ -291,6 +296,12 @@ public class BRecordType extends BStructureType implements RecordType, TypeWithS
     public boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return fields.values().stream().map(Field::getFieldType).filter(each -> each instanceof MayBeDependentType)
                 .anyMatch(each -> ((MayBeDependentType) each).isDependentlyTyped(visited));
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        // TODO: we need to think about how we are going to handle names
+        return lookupKey;
     }
 
     @Override

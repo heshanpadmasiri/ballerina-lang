@@ -26,7 +26,10 @@ import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.internal.TypeChecker;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
+import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 import io.ballerina.runtime.internal.values.RefValue;
 
 import java.util.Iterator;
@@ -47,6 +50,8 @@ public class BFiniteType extends BType implements FiniteType {
     public Set<Object> valueSpace;
     private int typeFlags;
     private String originalName;
+    private final StructuredLookupKey lookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.FINITE,
+            new TypeCheckCacheKey[]{new UniqueLookupKey()});
 
     public BFiniteType(String typeName) {
         this(typeName, new LinkedHashSet<>(), 0);
@@ -214,5 +219,10 @@ public class BFiniteType extends BType implements FiniteType {
         return this.valueSpace.stream().map(each -> ShapeAnalyzer.inherentTypeOf(cx, each))
                 .map(Optional::orElseThrow)
                 .reduce(Builder.getNeverType(), Core::union);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        return lookupKey;
     }
 }

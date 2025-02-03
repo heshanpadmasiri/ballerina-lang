@@ -28,10 +28,14 @@ import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.internal.types.semtype.DefinitionContainer;
 import io.ballerina.runtime.internal.types.semtype.StreamDefinition;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.values.StreamValue;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.Set;
 
@@ -45,6 +49,7 @@ public class BStreamType extends BType implements StreamType {
     private final Type constraint;
     private final Type completionType;
     private final DefinitionContainer<StreamDefinition> definition = new DefinitionContainer<>();
+    private Reference<StructuredLookupKey> lookupKey;
 
     /**
      * Creates a {@link BStreamType} which represents the stream type.
@@ -167,5 +172,17 @@ public class BStreamType extends BType implements StreamType {
                 constrainedType.isDependentlyTyped(visited)) ||
                 (completionType instanceof MayBeDependentType completionType &&
                         completionType.isDependentlyTyped(visited));
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.STREAM);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        structuredLookupKey.setChildren(new TypeCheckCacheKey[]{StructuredLookupKey.from(constraint),
+                StructuredLookupKey.from(completionType)});
+        return structuredLookupKey;
     }
 }

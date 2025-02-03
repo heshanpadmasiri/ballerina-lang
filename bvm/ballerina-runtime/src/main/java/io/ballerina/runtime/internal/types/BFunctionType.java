@@ -29,11 +29,14 @@ import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.internal.types.semtype.CellAtomicType;
 import io.ballerina.runtime.internal.types.semtype.DefinitionContainer;
 import io.ballerina.runtime.internal.types.semtype.FunctionDefinition;
 import io.ballerina.runtime.internal.types.semtype.FunctionQualifiers;
 import io.ballerina.runtime.internal.types.semtype.ListDefinition;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
+import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -50,6 +53,8 @@ public class BFunctionType extends BAnnotatableType implements FunctionType {
     public Type retType;
     public long flags;
     public Parameter[] parameters;
+    private final StructuredLookupKey lookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.FUNCTION,
+            new TypeCheckCacheKey[]{new UniqueLookupKey()});
 
     private final DefinitionContainer<FunctionDefinition> defn = new DefinitionContainer<>();
 
@@ -284,6 +289,12 @@ public class BFunctionType extends BAnnotatableType implements FunctionType {
         return (restType instanceof BType rest && rest.isDependentlyTyped(visited)) ||
                 (retType instanceof BType ret && ret.isDependentlyTyped(visited)) ||
                 isDependentlyTypeParameters(visited);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        // TODO: need to think how to handle dependently typed functions
+        return lookupKey;
     }
 
     private boolean isDependentlyTypeParameters(Set<MayBeDependentType> visited) {

@@ -33,8 +33,11 @@ import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.internal.TypeChecker;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -65,6 +68,7 @@ public class BUnionType extends BType implements UnionType, SelectivelyImmutable
     private String cachedToString;
     private boolean resolving;
     public boolean resolvingReadonly;
+    private Reference<StructuredLookupKey> lookupKey;
 
     private static final String INT_CLONEABLE = "__Cloneable";
     private static final String CLONEABLE = "Cloneable";
@@ -562,6 +566,18 @@ public class BUnionType extends BType implements UnionType, SelectivelyImmutable
         return memberTypes.stream()
                 .filter(each -> each instanceof MayBeDependentType)
                 .anyMatch(type -> ((MayBeDependentType) type).isDependentlyTyped(visited));
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.UNION);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        structuredLookupKey.setChildren(
+                memberTypes.stream().map(StructuredLookupKey::from).toArray(StructuredLookupKey[]::new));
+        return structuredLookupKey;
     }
 
     @Override

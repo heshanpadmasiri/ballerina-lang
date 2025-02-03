@@ -26,15 +26,20 @@ import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.ShapeAnalyzer;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.internal.TypeChecker;
 import io.ballerina.runtime.internal.types.semtype.CellAtomicType;
 import io.ballerina.runtime.internal.types.semtype.DefinitionContainer;
 import io.ballerina.runtime.internal.types.semtype.ListDefinition;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.values.AbstractArrayValue;
 import io.ballerina.runtime.internal.values.ArrayValue;
 import io.ballerina.runtime.internal.values.ArrayValueImpl;
 import io.ballerina.runtime.internal.values.ReadOnlyUtils;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -69,6 +74,7 @@ public class BArrayType extends BType implements ArrayType, TypeWithShape {
     private int typeFlags;
     private final DefinitionContainer<ListDefinition> defn = new DefinitionContainer<>();
     private final DefinitionContainer<ListDefinition> acceptedTypeDefn = new DefinitionContainer<>();
+    private Reference<StructuredLookupKey> lookupKey;
     public BArrayType(Type elementType) {
         this(elementType, false);
     }
@@ -261,6 +267,27 @@ public class BArrayType extends BType implements ArrayType, TypeWithShape {
     @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return elementType instanceof MayBeDependentType eType && eType.isDependentlyTyped(visited);
+    }
+
+    @Override
+    public StructuredLookupKey getStructuredLookupKey() {
+        if (lookupKey != null && lookupKey.get() != null) {
+            return lookupKey.get();
+        }
+        StructuredLookupKey structuredLookupKey = new StructuredLookupKey(StructuredLookupKey.Kind.ARRAY);
+        lookupKey = new WeakReference<>(structuredLookupKey);
+        if (size == -1) {
+            structuredLookupKey.setChildren(new TypeCheckCacheKey[]{
+                    new StructuredLookupKey(StructuredLookupKey.Kind.REST,
+                            new TypeCheckCacheKey[]{StructuredLookupKey.from(elementType)})});
+        } else {
+            assert size >= 0;
+            var elementKey = StructuredLookupKey.from(elementType);
+            // TODO: think of a better way to represent this since size could be very large
+            structuredLookupKey.setChildren(
+                    Collections.nCopies(size, elementKey).toArray(TypeCheckCacheKey[]::new));
+        }
+        return structuredLookupKey;
     }
 
     @Override

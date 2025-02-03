@@ -29,6 +29,7 @@ import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.ConcurrentLazySupplier;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.SemType;
+import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.values.RefValue;
 
 import java.util.Optional;
@@ -119,6 +120,11 @@ public final class BAnyType extends BSemTypeWrapper<BAnyType.BAnyTypeImpl> imple
         @Override
         public void setImmutableType(IntersectionType immutableType) {
             this.immutableType = immutableType;
+        }
+
+        @Override
+        public StructuredLookupKey getStructuredLookupKey() {
+            return null;
         }
 
         @Override
