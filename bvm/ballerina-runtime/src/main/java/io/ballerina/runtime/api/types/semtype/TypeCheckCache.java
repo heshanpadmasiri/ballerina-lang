@@ -4,7 +4,7 @@ import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generalized implementation of type check result cache. It is okay to access this from multiple threads but makes no
@@ -15,10 +15,7 @@ import java.util.WeakHashMap;
  */
 public class TypeCheckCache {
 
-    // Not synchronizing this should be fine since race conditions don't lead to inconsistent results. (i.e. results
-    // of doing multiple type checks are agnostic to the order of execution). Data races shouldn't lead to tearing in
-    // 64-bit JVMs.
-    private final Map<TypeCheckCacheKey, Boolean> cachedResults = new WeakHashMap<>();
+    private final Map<TypeCheckCacheKey, Boolean> cachedResults = new ConcurrentHashMap<>();
     private final TypeCheckCacheKey ownerKey;
 
     public TypeCheckCache(CacheableTypeDescriptor owner) {

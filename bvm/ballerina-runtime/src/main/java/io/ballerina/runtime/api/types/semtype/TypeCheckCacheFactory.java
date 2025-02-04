@@ -3,15 +3,11 @@ package io.ballerina.runtime.api.types.semtype;
 import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
 
 import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class TypeCheckCacheFactory {
 
-    private static final ReadWriteLock lock = new ReentrantReadWriteLock();
-
-    private static final Map<TypeCheckCacheKey, TypeCheckCache> cache = new WeakHashMap<>();
+    private static final Map<TypeCheckCacheKey, TypeCheckCache> cache = new ConcurrentHashMap<>(100);
 
     private TypeCheckCacheFactory() {
     }
@@ -21,25 +17,12 @@ public final class TypeCheckCacheFactory {
         if (key instanceof UniqueLookupKey) {
             return new TypeCheckCache(owner);
         }
-        lock.readLock().lock();
-        try {
-            if (cache.containsKey(key)) {
-                return cache.get(key);
-            }
-        } finally {
-            lock.readLock().unlock();
+        if (cache.containsKey(key)) {
+            return cache.get(key);
         }
-        lock.writeLock().lock();
-        try {
-            if (cache.containsKey(key)) {
-                return cache.get(key);
-            }
-            var typeCheckCache = new TypeCheckCache(owner);
-            cache.put(key, typeCheckCache);
-            return typeCheckCache;
-        } finally {
-            lock.writeLock().unlock();
-        }
+        var typeCheckCache = new TypeCheckCache(owner);
+        cache.put(key, typeCheckCache);
+        return typeCheckCache;
     }
 
 }
