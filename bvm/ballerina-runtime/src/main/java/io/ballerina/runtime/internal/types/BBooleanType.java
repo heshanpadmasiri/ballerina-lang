@@ -92,5 +92,10 @@ public final class BBooleanType extends BSemTypeWrapper<BBooleanType.BBooleanTyp
         public StructuredLookupKey getStructuredLookupKey() {
             return null;
         }
+
+        @Override
+        public SemType basicType() {
+            return Builder.getBooleanType();
+        }
     }
 }

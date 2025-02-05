@@ -113,6 +113,11 @@ public class BFutureType extends BType implements FutureType {
     }
 
     @Override
+    public SemType basicType() {
+        return Builder.getFutureType();
+    }
+
+    @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return constraint instanceof MayBeDependentType constraintType && constraintType.isDependentlyTyped(visited);
     }

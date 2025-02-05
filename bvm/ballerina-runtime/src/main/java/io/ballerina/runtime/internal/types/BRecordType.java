@@ -261,6 +261,11 @@ public class BRecordType extends BStructureType implements RecordType, TypeWithS
         return createSemTypeInner(md, env, mut(), (type) -> SemType.tryInto(cx, type));
     }
 
+    @Override
+    public SemType basicType() {
+        return Builder.getMappingType();
+    }
+
     private CellMutability mut() {
         return isReadOnly() ? CELL_MUT_NONE : CellMutability.CELL_MUT_LIMITED;
     }

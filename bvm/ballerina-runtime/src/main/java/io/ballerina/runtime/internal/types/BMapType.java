@@ -207,6 +207,11 @@ public class BMapType extends BType implements MapType, TypeWithShape, Cloneable
     }
 
     @Override
+    public SemType basicType() {
+        return Builder.getMappingType();
+    }
+
+    @Override
     public void resetSemType() {
         defn.clear();
         super.resetSemType();

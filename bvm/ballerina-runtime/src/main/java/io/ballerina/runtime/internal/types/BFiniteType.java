@@ -222,6 +222,12 @@ public class BFiniteType extends BType implements FiniteType {
     }
 
     @Override
+    public SemType basicType() {
+        return this.valueSpace.stream().map(TypeChecker::getType).map(SemType::basicType).reduce(Builder.getNeverType(),
+                Core::union);
+    }
+
+    @Override
     public StructuredLookupKey getStructuredLookupKey() {
         return lookupKey;
     }

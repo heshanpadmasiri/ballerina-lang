@@ -65,6 +65,13 @@ public sealed class SemType extends BasicTypeBitSet
         return (SemType) type;
     }
 
+    public static SemType basicType(Type type) {
+        if (type instanceof MutableSemType mutableSemType) {
+            return mutableSemType.basicType();
+        }
+        return (SemType) type;
+    }
+
     @Override
     public String toString() {
         return SemTypeHelper.stringRepr(this);

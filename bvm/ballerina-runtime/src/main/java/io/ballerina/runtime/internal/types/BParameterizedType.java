@@ -96,6 +96,11 @@ public class BParameterizedType extends BType implements ParameterizedType {
     }
 
     @Override
+    public SemType basicType() {
+        return SemType.basicType(this.paramValueType);
+    }
+
+    @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return true;
     }

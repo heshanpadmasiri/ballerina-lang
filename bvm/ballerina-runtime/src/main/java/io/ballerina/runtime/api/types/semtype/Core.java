@@ -303,6 +303,10 @@ public final class Core {
         return res;
     }
 
+    public static SemType widenToBasicType(SemType t) {
+        return SemType.from(t.all() | t.some());
+    }
+
     public static boolean isSubtypeSimple(SemType t1, SemType t2) {
         assert t1 != null && t2 != null;
         int bits = t1.all() | t1.some();

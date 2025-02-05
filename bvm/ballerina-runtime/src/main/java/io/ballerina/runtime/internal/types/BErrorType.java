@@ -144,6 +144,11 @@ public class BErrorType extends BAnnotatableType implements ErrorType, TypeWithS
         return distinctIdSupplier.get().stream().map(ErrorUtils::errorDistinct).reduce(err, Core::intersect);
     }
 
+    @Override
+    public SemType basicType() {
+        return Builder.getErrorType();
+    }
+
     private void initializeDistinctIdSupplierIfNeeded(Context cx) {
         if (distinctIdSupplier == null) {
             synchronized (this) {

@@ -238,6 +238,11 @@ public class BIntersectionType extends BType implements IntersectionType, TypeWi
     }
 
     @Override
+    public SemType basicType() {
+        return constituentTypes.stream().map(SemType::basicType).reduce(Core::intersect).orElseThrow();
+    }
+
+    @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return constituentTypes.stream().filter(each -> each instanceof MayBeDependentType)
                 .anyMatch(type -> ((MayBeDependentType) type).isDependentlyTyped(visited));

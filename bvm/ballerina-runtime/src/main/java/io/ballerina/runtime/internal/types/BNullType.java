@@ -88,5 +88,10 @@ public sealed class BNullType extends BSemTypeWrapper<BNullType.BNullTypeImpl> i
         public StructuredLookupKey getStructuredLookupKey() {
             return null;
         }
+
+        @Override
+        public SemType basicType() {
+            return Builder.getNilType();
+        }
     }
 }

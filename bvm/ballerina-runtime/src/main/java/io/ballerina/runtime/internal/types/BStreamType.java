@@ -167,6 +167,11 @@ public class BStreamType extends BType implements StreamType {
     }
 
     @Override
+    public SemType basicType() {
+        return Builder.getStreamType();
+    }
+
+    @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return (constraint instanceof MayBeDependentType constrainedType &&
                 constrainedType.isDependentlyTyped(visited)) ||

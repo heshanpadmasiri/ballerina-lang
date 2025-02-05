@@ -181,6 +181,11 @@ public class BTableType extends BType implements TableType, TypeWithShape {
         return createSemTypeWithConstraint(cx, tryInto(cx, constraint));
     }
 
+    @Override
+    public SemType basicType() {
+        return Builder.getTableType();
+    }
+
     private SemType createSemTypeWithConstraint(Context cx, SemType constraintType) {
         SemType semType;
         if (fieldNames.length > 0) {

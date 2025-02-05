@@ -132,6 +132,11 @@ public final class BIntegerType extends BSemTypeWrapper<BIntegerType.BIntegerTyp
         public StructuredLookupKey getStructuredLookupKey() {
             return null;
         }
+
+        @Override
+        public SemType basicType() {
+            return Builder.getIntType();
+        }
     }
 
     private static final class IntegerTypeCache {

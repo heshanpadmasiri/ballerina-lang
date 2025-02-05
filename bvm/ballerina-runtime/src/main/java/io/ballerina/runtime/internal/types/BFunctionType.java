@@ -258,6 +258,11 @@ public class BFunctionType extends BAnnotatableType implements FunctionType {
         return fd.define(env, paramType, returnType, getQualifiers());
     }
 
+    @Override
+    public SemType basicType() {
+        return Builder.getFunctionType();
+    }
+
     private SemType getTopType(Context cx) {
         if (SymbolFlags.isFlagOn(flags, SymbolFlags.ISOLATED)) {
             return createIsolatedTop(cx.env);

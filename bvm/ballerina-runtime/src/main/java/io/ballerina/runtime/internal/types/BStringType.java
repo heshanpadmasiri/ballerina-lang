@@ -113,5 +113,10 @@ public final class BStringType extends BSemTypeWrapper<BStringType.BStringTypeIm
         public StructuredLookupKey getStructuredLookupKey() {
             return null;
         }
+
+        @Override
+        public SemType basicType() {
+            return Builder.getStringType();
+        }
     }
 }

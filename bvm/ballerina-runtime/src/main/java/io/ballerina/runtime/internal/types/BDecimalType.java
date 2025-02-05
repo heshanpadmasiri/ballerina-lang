@@ -99,5 +99,10 @@ public final class BDecimalType extends BSemTypeWrapper<BDecimalType.BDecimalTyp
         public StructuredLookupKey getStructuredLookupKey() {
             return null;
         }
+
+        @Override
+        public SemType basicType() {
+            return Builder.getDecimalType();
+        }
     }
 }

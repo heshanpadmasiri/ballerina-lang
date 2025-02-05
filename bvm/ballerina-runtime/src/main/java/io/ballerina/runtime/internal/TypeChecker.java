@@ -101,6 +101,7 @@ import static io.ballerina.runtime.api.types.PredefinedTypes.TYPE_INT_UNSIGNED_1
 import static io.ballerina.runtime.api.types.PredefinedTypes.TYPE_INT_UNSIGNED_32;
 import static io.ballerina.runtime.api.types.PredefinedTypes.TYPE_INT_UNSIGNED_8;
 import static io.ballerina.runtime.api.types.PredefinedTypes.TYPE_NULL;
+import static io.ballerina.runtime.api.types.semtype.Core.widenToBasicType;
 import static io.ballerina.runtime.api.utils.TypeUtils.getImpliedType;
 import static io.ballerina.runtime.internal.utils.CloneUtils.getErrorMessage;
 
@@ -628,10 +629,23 @@ public final class TypeChecker {
                 target instanceof CacheableTypeDescriptor targetCacheableType) {
             return isSubTypeWithCache(cx, sourceCacheableType, targetCacheableType);
         }
+        // Try avoiding type check using basic type
         return isSubTypeInner(cx, source, target);
     }
 
     private static boolean isSubTypeInner(Context cx, Type source, Type target) {
+        SemType sourceBasicType = widenToBasicType(SemType.basicType(source));
+        SemType targetBasicType = widenToBasicType(SemType.basicType(target));
+        if (Core.isSubtypeSimple(sourceBasicType, targetBasicType)) {
+            SemType sourceSemType = SemType.tryInto(cx, source);
+            SemType targetSemType = SemType.tryInto(cx, target);
+            return Core.isSubType(cx, sourceSemType, targetSemType);
+        }
+        assert !test(cx, source, target);
+        return false;
+    }
+
+    private static boolean test(Context cx, Type source, Type target) {
         SemType sourceSemType = SemType.tryInto(cx, source);
         SemType targetSemType = SemType.tryInto(cx, target);
         return Core.isSubType(cx, sourceSemType, targetSemType);

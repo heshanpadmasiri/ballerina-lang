@@ -178,6 +178,11 @@ public class BXmlType extends BType implements XmlType, TypeWithShape {
     }
 
     @Override
+    public SemType basicType() {
+        return Builder.getXmlType();
+    }
+
+    @Override
     public StructuredLookupKey getStructuredLookupKey() {
         if (lookupKey != null && lookupKey.get() != null) {
             return lookupKey.get();

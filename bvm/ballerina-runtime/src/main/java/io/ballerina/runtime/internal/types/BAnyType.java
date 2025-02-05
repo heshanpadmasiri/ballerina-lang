@@ -137,6 +137,10 @@ public final class BAnyType extends BSemTypeWrapper<BAnyType.BAnyTypeImpl> imple
             this.intersectionType = intersectionType;
         }
 
+        @Override
+        public SemType basicType() {
+            return Builder.getAnyType();
+        }
     }
 
     private static SemType pickSemType(boolean readonly) {

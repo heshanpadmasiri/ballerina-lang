@@ -20,6 +20,8 @@ package io.ballerina.runtime.internal.types;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.XmlAttributesType;
+import io.ballerina.runtime.api.types.semtype.Builder;
+import io.ballerina.runtime.api.types.semtype.SemType;
 import io.ballerina.runtime.api.types.semtype.TypeCheckCacheKey;
 import io.ballerina.runtime.internal.types.semtype.StructuredLookupKey;
 import io.ballerina.runtime.internal.types.semtype.UniqueLookupKey;
@@ -61,5 +63,10 @@ public class BXmlAttributesType extends BType implements XmlAttributesType {
     @Override
     public StructuredLookupKey getStructuredLookupKey() {
         return lookupKey;
+    }
+
+    @Override
+    public SemType basicType() {
+        return Builder.getXmlType();
     }
 }

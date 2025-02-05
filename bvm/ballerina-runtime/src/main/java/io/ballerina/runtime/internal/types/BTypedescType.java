@@ -108,6 +108,11 @@ public class BTypedescType extends BType implements TypedescType {
     }
 
     @Override
+    public SemType basicType() {
+        return Builder.getTypeDescType();
+    }
+
+    @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return constraint instanceof MayBeDependentType constraintType &&
                 constraintType.isDependentlyTyped(visited);

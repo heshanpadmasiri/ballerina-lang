@@ -139,6 +139,11 @@ public class BTypeReferenceType extends BAnnotatableType implements Intersectabl
     }
 
     @Override
+    public SemType basicType() {
+        return basicType(getReferredType());
+    }
+
+    @Override
     protected boolean isDependentlyTypedInner(Set<MayBeDependentType> visited) {
         return getReferredType() instanceof MayBeDependentType refType && refType.isDependentlyTyped(visited);
     }

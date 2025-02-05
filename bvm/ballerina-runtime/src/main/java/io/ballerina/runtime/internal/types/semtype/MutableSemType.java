@@ -32,6 +32,8 @@ public sealed interface MutableSemType permits BType {
 
     SemType createSemType(Context cx);
 
+    SemType basicType();
+
     void resetSemType();
 
     void updateInnerSemTypeIfNeeded(Context cx);

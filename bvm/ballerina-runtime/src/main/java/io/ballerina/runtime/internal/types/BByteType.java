@@ -97,5 +97,10 @@ public final class BByteType extends BSemTypeWrapper<BByteType.BByteTypeImpl> im
         public StructuredLookupKey getStructuredLookupKey() {
             return null;
         }
+
+        @Override
+        public SemType basicType() {
+            return Builder.getIntType();
+        }
     }
 }

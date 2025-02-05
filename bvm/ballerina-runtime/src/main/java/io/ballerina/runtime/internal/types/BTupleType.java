@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.TupleType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeTags;
+import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Core;
 import io.ballerina.runtime.api.types.semtype.Env;
@@ -348,6 +349,11 @@ public class BTupleType extends BAnnotatableType implements TupleType, TypeWithS
         }
         ListDefinition ld = result.definition();
         return createSemTypeInner(cx, ld, SemType::tryInto, mut());
+    }
+
+    @Override
+    public SemType basicType() {
+        return Builder.getListType();
     }
 
     private CellAtomicType.CellMutability mut() {

@@ -307,6 +307,11 @@ public class BObjectType extends BStructureType implements ObjectType, TypeWithS
         return distinctIdSupplier.get().stream().map(ObjectDefinition::distinct).reduce(innerType, Core::intersect);
     }
 
+    @Override
+    public SemType basicType() {
+        return Builder.getObjectType();
+    }
+
     private static boolean skipField(Set<String> seen, String name) {
         if (name.startsWith("$")) {
             return true;

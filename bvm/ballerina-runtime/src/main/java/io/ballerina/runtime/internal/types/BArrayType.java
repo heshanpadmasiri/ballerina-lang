@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeTags;
+import io.ballerina.runtime.api.types.semtype.Builder;
 import io.ballerina.runtime.api.types.semtype.Context;
 import io.ballerina.runtime.api.types.semtype.Env;
 import io.ballerina.runtime.api.types.semtype.SemType;
@@ -246,6 +247,11 @@ public class BArrayType extends BType implements ArrayType, TypeWithShape {
         CellAtomicType.CellMutability mut = isReadOnly() ? CellAtomicType.CellMutability.CELL_MUT_NONE :
                 CellAtomicType.CellMutability.CELL_MUT_LIMITED;
         return getSemTypePart(env, ld, size, tryInto(cx, getElementType()), mut);
+    }
+
+    @Override
+    public SemType basicType() {
+        return Builder.getListType();
     }
 
     private SemType getSemTypePart(Env env, ListDefinition defn, int size, SemType elementType,

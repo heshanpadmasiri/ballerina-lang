@@ -87,5 +87,10 @@ public final class BFloatType extends BSemTypeWrapper<BFloatType.BFloatTypeImpl>
         public StructuredLookupKey getStructuredLookupKey() {
             return null;
         }
+
+        @Override
+        public SemType basicType() {
+            return Builder.getFloatType();
+        }
     }
 }
