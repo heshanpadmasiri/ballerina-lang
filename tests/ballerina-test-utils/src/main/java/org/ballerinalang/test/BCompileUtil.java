@@ -32,6 +32,8 @@ import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.projects.repos.FileSystemCache;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectUtils;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCache;
+import io.ballerina.runtime.api.types.semtype.TypeCheckCacheFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
@@ -41,6 +43,7 @@ import org.wso2.ballerinalang.programfile.CompiledBinaryFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.ballerina.projects.util.ProjectConstants.CACHES_DIR_NAME;
@@ -89,6 +92,7 @@ public final class BCompileUtil {
     }
 
     public static CompileResult compile(String sourceFilePath) {
+        cleanUpTypeCheckCaches();
         Project project = loadProject(sourceFilePath);
 
         Package currentPackage = project.currentPackage();
@@ -100,6 +104,31 @@ public final class BCompileUtil {
         CompileResult compileResult = new CompileResult(currentPackage, jBallerinaBackend);
         invokeModuleInit(compileResult);
         return compileResult;
+    }
+
+    // FIXME: do we need to provide a cleaner way to clean up the caches?
+    private static void cleanUpTypeCheckCaches() {
+        var clazz = TypeCheckCacheFactory.class;
+        try {
+            var cacheField = clazz.getDeclaredField("cache");
+            cacheField.setAccessible(true);
+            var cache = (Map) cacheField.get(null);
+            cache.forEach((key, value) -> {
+                if (value instanceof TypeCheckCache cacheInstance) {
+                    try {
+                        var cachedResultsField = TypeCheckCache.class.getDeclaredField("cachedResults");
+                        cachedResultsField.setAccessible(true);
+                        var cachedResults = (Map) cachedResultsField.get(cacheInstance);
+                        cachedResults.clear();
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+            cache.clear();
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static CompileResult compileOffline(String sourceFilePath) {
