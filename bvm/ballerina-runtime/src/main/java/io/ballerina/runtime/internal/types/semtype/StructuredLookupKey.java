@@ -45,7 +45,25 @@ public class StructuredLookupKey implements TypeCheckCacheKey {
     }
 
     public void setChildren(TypeCheckCacheKey[] children) {
-        this.children = children;
+        if (anyUnique(children)) {
+            this.children = new TypeCheckCacheKey[]{new UniqueLookupKey()};
+        } else {
+            this.children = children;
+        }
+    }
+
+    private static boolean anyUnique(TypeCheckCacheKey[] children) {
+        return Arrays.stream(children).anyMatch(StructuredLookupKey::isUnique);
+    }
+
+    private static boolean isUnique(TypeCheckCacheKey key) {
+        return key instanceof UniqueLookupKey || key instanceof StructuredLookupKey structuredLookupKey
+                && structuredLookupKey.uniqueKey();
+    }
+
+    private boolean uniqueKey() {
+        // children could be null for recursive types since we are calling this while setting children
+        return this.children != null && this.children.length == 1 && this.children[0] instanceof UniqueLookupKey;
     }
 
     @Override

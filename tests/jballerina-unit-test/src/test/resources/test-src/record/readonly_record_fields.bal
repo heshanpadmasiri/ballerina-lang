@@ -238,7 +238,7 @@ type Foo record {|
     float...;
 |};
 
-type Bar record {|
+type BarRRF record {|
     readonly string name;
     readonly int id;
 |};
@@ -247,20 +247,20 @@ type EmptyClosedRecord record {|
 |};
 
 function testTypeReadOnlyFlagForAllReadOnlyFields() {
-    Bar st = {
+    BarRRF st = {
         name: "Maryam",
         id: 1234
     };
 
     Foo & readonly pr = st;
-    assertTrue(pr is Bar);
-    assertTrue(pr is Bar & readonly);
+    assertTrue(pr is BarRRF);
+    assertTrue(pr is BarRRF & readonly);
     assertEquality("Maryam", pr.name);
     assertEquality(1234, pr.id);
 
     readonly rd = st;
-    assertTrue(rd is Bar);
-    assertTrue(rd is Bar & readonly);
+    assertTrue(rd is BarRRF);
+    assertTrue(rd is BarRRF & readonly);
 
     EmptyClosedRecord ecr = {};
     readonly rd2 = ecr;
@@ -282,12 +282,12 @@ function testTypeReadOnlyFlagForAllReadOnlyFieldsInAnonymousRecord() {
 
     record {|
         readonly int x = 1;
-        readonly Bar y;
+        readonly BarRRF y;
     |} localAnonRecord = {y: {name: "Amy", id: 1001}};
     readonly rd2 = localAnonRecord;
-    assertTrue(<any|error> rd2 is record {| int x; Bar y; |});
-    assertTrue(rd2 is record { int x; Bar y; } & readonly);
-    var rec2 = <record { int x; Bar y; } & readonly> checkpanic rd2;
+    assertTrue(<any|error> rd2 is record {| int x; BarRRF y; |});
+    assertTrue(rd2 is record { int x; BarRRF y; } & readonly);
+    var rec2 = <record { int x; BarRRF y; } & readonly> checkpanic rd2;
     assertEquality(1, rec2.x);
     assertEquality("Amy", rec2.y.name);
     assertEquality(1001, rec2.y.id);
