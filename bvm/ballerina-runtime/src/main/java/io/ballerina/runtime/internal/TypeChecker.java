@@ -264,18 +264,32 @@ public final class TypeChecker {
         Context cx = context();
         Type sourceType = getType(sourceVal);
         logger.typeCheckStarted(cx, sourceType, targetType);
-        boolean result = checkIsTypeInner(sourceVal, targetType, cx, sourceType);
+        boolean result;
+        if (couldBeSubType(sourceType, targetType)) {
+            result = checkIsTypeInner(cx, sourceVal, targetType, sourceType);
+        } else {
+            result = false;
+        }
         logger.typeCheckDone(cx, sourceType, targetType, result);
         return result;
     }
 
-    private static boolean checkIsTypeInner(Object sourceVal, Type targetType, Context cx, Type sourceType) {
+    private static boolean checkIsTypeInner(Context cx, Object sourceVal, Type targetType, Type sourceType) {
+        if (!couldBeSubType(sourceType, targetType)) {
+            return false;
+        }
         if (isSubType(cx, sourceType, targetType)) {
             return true;
         }
         SemType sourceSemType = SemType.tryInto(cx, sourceType);
         return couldInherentTypeBeDifferent(sourceSemType) &&
                 isSubTypeWithInherentType(cx, sourceVal, SemType.tryInto(cx, targetType));
+    }
+
+    private static boolean couldBeSubType(Type source, Type target) {
+        SemType sourceBasicType = widenToBasicType(SemType.basicType(source));
+        SemType targetBasicType = widenToBasicType(SemType.basicType(target));
+        return Core.isSubtypeSimple(sourceBasicType, targetBasicType);
     }
 
     /**
@@ -580,8 +594,13 @@ public final class TypeChecker {
      */
     public static boolean checkIsType(Type sourceType, Type targetType) {
         Context cx = context();
+        boolean result;
         logger.typeCheckStarted(cx, sourceType, targetType);
-        boolean result = isSubType(cx, sourceType, targetType);
+        if (couldBeSubType(sourceType, targetType)) {
+            result = isSubType(cx, sourceType, targetType);
+        } else {
+            result = false;
+        }
         logger.typeCheckDone(cx, sourceType, targetType, result);
         return result;
     }
@@ -629,23 +648,10 @@ public final class TypeChecker {
                 target instanceof CacheableTypeDescriptor targetCacheableType) {
             return isSubTypeWithCache(cx, sourceCacheableType, targetCacheableType);
         }
-        // Try avoiding type check using basic type
         return isSubTypeInner(cx, source, target);
     }
 
     private static boolean isSubTypeInner(Context cx, Type source, Type target) {
-        SemType sourceBasicType = widenToBasicType(SemType.basicType(source));
-        SemType targetBasicType = widenToBasicType(SemType.basicType(target));
-        if (Core.isSubtypeSimple(sourceBasicType, targetBasicType)) {
-            SemType sourceSemType = SemType.tryInto(cx, source);
-            SemType targetSemType = SemType.tryInto(cx, target);
-            return Core.isSubType(cx, sourceSemType, targetSemType);
-        }
-        assert !test(cx, source, target);
-        return false;
-    }
-
-    private static boolean test(Context cx, Type source, Type target) {
         SemType sourceSemType = SemType.tryInto(cx, source);
         SemType targetSemType = SemType.tryInto(cx, target);
         return Core.isSubType(cx, sourceSemType, targetSemType);
