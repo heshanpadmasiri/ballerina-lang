@@ -69,6 +69,7 @@ public class BIntersectionType extends BType implements IntersectionType, TypeWi
     private String cachedToString;
     private boolean resolving;
     private Reference<StructuredLookupKey> lookupKey;
+    private SemType basicType;
 
     public BIntersectionType(Module pkg, Type[] constituentTypes, Type effectiveType,
                              int typeFlags, boolean readonly) {
@@ -239,7 +240,16 @@ public class BIntersectionType extends BType implements IntersectionType, TypeWi
 
     @Override
     public SemType basicType() {
-        return constituentTypes.stream().map(SemType::basicType).reduce(Core::intersect).orElseThrow();
+        if (basicType == null) {
+            return basicType = constituentTypes.stream().map(SemType::basicType).reduce(Core::intersect).orElseThrow();
+        }
+        return basicType;
+    }
+
+    @Override
+    public void resetSemType() {
+        super.resetSemType();
+        basicType = null;
     }
 
     @Override

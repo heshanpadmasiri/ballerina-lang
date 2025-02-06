@@ -69,6 +69,7 @@ public class BUnionType extends BType implements UnionType, SelectivelyImmutable
     private boolean resolving;
     public boolean resolvingReadonly;
     private Reference<StructuredLookupKey> lookupKey;
+    private SemType basicType;
 
     private static final String INT_CLONEABLE = "__Cloneable";
     private static final String CLONEABLE = "Cloneable";
@@ -190,6 +191,12 @@ public class BUnionType extends BType implements UnionType, SelectivelyImmutable
 
     private void setMemberTypes(List<Type> members) {
         setMemberTypes(members, members);
+    }
+
+    @Override
+    public void resetSemType() {
+        super.resetSemType();
+        basicType = null;
     }
 
     private void setMemberTypes(List<Type> members, List<Type> originalMembers) {
@@ -563,7 +570,10 @@ public class BUnionType extends BType implements UnionType, SelectivelyImmutable
 
     @Override
     public SemType basicType() {
-        return memberTypes.stream().map(SemType::basicType).reduce(Builder.getNeverType(), Core::union);
+        if (basicType == null) {
+            return basicType = memberTypes.stream().map(SemType::basicType).reduce(Builder.getNeverType(), Core::union);
+        }
+        return basicType;
     }
 
     @Override
