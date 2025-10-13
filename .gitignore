@@ -55,3 +55,8 @@ gradle-app.setting
 
 # code coverage reports
 /.jacoco
+
+# Bazel
+bazel-*
+.bazelrc.local
+.bazelversion.local
