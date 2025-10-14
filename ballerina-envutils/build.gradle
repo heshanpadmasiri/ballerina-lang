@@ -1,0 +1,15 @@
+plugins {
+    id 'javaProject'
+}
+
+description = 'Ballerina - Environment Utils'
+
+dependencies {
+    testImplementation libs.testng
+}
+
+test {
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
+    }
+}

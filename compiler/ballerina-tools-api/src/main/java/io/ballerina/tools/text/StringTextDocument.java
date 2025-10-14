@@ -17,12 +17,12 @@
  */
 package io.ballerina.tools.text;
 
+import io.ballerina.tools.envutils.Env;
+import io.ballerina.tools.envutils.LazyLoaderFromSupplier;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-
-import io.ballerina.tools.envutils.Env;
-import io.ballerina.tools.envutils.LazyLoaderFromSupplier;
 
 /**
  * The {@code StringTextDocument} represents a {@code TextDocument} created with a string.

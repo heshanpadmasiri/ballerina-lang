@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="ballerina-envutils-test-suite">
+    <test name="ballerina-envutils-tests">
+        <packages>
+            <package name="io.ballerina.tools.envutils.test.*" />
+        </packages>
+    </test>
+</suite>

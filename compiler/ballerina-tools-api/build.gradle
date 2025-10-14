@@ -23,6 +23,7 @@ plugins {
 description = 'Ballerina - Tools API'
 
 dependencies {
+    implementation project(':ballerina-envutils')
     testImplementation libs.testng
 }
 

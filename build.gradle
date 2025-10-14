@@ -146,4 +146,4 @@ sonarqube {
   }
 }
 
-copyBallerinaClassFiles.dependsOn copyExecFilesAndJavaClassFiles 
+copyBallerinaClassFiles.dependsOn copyExecFilesAndJavaClassFiles

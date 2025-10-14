@@ -8,6 +8,7 @@ plugins {
 }
 
 rootProject.name = 'ballerina-parent'
+include(':ballerina-envutils')
 include(':ballerina-tools-api')
 include(':ballerina-parser')
 include(':ballerina-compiler-api-test')
@@ -149,6 +150,7 @@ include(':ballerina-profiler')
 //include(':ballerina-libs')
 include(':bir-spec')
 include(':semtypes')
+project(':ballerina-envutils').projectDir = file('ballerina-envutils')
 project(':ballerina-tools-api').projectDir = file('compiler/ballerina-tools-api')
 project(':ballerina-parser').projectDir = file('compiler/ballerina-parser')
 project(':ballerina-compiler-api-test').projectDir = file('tests/ballerina-compiler-api-test')
