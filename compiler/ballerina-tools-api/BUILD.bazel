@@ -15,7 +15,7 @@ j2cl_library(
     name = "ballerina-tools-api-j2cl",
     srcs = glob([
         "src/main/java/**/*.java",
-    ], exclude=["src/main/java/**/*Native.java", "src/main/java/**/Env.java", "src/main/java/**/DefaultDiagnostic.java"]) + glob([
+    ], exclude=["src/main/java/**/*Native.java", "src/main/java/**/Env.java", "src/main/java/**/DefaultDiagnostic.java", "src/main/java/module-info.java"]) + glob([
         "super-j2cl/**/*.java",
     ]),
     deps = [
