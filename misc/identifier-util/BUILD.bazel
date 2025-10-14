@@ -1,0 +1,19 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@j2cl//build_defs:rules.bzl", "j2cl_library")
+
+j2cl_library(
+    name = "identifier-util-j2cl",
+    srcs = glob([
+        "src/main/java/**/*.java",
+    ], exclude=["src/main/java/module-info.java", "src/main/java/**/Utils.java"], allow_empty = True) +
+    glob([
+        "super-j2cl/**/*.java",
+        "super-j2cl/**/*.js",
+    ]),
+    deps = [],
+    javacopts = [
+        "-source", "21",
+        "-target", "21",
+    ],
+)
