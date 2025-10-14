@@ -1,11 +1,13 @@
 module(
     name = "ballerina_j2cl_test",
-    version = "0.0.0",
 )
 
-# Use bzlmod for dependency management
-bazel_dep(name = "rules_java", version = "8.6.1")
-bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(
+    name = "j2cl",
+    version = "20250630",
+)
 
-# Note: ballerina-tools-api has no external dependencies (base module)
-# Maven dependencies will be added when migrating modules that need them
+bazel_dep(
+    name = "rules_closure",
+    version = "0.15.0",
+)

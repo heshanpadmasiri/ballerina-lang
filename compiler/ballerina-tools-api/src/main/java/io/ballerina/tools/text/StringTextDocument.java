@@ -17,10 +17,12 @@
  */
 package io.ballerina.tools.text;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+
+import io.ballerina.tools.envutils.Env;
+import io.ballerina.tools.envutils.LazyLoaderFromSupplier;
 
 /**
  * The {@code StringTextDocument} represents a {@code TextDocument} created with a string.
@@ -122,12 +124,10 @@ abstract class StringTextDocument extends TextDocument {
 
     static class LazyStringTextDocument extends StringTextDocument {
 
-        private final Supplier<String> text;
-        private WeakReference<String> cachedText;
+        private LazyLoaderFromSupplier<String> cachedText;
 
         LazyStringTextDocument(Supplier<String> text) {
-            this.text = text;
-            this.cachedText = new WeakReference<>(null);
+            this.cachedText = Env.createLazyLoader(text);
         }
 
         @Override
@@ -141,13 +141,7 @@ abstract class StringTextDocument extends TextDocument {
         }
 
         private String getText() {
-            String cached = cachedText.get();
-            if (cached == null) {
-                cached = text.get();
-                cachedText = new WeakReference<>(cached);
-            }
-            assert cached != null : "LazyStringTextDocument text supplier should not return null";
-            return cached;
+            return cachedText.get();
         }
     }
 }
