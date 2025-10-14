@@ -21,4 +21,8 @@ j2cl_library(
     deps = [
 
     ],
+    javacopts = [
+        "-source", "21",
+        "-target", "21",
+    ],
 )
