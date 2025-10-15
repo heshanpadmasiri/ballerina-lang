@@ -1,0 +1,15 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@j2cl//build_defs:rules.bzl", "j2cl_library")
+
+j2cl_library(
+    name = "ballerina-runtime-j2cl",
+    srcs = [
+        "src/main/java/io/ballerina/runtime/api/flags/SymbolFlags.java",
+    ],
+    deps = [],
+    javacopts = [
+        "-source", "21",
+        "-target", "21",
+    ],
+)
