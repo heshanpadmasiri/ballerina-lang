@@ -1,0 +1,30 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@j2cl//build_defs:rules.bzl", "j2cl_library")
+
+j2cl_library(
+    name = "ballerina-parser-j2cl",
+    srcs = glob([
+        "src/main/java/**/*.java",
+    ], exclude=[
+        "src/main/java/module-info.java",
+        "src/main/java/**/DiagnosticMessageHelper.java",
+        "src/main/java/**/AbstractLexer.java",
+        "src/main/java/**/AbstractParserErrorHandler.java",
+        "src/main/java/**/InputReader.java",
+        "src/main/java/**/AbstractNodeFactory.java",
+        "src/main/java/**/MinutiaeList.java",
+        "src/main/java/**/NodeList.java",
+        "src/main/java/**/NonTerminalNode.java",
+        "src/main/java/**/SyntaxInfo.java",
+    ]) + glob([
+        "super-j2cl/**/*.java",
+    ], allow_empty = True),
+    deps = [
+        "//compiler/ballerina-tools-api:ballerina-tools-api-j2cl",
+    ],
+    javacopts = [
+        "-source", "21",
+        "-target", "21",
+    ],
+)

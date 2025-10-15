@@ -1,0 +1,24 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@j2cl//build_defs:rules.bzl", "j2cl_library")
+
+j2cl_library(
+    name = "central-client-j2cl",
+    srcs = [
+        # Pure Java classes from src/main/java (6 classes)
+        "src/main/java/org/ballerinalang/central/client/exceptions/CentralClientException.java",
+        "src/main/java/org/ballerinalang/central/client/exceptions/ConnectionErrorException.java",
+        "src/main/java/org/ballerinalang/central/client/exceptions/PackageAlreadyExistsException.java",
+        "src/main/java/org/ballerinalang/central/client/exceptions/NoPackageException.java",
+        "src/main/java/org/ballerinalang/central/client/LogFormatter.java",
+        "src/main/java/org/ballerinalang/central/client/BuildLogFormatter.java",
+        # Classes with external dependencies from super-j2cl (2 classes)
+        "super-j2cl/main/java/org/ballerinalang/central/client/Utils.java",
+        "super-j2cl/main/java/org/ballerinalang/central/client/CentralAPIClient.java",
+    ],
+    deps = [],
+    javacopts = [
+        "-source", "21",
+        "-target", "21",
+    ],
+)
