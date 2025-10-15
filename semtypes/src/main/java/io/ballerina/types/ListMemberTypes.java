@@ -21,29 +21,31 @@ import io.ballerina.types.subtypedata.Range;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Holds a pair of SemType list and Range list.
  * <i>Note: Member types at the indices that are not contained in `Range` array represent `never.
  * The SemTypes in this list are not `never`.</i>
  *
- * @param ranges   Range array
- * @param semTypes SemType array
  * @since 2201.12.0
  */
-public record ListMemberTypes(List<Range> ranges, List<SemType> semTypes) {
+public final class ListMemberTypes {
 
-    public ListMemberTypes {
+    private final List<Range> ranges;
+    private final List<SemType> semTypes;
+
+    public ListMemberTypes(List<Range> ranges, List<SemType> semTypes) {
         ranges = Collections.unmodifiableList(ranges);
         semTypes = Collections.unmodifiableList(semTypes);
+        this.ranges = ranges;
+        this.semTypes = semTypes;
     }
 
-    @Override
     public List<Range> ranges() {
         return Collections.unmodifiableList(ranges);
     }
 
-    @Override
     public List<SemType> semTypes() {
         return Collections.unmodifiableList(semTypes);
     }
@@ -52,4 +54,26 @@ public record ListMemberTypes(List<Range> ranges, List<SemType> semTypes) {
         assert ranges != null && semTypes != null;
         return new ListMemberTypes(ranges, semTypes);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (ListMemberTypes) obj;
+        return Objects.equals(this.ranges, that.ranges) &&
+                Objects.equals(this.semTypes, that.semTypes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ranges, semTypes);
+    }
+
+    @Override
+    public String toString() {
+        return "ListMemberTypes[" +
+                "ranges=" + ranges + ", " +
+                "semTypes=" + semTypes + ']';
+    }
+
 }

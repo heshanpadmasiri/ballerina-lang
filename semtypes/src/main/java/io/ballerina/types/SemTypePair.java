@@ -17,17 +17,60 @@
  */
 package io.ballerina.types;
 
+import java.util.Objects;
+
 /**
  * Holds a pair of semtypes.
  *
- * @param t1 first semtype
- * @param t2 second semtype
  * @since 2201.12.0
  */
-public record SemTypePair(SemType t1, SemType t2) {
+public final class SemTypePair {
+
+    private final SemType t1;
+    private final SemType t2;
+
+    /**
+     * @param t1 first semtype
+     * @param t2 second semtype
+     *
+     */
+    public SemTypePair(SemType t1, SemType t2) {
+        this.t1 = t1;
+        this.t2 = t2;
+    }
 
     public static SemTypePair from(SemType t1, SemType t2) {
         assert t1 != null && t2 != null;
         return new SemTypePair(t1, t2);
     }
+
+    public SemType t1() {
+        return t1;
+    }
+
+    public SemType t2() {
+        return t2;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (SemTypePair) obj;
+        return Objects.equals(this.t1, that.t1) &&
+                Objects.equals(this.t2, that.t2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(t1, t2);
+    }
+
+    @Override
+    public String toString() {
+        return "SemTypePair[" +
+                "t1=" + t1 + ", " +
+                "t2=" + t2 + ']';
+    }
+
 }

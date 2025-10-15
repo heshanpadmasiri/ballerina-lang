@@ -21,13 +21,27 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * @param all             all & (1 << c) is non-zero iff this type contains all the basic type with code c
- * @param some            some & (1 << c) is non-zero iff this type contains some but not all the basic type with code c
- * @param subtypeDataList There is one member of subtypes for each bit set in some. Ordered in increasing order of
- *                        BasicTypeCode
  * @since 2201.12.0
  */
-record ComplexSemTypeImpl(int all, int some, ProperSubtypeData[] subtypeDataList) implements ComplexSemType {
+final class ComplexSemTypeImpl implements ComplexSemType {
+
+    private final int all;
+    private final int some;
+    private final ProperSubtypeData[] subtypeDataList;
+
+    /**
+     * @param all             all & (1 << c) is non-zero iff this type contains all the basic type with code c
+     * @param some            some & (1 << c) is non-zero iff this type contains some but not all the basic type with
+     *                        code c
+     * @param subtypeDataList There is one member of subtypes for each bit set in some. Ordered in increasing order of
+     *                        BasicTypeCode
+     *
+     */
+    ComplexSemTypeImpl(int all, int some, ProperSubtypeData[] subtypeDataList) {
+        this.all = all;
+        this.some = some;
+        this.subtypeDataList = subtypeDataList;
+    }
 
     @Override
     public String toString() {
@@ -52,4 +66,20 @@ record ComplexSemTypeImpl(int all, int some, ProperSubtypeData[] subtypeDataList
     public int hashCode() {
         return Objects.hash(all(), some(), Arrays.hashCode(subtypeDataList()));
     }
+
+    @Override
+    public int all() {
+        return all;
+    }
+
+    @Override
+    public int some() {
+        return some;
+    }
+
+    @Override
+    public ProperSubtypeData[] subtypeDataList() {
+        return subtypeDataList;
+    }
+
 }

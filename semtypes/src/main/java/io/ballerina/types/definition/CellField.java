@@ -17,18 +17,61 @@
  */
 package io.ballerina.types.definition;
 
+import java.util.Objects;
+
 import io.ballerina.types.CellSemType;
 
 /**
  * Represents a cell field in a mapping type.
  *
- * @param name name of the field
- * @param type cell-sem-type of the field
  * @since 2201.12.0
  */
-public record CellField(String name, CellSemType type) {
+public final class CellField {
+
+    private final String name;
+    private final CellSemType type;
+
+    /**
+     * @param name name of the field
+     * @param type cell-sem-type of the field
+     *
+     */
+    public CellField(String name, CellSemType type) {
+        this.name = name;
+        this.type = type;
+    }
 
     public static CellField from(String name, CellSemType type) {
         return new CellField(name, type);
     }
+
+    public String name() {
+        return name;
+    }
+
+    public CellSemType type() {
+        return type;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (CellField) obj;
+        return Objects.equals(this.name, that.name) &&
+                Objects.equals(this.type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, type);
+    }
+
+    @Override
+    public String toString() {
+        return "CellField[" +
+                "name=" + name + ", " +
+                "type=" + type + ']';
+    }
+
 }

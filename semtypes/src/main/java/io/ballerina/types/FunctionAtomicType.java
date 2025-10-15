@@ -17,17 +17,35 @@
  */
 package io.ballerina.types;
 
+import java.util.Objects;
+
 /**
  * FunctionAtomicType node.
  *
- * @param paramType semtype of parameters represented as a tuple
- * @param retType   semtype of the return value
- * @param qualifiers qualifiers of the function
- * @param isGeneric atomic type represent a generic (i.e. have parameters/return type with {@code typeParam} annotation)
  * @since 2201.12.0
  */
-public record FunctionAtomicType(SemType paramType, SemType retType, SemType qualifiers, boolean isGeneric)
+public final class FunctionAtomicType
         implements AtomicType {
+
+    private final SemType paramType;
+    private final SemType retType;
+    private final SemType qualifiers;
+    private final boolean isGeneric;
+
+    /**
+     * @param paramType  semtype of parameters represented as a tuple
+     * @param retType    semtype of the return value
+     * @param qualifiers qualifiers of the function
+     * @param isGeneric  atomic type represent a generic (i.e. have parameters/return type with {@code typeParam}
+     *                   annotation)
+     *
+     */
+    public FunctionAtomicType(SemType paramType, SemType retType, SemType qualifiers, boolean isGeneric) {
+        this.paramType = paramType;
+        this.retType = retType;
+        this.qualifiers = qualifiers;
+        this.isGeneric = isGeneric;
+    }
 
     public static FunctionAtomicType from(SemType paramType, SemType rest, SemType qualifiers) {
         return new FunctionAtomicType(paramType, rest, qualifiers, false);
@@ -41,4 +59,46 @@ public record FunctionAtomicType(SemType paramType, SemType retType, SemType qua
     public Atom.Kind atomKind() {
         return Atom.Kind.FUNCTION_ATOM;
     }
+
+    public SemType paramType() {
+        return paramType;
+    }
+
+    public SemType retType() {
+        return retType;
+    }
+
+    public SemType qualifiers() {
+        return qualifiers;
+    }
+
+    public boolean isGeneric() {
+        return isGeneric;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (FunctionAtomicType) obj;
+        return Objects.equals(this.paramType, that.paramType) &&
+                Objects.equals(this.retType, that.retType) &&
+                Objects.equals(this.qualifiers, that.qualifiers) &&
+                this.isGeneric == that.isGeneric;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(paramType, retType, qualifiers, isGeneric);
+    }
+
+    @Override
+    public String toString() {
+        return "FunctionAtomicType[" +
+                "paramType=" + paramType + ", " +
+                "retType=" + retType + ", " +
+                "qualifiers=" + qualifiers + ", " +
+                "isGeneric=" + isGeneric + ']';
+    }
+
 }

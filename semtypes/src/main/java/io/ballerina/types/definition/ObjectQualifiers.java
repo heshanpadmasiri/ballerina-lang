@@ -24,6 +24,7 @@ import io.ballerina.types.PredefinedType;
 import io.ballerina.types.SemType;
 
 import java.util.List;
+import java.util.Objects;
 
 import static io.ballerina.types.SemTypes.booleanConst;
 import static io.ballerina.types.SemTypes.stringConst;
@@ -33,16 +34,28 @@ import static io.ballerina.types.subtypedata.CellSubtype.cellContaining;
 /**
  * Represent {@code object-type-quals} in the spec.
  *
- * @param isolated         is object isolated
- * @param readonly         represent {@code class readonly}. Note this is used to determining "rest" part of the object
- *                         only {@code Member} types must be correctly set as intersection with readonly where
- *                         applicable even with this set to true
- * @param networkQualifier is object client, service or none
  * @since 2201.12.0
  */
-public record ObjectQualifiers(boolean isolated, boolean readonly, NetworkQualifier networkQualifier) {
+public final class ObjectQualifiers {
 
     private static final ObjectQualifiers DEFAULT = new ObjectQualifiers(false, false, NetworkQualifier.None);
+    private final boolean isolated;
+    private final boolean readonly;
+    private final NetworkQualifier networkQualifier;
+
+    /**
+     * @param isolated         is object isolated
+     * @param readonly         represent {@code class readonly}. Note this is used to determining "rest" part of the
+     *                         object only {@code Member} types must be correctly set as intersection with readonly
+     *                         where applicable even with this set to true
+     * @param networkQualifier is object client, service or none
+     *
+     */
+    public ObjectQualifiers(boolean isolated, boolean readonly, NetworkQualifier networkQualifier) {
+        this.isolated = isolated;
+        this.readonly = readonly;
+        this.networkQualifier = networkQualifier;
+    }
 
     public static ObjectQualifiers defaultQualifiers() {
         return DEFAULT;
@@ -89,4 +102,40 @@ public record ObjectQualifiers(boolean isolated, boolean readonly, NetworkQualif
 
         return CellField.from("$qualifiers", cellContaining(env, ty));
     }
+
+    public boolean isolated() {
+        return isolated;
+    }
+
+    public boolean readonly() {
+        return readonly;
+    }
+
+    public NetworkQualifier networkQualifier() {
+        return networkQualifier;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (ObjectQualifiers) obj;
+        return this.isolated == that.isolated &&
+                this.readonly == that.readonly &&
+                Objects.equals(this.networkQualifier, that.networkQualifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(isolated, readonly, networkQualifier);
+    }
+
+    @Override
+    public String toString() {
+        return "ObjectQualifiers[" +
+                "isolated=" + isolated + ", " +
+                "readonly=" + readonly + ", " +
+                "networkQualifier=" + networkQualifier + ']';
+    }
+
 }

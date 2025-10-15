@@ -17,19 +17,70 @@
  */
 package io.ballerina.types;
 
+import java.util.Objects;
+
 import io.ballerina.types.subtypedata.Range;
 
 /**
  * Represents a combined range.
  *
- * @param range range
- * @param i1    i1
- * @param i2    i2
  * @since 2201.12.0
  */
-public record CombinedRange(Range range, Long i1, Long i2) {
+public final class CombinedRange {
+
+    private final Range range;
+    private final Long i1;
+    private final Long i2;
+
+    /**
+     * @param range range
+     * @param i1    i1
+     * @param i2    i2
+     *
+     */
+    public CombinedRange(Range range, Long i1, Long i2) {
+        this.range = range;
+        this.i1 = i1;
+        this.i2 = i2;
+    }
 
     public static CombinedRange from(Range range, Long i1, Long i2) {
         return new CombinedRange(range, i1, i2);
     }
+
+    public Range range() {
+        return range;
+    }
+
+    public Long i1() {
+        return i1;
+    }
+
+    public Long i2() {
+        return i2;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (CombinedRange) obj;
+        return Objects.equals(this.range, that.range) &&
+                Objects.equals(this.i1, that.i1) &&
+                Objects.equals(this.i2, that.i2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(range, i1, i2);
+    }
+
+    @Override
+    public String toString() {
+        return "CombinedRange[" +
+                "range=" + range + ", " +
+                "i1=" + i1 + ", " +
+                "i2=" + i2 + ']';
+    }
+
 }

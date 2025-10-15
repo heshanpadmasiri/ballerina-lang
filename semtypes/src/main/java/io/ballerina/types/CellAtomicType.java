@@ -17,17 +17,22 @@
  */
 package io.ballerina.types;
 
+import java.util.Objects;
+
 /**
  * CellAtomicType node.
  *
- * @param ty  Type "wrapped" by this cell
- * @param mut Mutability of the cell
  * @since 2201.12.0
  */
-public record CellAtomicType(SemType ty, CellMutability mut) implements AtomicType {
+public final class CellAtomicType implements AtomicType {
 
-    public CellAtomicType {
+    private final SemType ty;
+    private final CellMutability mut;
+
+    public CellAtomicType(SemType ty, CellMutability mut) {
         assert ty != null;
+        this.ty = ty;
+        this.mut = mut;
     }
 
     public static CellAtomicType from(SemType ty, CellMutability mut) {
@@ -39,6 +44,35 @@ public record CellAtomicType(SemType ty, CellMutability mut) implements AtomicTy
     @Override
     public Atom.Kind atomKind() {
         return Atom.Kind.CELL_ATOM;
+    }
+
+    public SemType ty() {
+        return ty;
+    }
+
+    public CellMutability mut() {
+        return mut;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (CellAtomicType) obj;
+        return Objects.equals(this.ty, that.ty) &&
+                Objects.equals(this.mut, that.mut);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ty, mut);
+    }
+
+    @Override
+    public String toString() {
+        return "CellAtomicType[" +
+                "ty=" + ty + ", " +
+                "mut=" + mut + ']';
     }
 
     public enum CellMutability {

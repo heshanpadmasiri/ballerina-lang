@@ -18,6 +18,8 @@
 
 package io.ballerina.types.definition;
 
+import java.util.Objects;
+
 import io.ballerina.types.SemType;
 
 import static io.ballerina.types.SemTypes.stringConst;
@@ -26,17 +28,70 @@ import static io.ballerina.types.SemTypes.union;
 /**
  * Represent a member of an object type definition.
  *
- * @param name       member name
- * @param valueTy    member type
- * @param kind       is member a field or a method
- * @param visibility is member private or public
- * @param immutable  is member readonly. If this is set valueTy must be a subtype of readonly
  * @since 2201.12.0
  */
-public record Member(String name, SemType valueTy, Kind kind, Visibility visibility, boolean immutable) {
+public final class Member {
 
-    public Member {
+    private final String name;
+    private final SemType valueTy;
+    private final Kind kind;
+    private final Visibility visibility;
+    private final boolean immutable;
+
+    public Member(String name, SemType valueTy, Kind kind, Visibility visibility, boolean immutable) {
         assert name != null && valueTy != null && kind != null && visibility != null;
+        this.name = name;
+        this.valueTy = valueTy;
+        this.kind = kind;
+        this.visibility = visibility;
+        this.immutable = immutable;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public SemType valueTy() {
+        return valueTy;
+    }
+
+    public Kind kind() {
+        return kind;
+    }
+
+    public Visibility visibility() {
+        return visibility;
+    }
+
+    public boolean immutable() {
+        return immutable;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Member) obj;
+        return Objects.equals(this.name, that.name) &&
+                Objects.equals(this.valueTy, that.valueTy) &&
+                Objects.equals(this.kind, that.kind) &&
+                Objects.equals(this.visibility, that.visibility) &&
+                this.immutable == that.immutable;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, valueTy, kind, visibility, immutable);
+    }
+
+    @Override
+    public String toString() {
+        return "Member[" +
+                "name=" + name + ", " +
+                "valueTy=" + valueTy + ", " +
+                "kind=" + kind + ", " +
+                "visibility=" + visibility + ", " +
+                "immutable=" + immutable + ']';
     }
 
     // Various "tag" values associated with a member. Each of these tag values must be convertible to a Field in Map

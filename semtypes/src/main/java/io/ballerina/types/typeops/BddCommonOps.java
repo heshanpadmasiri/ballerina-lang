@@ -25,6 +25,7 @@ import io.ballerina.types.subtypedata.BddNode;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Contain common BDD operations found in bdd.bal file.
@@ -273,15 +274,98 @@ public abstract class BddCommonOps {
         }
     }
 
-    private record BddOpMemoKey(Bdd b1, Bdd b2) {
+    private static final class BddOpMemoKey {
 
-    }
+        private final Bdd b1;
+        private final Bdd b2;
 
-    private record BddOpMemo(Map<BddOpMemoKey, Bdd> unionMemo, Map<BddOpMemoKey, Bdd> intersectionMemo,
-                             Map<BddOpMemoKey, Bdd> diffMemo) {
-
-        static BddOpMemo create() {
-            return new BddOpMemo(new HashMap<>(), new HashMap<>(), new HashMap<>());
+        private BddOpMemoKey(Bdd b1, Bdd b2) {
+            this.b1 = b1;
+            this.b2 = b2;
         }
+
+        public Bdd b1() {
+            return b1;
+        }
+
+        public Bdd b2() {
+            return b2;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (BddOpMemoKey) obj;
+            return Objects.equals(this.b1, that.b1) &&
+                    Objects.equals(this.b2, that.b2);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(b1, b2);
+        }
+
+        @Override
+        public String toString() {
+            return "BddOpMemoKey[" +
+                    "b1=" + b1 + ", " +
+                    "b2=" + b2 + ']';
+        }
+
     }
+
+    private static final class BddOpMemo {
+
+        private final Map<BddOpMemoKey, Bdd> unionMemo;
+        private final Map<BddOpMemoKey, Bdd> intersectionMemo;
+        private final Map<BddOpMemoKey, Bdd> diffMemo;
+
+        private BddOpMemo(Map<BddOpMemoKey, Bdd> unionMemo, Map<BddOpMemoKey, Bdd> intersectionMemo,
+                          Map<BddOpMemoKey, Bdd> diffMemo) {
+            this.unionMemo = unionMemo;
+            this.intersectionMemo = intersectionMemo;
+            this.diffMemo = diffMemo;
+        }
+
+            static BddOpMemo create() {
+                return new BddOpMemo(new HashMap<>(), new HashMap<>(), new HashMap<>());
+            }
+
+        public Map<BddOpMemoKey, Bdd> unionMemo() {
+            return unionMemo;
+        }
+
+        public Map<BddOpMemoKey, Bdd> intersectionMemo() {
+            return intersectionMemo;
+        }
+
+        public Map<BddOpMemoKey, Bdd> diffMemo() {
+            return diffMemo;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (BddOpMemo) obj;
+            return Objects.equals(this.unionMemo, that.unionMemo) &&
+                    Objects.equals(this.intersectionMemo, that.intersectionMemo) &&
+                    Objects.equals(this.diffMemo, that.diffMemo);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(unionMemo, intersectionMemo, diffMemo);
+        }
+
+        @Override
+        public String toString() {
+            return "BddOpMemo[" +
+                    "unionMemo=" + unionMemo + ", " +
+                    "intersectionMemo=" + intersectionMemo + ", " +
+                    "diffMemo=" + diffMemo + ']';
+        }
+
+        }
 }

@@ -536,7 +536,7 @@ public final class Core {
             }
             cur = next;
         }
-        return combined.toArray(CombinedRange[]::new);
+        return combined.toArray(new CombinedRange[0]);
     }
 
     // Helper function for combineRanges

@@ -17,18 +17,80 @@
  */
 package io.ballerina.types.subtypedata;
 
+import java.util.Objects;
+
 import io.ballerina.types.Atom;
 import io.ballerina.types.Bdd;
 
 /**
  * Actual implementation of a generic Bdd node.
  *
- * @param atom   the atom that this node represents
- * @param left   path that include this node's atom positively
- * @param middle path that doesn't include this node's atom
- * @param right  path that include this node's atom negatively
  * @since 2201.12.0
  */
-public record BddNodeImpl(Atom atom, Bdd left, Bdd middle, Bdd right) implements BddNode {
+public final class BddNodeImpl implements BddNode {
+
+    private final Atom atom;
+    private final Bdd left;
+    private final Bdd middle;
+    private final Bdd right;
+
+    /**
+     * @param atom   the atom that this node represents
+     * @param left   path that include this node's atom positively
+     * @param middle path that doesn't include this node's atom
+     * @param right  path that include this node's atom negatively
+     *
+     */
+    public BddNodeImpl(Atom atom, Bdd left, Bdd middle, Bdd right) {
+        this.atom = atom;
+        this.left = left;
+        this.middle = middle;
+        this.right = right;
+    }
+
+    @Override
+    public Atom atom() {
+        return atom;
+    }
+
+    @Override
+    public Bdd left() {
+        return left;
+    }
+
+    @Override
+    public Bdd middle() {
+        return middle;
+    }
+
+    @Override
+    public Bdd right() {
+        return right;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (BddNodeImpl) obj;
+        return Objects.equals(this.atom, that.atom) &&
+                Objects.equals(this.left, that.left) &&
+                Objects.equals(this.middle, that.middle) &&
+                Objects.equals(this.right, that.right);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(atom, left, middle, right);
+    }
+
+    @Override
+    public String toString() {
+        return "BddNodeImpl[" +
+                "atom=" + atom + ", " +
+                "left=" + left + ", " +
+                "middle=" + middle + ", " +
+                "right=" + right + ']';
+    }
 
 }

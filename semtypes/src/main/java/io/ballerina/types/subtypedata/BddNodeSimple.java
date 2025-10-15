@@ -17,6 +17,8 @@
  */
 package io.ballerina.types.subtypedata;
 
+import java.util.Objects;
+
 import io.ballerina.types.Atom;
 import io.ballerina.types.Bdd;
 
@@ -24,10 +26,19 @@ import io.ballerina.types.Bdd;
  * Represent a Bdd node that contains a single atom as positive. This is used to reduce the memory overhead of
  * BddNodeImpl in representing such nodes
  *
- * @param atom Atom this node represents
  * @since 2201.12.0
  */
-public record BddNodeSimple(Atom atom) implements BddNode {
+public final class BddNodeSimple implements BddNode {
+
+    private final Atom atom;
+
+    /**
+     * @param atom Atom this node represents
+     *
+     */
+    public BddNodeSimple(Atom atom) {
+        this.atom = atom;
+    }
 
     @Override
     public Bdd left() {
@@ -43,4 +54,29 @@ public record BddNodeSimple(Atom atom) implements BddNode {
     public Bdd right() {
         return BddAllOrNothing.bddNothing();
     }
+
+    @Override
+    public Atom atom() {
+        return atom;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (BddNodeSimple) obj;
+        return Objects.equals(this.atom, that.atom);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(atom);
+    }
+
+    @Override
+    public String toString() {
+        return "BddNodeSimple[" +
+                "atom=" + atom + ']';
+    }
+
 }

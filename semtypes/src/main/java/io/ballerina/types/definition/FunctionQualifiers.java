@@ -25,18 +25,21 @@ import io.ballerina.types.SemType;
 import io.ballerina.types.SemTypes;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Wrapper class for the semtype representing the {@code function-quals} of a function.
  *
- * @param semType the semtype representing the function qualifiers
  * @since 2201.12.0
  */
-public record FunctionQualifiers(SemType semType) {
+public final class FunctionQualifiers {
 
-    public FunctionQualifiers {
+    private final SemType semType;
+
+    public FunctionQualifiers(SemType semType) {
         assert semType != null;
         assert Core.isSubtypeSimple(semType, PredefinedType.LIST);
+        this.semType = semType;
     }
 
     public static FunctionQualifiers from(Env env, boolean isolated, boolean transactional) {
@@ -50,4 +53,28 @@ public record FunctionQualifiers(SemType semType) {
                         transactional ? PredefinedType.BOOLEAN : SemTypes.booleanConst(false)),
                 2);
     }
+
+    public SemType semType() {
+        return semType;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (FunctionQualifiers) obj;
+        return Objects.equals(this.semType, that.semType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(semType);
+    }
+
+    @Override
+    public String toString() {
+        return "FunctionQualifiers[" +
+                "semType=" + semType + ']';
+    }
+
 }

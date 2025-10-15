@@ -20,26 +20,27 @@ package io.ballerina.types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Represent a fixed length semtype member list similar to a tuple.
- * The length of the list is `fixedLength`, the last member of the `initial` is repeated to achieve this semantic.
- * { initial: [int], fixedLength: 3, } is same as { initial: [int, int, int], fixedLength: 3 }
- * { initial: [string, int], fixedLength: 100 } means `int` is repeated 99 times to get a list of 100 members.
- * `fixedLength` must be `0` when `inital` is empty and the `fixedLength` must be at least `initial.length()`
+ * Represent a fixed length semtype member list similar to a tuple. The length of the list is `fixedLength`, the last
+ * member of the `initial` is repeated to achieve this semantic. { initial: [int], fixedLength: 3, } is same as {
+ * initial: [int, int, int], fixedLength: 3 } { initial: [string, int], fixedLength: 100 } means `int` is repeated 99
+ * times to get a list of 100 members. `fixedLength` must be `0` when `inital` is empty and the `fixedLength` must be at
+ * least `initial.length()`
  *
- * @param initial     List of semtypes of the members of the fixes length array. If last member is repeated multiple
- *                    times it is included only once. For example for {@code [string, string, int, int]} initial would
- *                    be {@code [string, string, int]}
- * @param fixedLength Actual length of the array. For example for {@code [string, string, int, int]} fixedLength would
- *                    be {@code 4}
  * @since 2201.12.0
  */
-public record FixedLengthArray(List<CellSemType> initial, int fixedLength) {
+public final class FixedLengthArray {
 
-    public FixedLengthArray {
+    private final List<CellSemType> initial;
+    private final int fixedLength;
+
+    public FixedLengthArray(List<CellSemType> initial, int fixedLength) {
         initial = List.copyOf(initial);
         assert fixedLength >= 0;
+        this.initial = initial;
+        this.fixedLength = fixedLength;
     }
 
     public static FixedLengthArray from(List<CellSemType> initial, int fixedLength) {
@@ -53,4 +54,30 @@ public record FixedLengthArray(List<CellSemType> initial, int fixedLength) {
     public static FixedLengthArray empty() {
         return from(new ArrayList<>(), 0);
     }
+
+    public int fixedLength() {
+        return fixedLength;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (FixedLengthArray) obj;
+        return Objects.equals(this.initial, that.initial) &&
+                this.fixedLength == that.fixedLength;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(initial, fixedLength);
+    }
+
+    @Override
+    public String toString() {
+        return "FixedLengthArray[" +
+                "initial=" + initial + ", " +
+                "fixedLength=" + fixedLength + ']';
+    }
+
 }

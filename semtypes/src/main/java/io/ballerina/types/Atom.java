@@ -17,6 +17,8 @@
  */
 package io.ballerina.types;
 
+import java.util.Objects;
+
 /**
  * Represent the BDD atom.
  *
@@ -38,14 +40,52 @@ public interface Atom {
      * This method returns a unique identifier for an Atom.
      * The identifier is a combination of the atom's index and kind.
      *
-     * @return AtomIdentifier - a record containing the index and kind of the atom.
+     * @return AtomIdentifier - index and kind of the atom.
      */
     default AtomIdentifier getIdentifier() {
         return new AtomIdentifier(index(), kind());
     }
 
-    record AtomIdentifier(int index, Kind kind) {
-    }
+    final class AtomIdentifier {
+
+        private final int index;
+        private final Kind kind;
+
+        public AtomIdentifier(int index, Kind kind) {
+            this.index = index;
+            this.kind = kind;
+        }
+
+        public int index() {
+            return index;
+        }
+
+        public Kind kind() {
+            return kind;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (AtomIdentifier) obj;
+            return this.index == that.index &&
+                    Objects.equals(this.kind, that.kind);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(index, kind);
+        }
+
+        @Override
+        public String toString() {
+            return "AtomIdentifier[" +
+                    "index=" + index + ", " +
+                    "kind=" + kind + ']';
+        }
+
+        }
 
     enum Kind {
         LIST_ATOM,

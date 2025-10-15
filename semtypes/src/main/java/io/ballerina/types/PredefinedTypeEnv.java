@@ -21,6 +21,7 @@ package io.ballerina.types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -627,7 +628,44 @@ public final class PredefinedTypeEnv {
         return Integer.max(initializedRecListAtoms.size(), initializedRecMappingAtoms.size());
     }
 
-    private record InitializedTypeAtom<E extends AtomicType>(E atomicType, int index) {
+    private static final class InitializedTypeAtom<E extends AtomicType> {
+
+        private final E atomicType;
+        private final int index;
+
+        private InitializedTypeAtom(E atomicType, int index) {
+            this.atomicType = atomicType;
+            this.index = index;
+        }
+
+        public E atomicType() {
+            return atomicType;
+        }
+
+        public int index() {
+            return index;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (InitializedTypeAtom) obj;
+            return Objects.equals(this.atomicType, that.atomicType) &&
+                    this.index == that.index;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(atomicType, index);
+        }
+
+        @Override
+        public String toString() {
+            return "InitializedTypeAtom[" +
+                    "atomicType=" + atomicType + ", " +
+                    "index=" + index + ']';
+        }
 
     }
 

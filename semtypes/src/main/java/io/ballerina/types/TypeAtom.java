@@ -17,15 +17,28 @@
  */
 package io.ballerina.types;
 
+import java.util.Objects;
+
 /**
  * Represent a TypeAtom.
  *
- * @param index      index of the type atom. This is unique within a given {@code Env}. {@code RecAtom}'s that refer to
- *                   this type atom will also have the same index.
- * @param atomicType atomic type representing the actual type represented by this atom.
  * @since 2201.8.0
  */
-public record TypeAtom(int index, AtomicType atomicType) implements Atom {
+public final class TypeAtom implements Atom {
+
+    private final int index;
+    private final AtomicType atomicType;
+
+    /**
+     * @param index      index of the type atom. This is unique within a given {@code Env}. {@code RecAtom}'s that refer
+     *                   to this type atom will also have the same index.
+     * @param atomicType atomic type representing the actual type represented by this atom.
+     *
+     */
+    public TypeAtom(int index, AtomicType atomicType) {
+        this.index = index;
+        this.atomicType = atomicType;
+    }
 
     // Note: Whenever creating a 'TypeAtom', its 'atomicType' needs to be added to the 'Env.atomTable'
     public static TypeAtom createTypeAtom(int index, AtomicType atomicType) {
@@ -42,4 +55,30 @@ public record TypeAtom(int index, AtomicType atomicType) implements Atom {
     public Kind kind() {
         return atomicType.atomKind();
     }
+
+    @Override
+    public int index() {
+        return index;
+    }
+
+    public AtomicType atomicType() {
+        return atomicType;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (TypeAtom) obj;
+        return this.index == that.index &&
+                Objects.equals(this.atomicType, that.atomicType);
+    }
+
+    @Override
+    public String toString() {
+        return "TypeAtom[" +
+                "index=" + index + ", " +
+                "atomicType=" + atomicType + ']';
+    }
+
 }
