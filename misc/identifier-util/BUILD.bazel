@@ -11,7 +11,9 @@ j2cl_library(
         "super-j2cl/**/*.java",
         "super-j2cl/**/*.js",
     ]),
-    deps = [],
+    deps = [
+        "@j2cl//:jsinterop-annotations-j2cl",
+    ],
     javacopts = [
         "-source", "21",
         "-target", "21",

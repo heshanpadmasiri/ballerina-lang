@@ -1,0 +1,66 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@j2cl//build_defs:rules.bzl", "j2cl_library")
+
+j2cl_library(
+    name = "ballerina-lang-j2cl",
+    srcs = glob([
+        "src/main/java/**/*.java",
+    ], exclude=[
+        # Always exclude module-info
+        "src/main/java/module-info.java",
+        # BIR code generation directories (ASM dependency)
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/**",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/writer/**",
+        # Files with external dependencies
+        "src/main/java/**/*Gson*.java",
+        "src/main/java/**/*Asm*.java",
+        "src/main/java/**/*Netty*.java",
+        "src/main/java/**/*Compress*.java",
+        "src/main/java/**/*Semver*.java",
+        "src/main/java/**/*Toml*.java",
+        # Specific files identified with external dependencies
+        "src/main/java/org/ballerinalang/toml/parser/ManifestProcessor.java",
+        "src/main/java/io/ballerina/projects/util/ProjectUtils.java",
+        "src/main/java/io/ballerina/projects/plugins/codeaction/CodeActionArgument.java",
+        "src/main/java/io/ballerina/projects/BalaWriter.java",
+        "src/main/java/io/ballerina/projects/internal/bala/PackageJson.java",
+        "src/main/java/io/ballerina/projects/internal/bala/ModuleDependency.java",
+        "src/main/java/io/ballerina/projects/internal/bala/adaptors/JsonCollectionsAdaptor.java",
+        "src/main/java/io/ballerina/projects/internal/bala/adaptors/JsonStringsAdaptor.java",
+        "src/main/java/io/ballerina/projects/internal/bala/DependencyGraphJson.java",
+        "src/main/java/io/ballerina/projects/internal/repositories/MavenPackageRepository.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/JvmTerminatorGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/types/JvmArrayTypeGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/types/JvmRefTypeGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/types/JvmUnionTypeGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/types/JvmRecordTypeGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/types/JvmErrorTypeGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/types/JvmObjectTypeGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/types/JvmTupleTypeGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/JvmConstantsGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/split/constants/JvmErrorTypeConstantsGen.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/writer/ConstantPool.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/writer/BIRTypeWriter.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/writer/BIRBinaryWriter.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/writer/BIRInstructionWriter.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/writer/BIRWriterUtils.java",
+        "src/main/java/org/wso2/ballerinalang/compiler/bir/codegen/internal/JarEntries.java",
+        "src/main/java/io/ballerina/projects/JBallerinaBackend.java",
+        "src/main/java/io/ballerina/projects/internal/repositories/FileSystemRepository.java",
+        "src/main/java/io/ballerina/projects/SemanticVersion.java",
+    ]) + glob([
+        "super-j2cl/**/*.java",
+    ]),
+    deps = [
+        "//compiler/ballerina-parser:ballerina-parser-j2cl",
+        "//compiler/ballerina-tools-api:ballerina-tools-api-j2cl",
+        "//bvm/ballerina-runtime:ballerina-runtime-j2cl",
+        "//semtypes:semtypes-j2cl",
+        "//misc/identifier-util:identifier-util-j2cl",
+    ],
+    javacopts = [
+        "-source", "21",
+        "-target", "21",
+    ],
+)
