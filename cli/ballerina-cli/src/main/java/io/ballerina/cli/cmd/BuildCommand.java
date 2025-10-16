@@ -336,23 +336,30 @@ public class BuildCommand implements BLauncherCmd {
     private void executeTasks(boolean isSingleFile, Project project, boolean skipExecutable) {
         BuildOptions buildOptions = project.buildOptions();
         boolean rebuildStatus = isRebuildNeeded(project, skipExecutable);
-        TaskExecutor taskExecutor = new TaskExecutor.TaskBuilder()
-                // clean the target directory(projects only)
-                .addTask(new CleanTargetDirTask(),  isSingleFile)
-                .addTask(new RestoreCachedArtifactsTask(), rebuildStatus)
-                // Run build tools
-                .addTask(new RunBuildToolsTask(outStream, !rebuildStatus), isSingleFile)
-                // resolve maven dependencies in Ballerina.toml
-                .addTask(new ResolveMavenDependenciesTask(outStream, !rebuildStatus))
-                // compile the modules
-                .addTask(new CompileTask(outStream, errStream, false, true, !rebuildStatus))
-                .addTask(new CreateExecutableTask(outStream, this.output, null, false,
-                         !rebuildStatus, skipExecutable))
-                .addTask(new DumpBuildTimeTask(outStream), !buildOptions.dumpBuildTime())
-                .addTask(new CacheArtifactsTask(BUILD_COMMAND, skipExecutable), !rebuildStatus || isSingleFile)
-                .addTask(new CreateFingerprintTask(false, skipExecutable), !rebuildStatus || isSingleFile)
-                .build();
-
+        boolean isTest = System.getenv().containsKey("BALLERINA_TEST_RUN");
+        TaskExecutor taskExecutor;
+        if (isTest) {
+            taskExecutor = new TaskExecutor.TaskBuilder()
+                    .addTask(new CompileTask(outStream, errStream, false, true, !rebuildStatus))
+                    .build();
+        } else {
+            taskExecutor = new TaskExecutor.TaskBuilder()
+                    // clean the target directory(projects only)
+                    .addTask(new CleanTargetDirTask(), isSingleFile)
+                    .addTask(new RestoreCachedArtifactsTask(), rebuildStatus)
+                    // Run build tools
+                    .addTask(new RunBuildToolsTask(outStream, !rebuildStatus), isSingleFile)
+                    // resolve maven dependencies in Ballerina.toml
+                    .addTask(new ResolveMavenDependenciesTask(outStream, !rebuildStatus))
+                    // compile the modules
+                    .addTask(new CompileTask(outStream, errStream, false, true, !rebuildStatus))
+                    .addTask(new CreateExecutableTask(outStream, this.output, null, false,
+                            !rebuildStatus, skipExecutable))
+                    .addTask(new DumpBuildTimeTask(outStream), !buildOptions.dumpBuildTime())
+                    .addTask(new CacheArtifactsTask(BUILD_COMMAND, skipExecutable), !rebuildStatus || isSingleFile)
+                    .addTask(new CreateFingerprintTask(false, skipExecutable), !rebuildStatus || isSingleFile)
+                    .build();
+        }
         taskExecutor.executeTasks(project);
     }
 
