@@ -6,6 +6,9 @@
     "ghcr.io/devcontainers/features/java:1": {
       "version": "21",
       "distribution": "adoptium"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
     }
   },
   "customizations": {
@@ -19,6 +22,9 @@
       ]
     }
   },
-  "postCreateCommand": "echo 'Development environment ready!'",
-  "remoteUser": "vscode"
+  "postCreateCommand": "npm install -g @anthropic-ai/claude-code && echo 'Development environment ready! Claude Code installed.'",
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "CLAUDE_CODE_ENABLED": "true"
+  }
 }
