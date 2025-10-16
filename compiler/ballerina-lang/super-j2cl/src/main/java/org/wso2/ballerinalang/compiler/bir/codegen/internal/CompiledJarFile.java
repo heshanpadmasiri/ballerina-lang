@@ -21,7 +21,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
- * A wrapper class for keeping code generated binary content and metadata of a program jar file.
+ * Stub wrapper class for compiled jar file in web version.
+ * This class provides the interface expected by the compiler pipeline
+ * but throws RuntimeException when JAR operations are attempted.
  *
  * @since 2.0.0
  */
@@ -34,6 +36,6 @@ public class CompiledJarFile {
     }
 
     public ByteArrayOutputStream toByteArrayStream() throws IOException {
-        return jarEntries.getByteArrayOutputStream();
+        throw new RuntimeException("JAR file operations are not supported in the web version. Use BIR emission instead.");
     }
 }

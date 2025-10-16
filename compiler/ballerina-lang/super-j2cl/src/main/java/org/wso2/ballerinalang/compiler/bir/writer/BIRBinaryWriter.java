@@ -214,7 +214,7 @@ public class BIRBinaryWriter {
         BIRWriterUtils.writeType(cp, buf, birFunction.type);
 
         writePathParameters(buf, birFunction);
-        
+
         // Store annotations here...
         BIRWriterUtils.writeAnnotAttachments(cp, buf, birFunction.annotAttachments);
 
@@ -320,7 +320,7 @@ public class BIRBinaryWriter {
         buf.writeLong(length);
         buf.writeBytes(birbuf.nioBuffer().array(), 0, length);
     }
-    
+
     private void writePathParameters(ByteBuf buf, BIRNode.BIRFunction birFunction) {
         boolean isResourceFunction = birFunction.resourcePath != null;
         buf.writeBoolean(isResourceFunction);
