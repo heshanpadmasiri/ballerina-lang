@@ -1,0 +1,1173 @@
+/*
+ *  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+package org.wso2.ballerinalang.compiler.tree;
+
+import org.wso2.ballerinalang.compiler.tree.BLangXMLNS.BLangLocalXMLNS;
+import org.wso2.ballerinalang.compiler.tree.BLangXMLNS.BLangPackageXMLNS;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangCaptureBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangErrorBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangErrorCauseBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangErrorFieldBindingPatterns;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangErrorMessageBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangFieldBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangListBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangMappingBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangNamedArgBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangRestBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangSimpleBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.bindingpatterns.BLangWildCardBindingPattern;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangCollectClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangDoClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangFromClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangGroupByClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangGroupingKey;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangJoinClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangLetClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangLimitClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangMatchClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangOnClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangOnConflictClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangOnFailClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangOrderByClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangOrderKey;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangSelectClause;
+import org.wso2.ballerinalang.compiler.tree.clauses.BLangWhereClause;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangAlternateWorkerReceive;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangAnnotAccessExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangArrowFunction;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangBinaryExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangCheckPanickedExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangCheckedExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangCollectContextInvocation;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangCommitExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangConstRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangConstant;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangDynamicArgExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangElvisExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangErrorConstructorExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangErrorVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangExtendedXMLNavigationAccess;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangFieldBasedAccess;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangFieldBasedAccess.BLangStructFunctionVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangGroupExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIgnoreExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIndexBasedAccess;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIndexBasedAccess.BLangArrayAccessExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIndexBasedAccess.BLangJSONAccessExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIndexBasedAccess.BLangMapAccessExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIndexBasedAccess.BLangStructFieldAccessExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIndexBasedAccess.BLangTableAccessExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIndexBasedAccess.BLangTupleAccessExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIndexBasedAccess.BLangXMLAccessExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangInferredTypedescDefaultNode;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangInvocation;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangInvocation.BFunctionPointerInvocation;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangInvocation.BLangActionInvocation;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIsAssignableExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangIsLikeExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangLambdaFunction;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangLetExpression;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangListConstructorExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangListConstructorExpr.BLangArrayLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangListConstructorExpr.BLangJSONArrayLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangListConstructorExpr.BLangTupleLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangMarkDownDeprecatedParametersDocumentation;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangMarkDownDeprecationDocumentation;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangMarkdownDocumentationLine;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangMarkdownParameterDocumentation;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangMarkdownReturnParameterDocumentation;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangMatchGuard;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangMultipleWorkerReceive;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangNamedArgsExpression;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangNaturalExpression;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangNumericLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangObjectConstructorExpression;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangQueryAction;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangQueryExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangRawTemplateLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReAssertion;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReAtomCharOrEscape;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReAtomQuantifier;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReCapturingGroups;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReCharSet;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReCharSetRange;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReCharacterClass;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReDisjunction;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReFlagExpression;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReFlagsOnOff;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReQuantifier;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangReSequence;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangRecordLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangRecordLiteral.BLangMapLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangRecordLiteral.BLangStructLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangRecordVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangRegExpTemplateLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangRestArgsExpression;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangServiceConstructorExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef.BLangFieldVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef.BLangFunctionVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef.BLangLocalVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef.BLangPackageVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangSimpleVarRef.BLangTypeLoad;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangStatementExpression;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangStringTemplateLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTableConstructorExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTernaryExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTransactionalExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTrapExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTupleVarRef;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTypeConversionExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTypeInit;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTypeTestExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangTypedescExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangUnaryExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangWaitExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangWaitForAllExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangWorkerAsyncSendExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangWorkerFlushExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangWorkerReceive;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangWorkerSyncSendExpr;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLAttribute;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLCommentLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLElementAccess;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLElementFilter;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLElementLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLFilterStepExtend;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLIndexedStepExtend;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLMethodCallStepExtend;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLNavigationAccess;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLProcInsLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLQName;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLQuotedString;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLSequenceLiteral;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangXMLTextLiteral;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangConstPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangErrorCauseMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangErrorFieldMatchPatterns;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangErrorMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangErrorMessageMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangFieldMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangListMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangMappingMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangNamedArgMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangRestMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangSimpleMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangVarBindingPatternMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.matchpatterns.BLangWildCardMatchPattern;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangAssignment;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangBlockStmt;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangBreak;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangCompoundAssignment;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangContinue;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangDo;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangErrorDestructure;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangErrorVariableDef;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangExpressionStmt;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangFail;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangForeach;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangForkJoin;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangIf;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangLock;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangLock.BLangLockStmt;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangLock.BLangUnLockStmt;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangMatchStatement;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangPanic;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangRecordDestructure;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangRecordVariableDef;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangRetry;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangRetryTransaction;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangReturn;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangRollback;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangSimpleVariableDef;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangTransaction;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangTupleDestructure;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangTupleVariableDef;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangWhile;
+import org.wso2.ballerinalang.compiler.tree.statements.BLangXMLNSStatement;
+import org.wso2.ballerinalang.compiler.tree.types.BLangArrayType;
+import org.wso2.ballerinalang.compiler.tree.types.BLangBuiltInRefTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangConstrainedType;
+import org.wso2.ballerinalang.compiler.tree.types.BLangErrorType;
+import org.wso2.ballerinalang.compiler.tree.types.BLangFiniteTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangFunctionTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangIntersectionTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangObjectTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangRecordTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangStreamType;
+import org.wso2.ballerinalang.compiler.tree.types.BLangTableTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangTupleTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangUnionTypeNode;
+import org.wso2.ballerinalang.compiler.tree.types.BLangUserDefinedType;
+import org.wso2.ballerinalang.compiler.tree.types.BLangValueType;
+
+/**
+ * @since 0.94
+ * @deprecated since 2.0.0. Use {@link BLangNodeAnalyzer} or {@link BLangNodeTransformer}.
+ */
+@Deprecated(since = "2.0.0")
+public abstract class BLangNodeVisitor {
+
+    public void visit(BLangPackage pkgNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTestablePackage testablePkgNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangCompilationUnit compUnit) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangImportPackage importPkgNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLNS xmlnsNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFunction funcNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangBlockFunctionBody blockFuncBody) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangExprFunctionBody exprFuncBody) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangExternalFunctionBody externFuncBody) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangService serviceNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTypeDefinition typeDefinition) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangConstant constant) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangSimpleVariable varNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangIdentifier identifierNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangAnnotation annotationNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangAnnotationAttachment annAttachmentNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTableKeySpecifier tableKeySpecifierNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTableKeyTypeConstraint tableKeyTypeConstraint) {
+        throw new AssertionError();
+    }
+
+    // Statements
+    public void visit(BLangBlockStmt blockNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangLockStmt lockStmtNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangUnLockStmt unLockNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangSimpleVariableDef varDefNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangAssignment assignNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangCompoundAssignment compoundAssignNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRetry retryNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRetryTransaction retryTransaction) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRetrySpec retrySpec) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangContinue continueNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangBreak breakNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReturn returnNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangPanic panicNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLNSStatement xmlnsStmtNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangExpressionStmt exprStmtNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangIf ifNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangQueryAction queryAction) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMatchStatement matchStatementNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMatchGuard matchGuard) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangConstPattern constMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWildCardMatchPattern wildCardMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangVarBindingPatternMatchPattern varBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMappingMatchPattern mappingMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFieldMatchPattern fieldMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRestMatchPattern restMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangListMatchPattern listMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangCaptureBindingPattern captureBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangListBindingPattern listBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMappingBindingPattern mappingBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFieldBindingPattern fieldBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRestBindingPattern restBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWildCardBindingPattern wildCardBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorMatchPattern errorMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorMessageMatchPattern errorMessageMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorCauseMatchPattern errorCauseMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorFieldMatchPatterns errorFieldMatchPatterns) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangSimpleMatchPattern simpleMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangNamedArgMatchPattern namedArgMatchPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorBindingPattern errorBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorMessageBindingPattern errorMessageBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorCauseBindingPattern errorCauseBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorFieldBindingPatterns errorFieldBindingPatterns) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangSimpleBindingPattern simpleBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangNamedArgBindingPattern namedArgBindingPattern) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangForeach foreach) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangDo doNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFail failNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFromClause fromClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangJoinClause joinClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangLetClause letClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangOnClause onClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangOrderKey orderKeyClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangOrderByClause orderByClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangGroupingKey groupingKeyClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangGroupByClause groupByClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangSelectClause selectClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangCollectClause collectClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWhereClause whereClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangDoClause doClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangOnFailClause onFailClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangOnConflictClause onConflictClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangLimitClause limitClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMatchClause matchClause) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWhile whileNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangLock lockNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTransaction transactionNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTupleDestructure stmt) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordDestructure stmt) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorDestructure stmt) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangForkJoin forkJoin) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWorkerAsyncSendExpr asyncSendExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWorkerReceive workerReceiveNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangAlternateWorkerReceive alternateWorkerReceive) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMultipleWorkerReceive multipleWorkerReceive) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRollback rollbackNode) {
+        throw new AssertionError();
+    }
+
+    // Expressions
+
+    public void visit(BLangLiteral literalExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangConstRef constRef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangNumericLiteral literalExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordLiteral recordLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTupleVarRef varRefExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordVarRef varRefExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorVarRef varRefExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangSimpleVarRef varRefExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFieldBasedAccess fieldAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFieldBasedAccess.BLangPrefixedFieldBasedAccess prefixedFieldBasedAccess) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangIndexBasedAccess indexAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangInvocation invocationExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangCollectContextInvocation collectContextInvocationExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTypeInit connectorInitExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangActionInvocation actionInvocationExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTernaryExpr ternaryExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWaitExpr awaitExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTrapExpr trapExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangBinaryExpr binaryExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangElvisExpr elvisExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangGroupExpr groupExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangLetExpression letExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangListConstructorExpr listConstructorExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangListConstructorExpr.BLangListConstructorSpreadOpExpr listConstructorSpreadOpExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTableConstructorExpr tableConstructorExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTupleLiteral tupleLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangArrayLiteral arrayLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangUnaryExpr unaryExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTypedescExpr accessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTypeConversionExpr conversionExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLQName xmlQName) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLAttribute xmlAttribute) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLElementLiteral xmlElementLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLTextLiteral xmlTextLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLCommentLiteral xmlCommentLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLProcInsLiteral xmlProcInsLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLQuotedString xmlQuotedString) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangStringTemplateLiteral stringTemplateLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRawTemplateLiteral rawTemplateLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangLambdaFunction bLangLambdaFunction) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangArrowFunction bLangArrowFunction) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRestArgsExpression bLangVarArgsExpression) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangNamedArgsExpression bLangNamedArgsExpression) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangIsAssignableExpr assignableExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangCheckedExpr checkedExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorConstructorExpr errorConstructorExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangCheckPanickedExpr checkPanickedExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangServiceConstructorExpr serviceConstructorExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTypeTestExpr typeTestExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangIsLikeExpr typeTestExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangIgnoreExpr ignoreExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangDynamicArgExpr dynamicParamExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangAnnotAccessExpr annotAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangQueryExpr queryExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTransactionalExpr transactionalExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangCommitExpr commitExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangObjectConstructorExpression bLangObjectConstructorExpression) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangInferredTypedescDefaultNode inferTypedescExpr) {
+        throw new AssertionError();
+    }
+
+    // Type nodes
+
+    public void visit(BLangValueType valueType) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangArrayType arrayType) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangBuiltInRefTypeNode builtInRefType) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangConstrainedType constrainedType) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangStreamType streamType) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTableTypeNode tableType) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangUserDefinedType userDefinedType) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFunctionTypeNode functionTypeNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangUnionTypeNode unionTypeNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangIntersectionTypeNode intersectionTypeNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangObjectTypeNode objectTypeNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordTypeNode recordTypeNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFiniteTypeNode finiteTypeNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTupleTypeNode tupleTypeNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorType errorType) {
+        throw new AssertionError();
+    }
+
+    // expressions that will used only from the Desugar phase
+
+    public void visit(BLangLocalVarRef localVarRef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFieldVarRef fieldVarRef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangPackageVarRef packageVarRef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangFunctionVarRef functionVarRef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTypeLoad typeLoad) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangStructFieldAccessExpr fieldAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangStructFunctionVarRef functionVarRef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMapAccessExpr mapKeyAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangArrayAccessExpr arrayIndexAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTupleAccessExpr arrayIndexAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTableAccessExpr tableKeyAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLAccessExpr xmlAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMapLiteral mapLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangStructLiteral structLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BFunctionPointerInvocation bFunctionPointerInvocation) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangInvocation.BLangAttachedFunctionInvocation iExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangJSONArrayLiteral jsonArrayLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangJSONAccessExpr jsonAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangIndexBasedAccess.BLangStringAccessExpr stringAccessExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangLocalXMLNS xmlnsNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangPackageXMLNS xmlnsNode) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLSequenceLiteral bLangXMLSequenceLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangStatementExpression bLangStatementExpression) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMarkdownDocumentationLine bLangMarkdownDocumentationLine) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMarkdownParameterDocumentation bLangDocumentationParameter) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMarkdownReturnParameterDocumentation bLangMarkdownReturnParameterDocumentation) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMarkDownDeprecationDocumentation bLangMarkDownDeprecationDocumentation) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMarkDownDeprecatedParametersDocumentation bLangMarkDownDeprecatedParametersDocumentation) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMarkdownDocumentation bLangMarkdownDocumentation) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTupleVariable bLangTupleVariable) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangTupleVariableDef bLangTupleVariableDef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordVariable bLangRecordVariable) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordVariableDef bLangRecordVariableDef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorVariable bLangErrorVariable) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangErrorVariableDef bLangErrorVariableDef) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWorkerFlushExpr workerFlushExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWorkerSyncSendExpr syncSendExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWaitForAllExpr waitForAllExpr) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWaitForAllExpr.BLangWaitLiteral waitLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordLiteral.BLangRecordKeyValueField recordKeyValue) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordLiteral.BLangRecordKey recordKey) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRecordLiteral.BLangRecordSpreadOperatorField spreadOperatorField) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangMarkdownReferenceDocumentation bLangMarkdownReferenceDocumentation) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangWaitForAllExpr.BLangWaitKeyValue waitKeyValue) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLElementFilter xmlElementFilter) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLElementAccess xmlElementAccess) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLNavigationAccess xmlNavigation) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangClassDefinition classDefinition) {
+        throw  new AssertionError();
+    }
+
+    public void visit(BLangResourceFunction resourceFunction) {
+        throw new AssertionError();
+    }
+    
+    public void visit(BLangResourcePathSegment resourcePathSegment) {
+        throw new AssertionError();
+    }
+    
+    public void visit(BLangInvocation.BLangResourceAccessInvocation resourceAccessInvocation) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangRegExpTemplateLiteral regExpTemplateLiteral) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReSequence reSequence) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReAtomQuantifier reAtomQuantifier) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReAtomCharOrEscape reAtomCharOrEscape) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReQuantifier reQuantifier) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReCharacterClass reCharacterClass) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReCharSet reCharSet) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReCharSetRange reCharSetRange) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReAssertion reAssertion) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReCapturingGroups reCapturingGroups) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReDisjunction reDisjunction) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReFlagsOnOff reFlagsOnOff) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangReFlagExpression reFlagsOnOff) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLIndexedStepExtend xmlIndexedStepExtend) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLFilterStepExtend xmlFilterStepExtend) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangXMLMethodCallStepExtend xmlMethodCallStepExtend) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangExtendedXMLNavigationAccess extendedXMLNavigationAccess) {
+        throw new AssertionError();
+    }
+
+    public void visit(BLangNaturalExpression naturalExpression) {
+        throw new AssertionError();
+    }
+}

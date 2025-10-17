@@ -1,0 +1,110 @@
+/*
+ * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+plugins {
+    id 'javaProject'
+    id 'application'
+}
+
+dependencies {
+    implementation project(':ballerina-tools-api')
+    implementation project(':ballerina-parser')
+    implementation project(':ballerina-runtime')
+    implementation project(':toml-parser')
+    implementation project(':semtypes')
+    implementation project(':central-client')
+    implementation project(':maven-resolver')
+    implementation project(':identifier-util')
+    implementation libs.toml4j
+    implementation(libs.apache.commons.compress) {
+        exclude group: 'commons-codec', module: 'commons-codec'
+        exclude group: 'org.apache.commons', module: 'commons-lang3'
+    }
+    implementation libs.netty.buffer
+    implementation libs.ow2.asm
+    implementation libs.commons.io
+    implementation libs.zafarkhaja.jsemver
+    testImplementation(libs.guru.nidi.graphviz) {
+        because("We use this library to execute package resolution tests")
+    }
+    testImplementation libs.testng
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.testng
+    testImplementation libs.apache.commons.lang3
+}
+
+description = 'Ballerina - Lang'
+
+application {
+    mainClass = 'web.Main'
+}
+
+checkstyleMain {
+    exclude 'io/ballerina/projects/internal/bala/BalaJson.java'
+    exclude 'io/ballerina/projects/internal/bala/PackageJson.java'
+    exclude 'io/ballerina/projects/internal/bala/CompilerPluginJson.java'
+    exclude 'io/ballerina/projects/internal/bala/BalToolJson.java'
+    exclude 'org/ballerinalang/toml/model/Module.java'
+    exclude 'org/ballerinalang/toml/model/Bala.java'
+    exclude 'org/ballerinalang/toml/model/LockFile.java'
+    exclude 'org/ballerinalang/toml/model/LockFileImport.java'
+    exclude 'io/ballerina/projects/internal/model/BalaJson.java'
+    exclude 'io/ballerina/projects/internal/model/PackageJson.java'
+    exclude 'io/ballerina/projects/internal/model/CompilerPluginToml.java'
+    exclude 'io/ballerina/projects/internal/model/BalToolToml.java'
+    exclude 'io/ballerina/compiler/api/Types.java'
+    exclude 'io/ballerina/compiler/api/TypeBuilder.java'
+}
+
+test {
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
+    }
+}
+
+processResources {
+    include 'META-INF/services/*'
+    include '**/tool.properties'
+    include 'ballerina-toml-schema.json'
+    include 'workspace-ballerina-toml-schema.json'
+    include 'compiler.properties'
+    include 'dependencies-toml-schema.json'
+    include 'old-dependencies-toml-schema.json'
+    include 'settings-toml-schema.json'
+    include 'bal-tools-toml-schema.json'
+    filter { String line -> line.replace('${project.version}', "${project.version}")}
+    filter { String line -> line.replace('${short.version}', "${project.version}")}
+    filter { String line -> line.replace('${spec.version}', "${project.specVersion}")}
+    filter { String line -> line.replace('${apiDocs.version}', "${project.apiDocsVersion}")}
+}
+
+ext.moduleName = 'ballerina.lang'
+
+compileJava {
+    inputs.property("moduleName", moduleName)
+    doFirst {
+        options.compilerArgs << '--module-path' << classpath.asPath
+        classpath = files()
+    }
+}
+
+javadoc {
+    doFirst {
+        options.modulePath = classpath.toList()
+        classpath = files()
+    }
+}

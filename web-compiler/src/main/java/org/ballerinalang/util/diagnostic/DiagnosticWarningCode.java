@@ -1,0 +1,101 @@
+/*
+ *  Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+package org.ballerinalang.util.diagnostic;
+
+import io.ballerina.tools.diagnostics.DiagnosticCode;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+
+/**
+ * This class contains a list of diagnostic warning codes.
+ *
+ * @since Swan Lake
+ */
+public enum DiagnosticWarningCode implements DiagnosticCode {
+
+    NON_MODULE_QUALIFIED_ERROR_REASON("BCE20000", "non.module.qualified.error.reason"),
+
+    UNDOCUMENTED_PARAMETER("BCE20001", "undocumented.parameter"),
+    NO_SUCH_DOCUMENTABLE_PARAMETER("BCE20002", "no.such.documentable.parameter"),
+    PARAMETER_ALREADY_DOCUMENTED("BCE20003", "parameter.already.documented"),
+    UNDOCUMENTED_FIELD("BCE20004", "undocumented.field"),
+    NO_SUCH_DOCUMENTABLE_FIELD("BCE20005", "no.such.documentable.field"),
+    FIELD_ALREADY_DOCUMENTED("BCE20006", "field.already.documented"),
+    UNDOCUMENTED_VARIABLE("BCE20007", "undocumented.variable"),
+    NO_SUCH_DOCUMENTABLE_VARIABLE("BCE20008", "no.such.documentable.variable"),
+    VARIABLE_ALREADY_DOCUMENTED("BCE20009", "variable.already.documented"),
+    UNDOCUMENTED_RETURN_PARAMETER("BCE20010", "undocumented.return.parameter"),
+    NO_DOCUMENTABLE_RETURN_PARAMETER("BCE20011", "no.documentable.return.parameter"),
+    INVALID_DOCUMENTATION_REFERENCE("BCE20012", "invalid.documentation.reference"),
+    INVALID_USAGE_OF_PARAMETER_REFERENCE("BCE20013", "invalid.use.of.parameter.reference"),
+
+    NO_SUCH_DOCUMENTABLE_ATTRIBUTE("BCE20014", "no.such.documentable.attribute"),
+    INVALID_USE_OF_ENDPOINT_DOCUMENTATION_ATTRIBUTE("BCE20015", "invalid.use.of.endpoint.documentation.attribute"),
+    DUPLICATE_DOCUMENTED_ATTRIBUTE("BCE20016", "duplicate.documented.attribute"),
+    UNDEFINED_DOCUMENTATION_PUBLIC_FUNCTION("BCE20017", "undefined.documentation.public.function"),
+    USAGE_OF_DEPRECATED_CONSTRUCT("BCE20018", "usage.of.deprecated.construct"),
+    INVALID_DEPRECATION_DOCUMENTATION("BCE20019", "invalid.deprecation.documentation"),
+    DEPRECATION_DOCUMENTATION_SHOULD_BE_AVAILABLE("BCE20020", "deprecation.documentation.should.available"),
+    DEPRECATED_PARAMETERS_DOCUMENTATION_NOT_ALLOWED("BCE20021", "deprecated.parameters.documentation.not.allowed"),
+    ATTEMPT_EXPOSE_NON_PUBLIC_SYMBOL("BCE20022", "attempt.expose.non.public.symbol"),
+
+    // Parser diagnostic codes
+    SYNTAX_WARNING("BCE20200", "syntax.warning"),
+
+    MATCH_STMT_PATTERN_UNREACHABLE("BCE20250", "match.stmt.unreachable.pattern.available"),
+    MATCH_STMT_UNMATCHED_PATTERN("BCE20251", "match.stmt.unmatched.pattern"),
+
+    COMPILER_PLUGIN_ERROR("BCE20300", "compiler.plugin.crashed"),
+
+    FUNCTION_SHOULD_EXPLICITLY_RETURN_A_VALUE("BCE20350", "function.should.explicitly.return.a.value"),
+
+    UNUSED_LOCAL_VARIABLE("BCE20403", "unused.local.variable"),
+
+    CHECKED_EXPR_INVALID_USAGE_NO_ERROR_TYPE_IN_RHS("BCE20404", "checked.expr.invalid.usage.no.error.type.rhs"),
+
+    INVALID_METADATA_ON_DUPLICATE_ENUM_MEMBER("BCE20405", "invalid.metadata.on.duplicate.enum.member"),
+
+    USAGE_OF_STRAND_ANNOTATION_WILL_BE_DEPRECATED("BCE20406", "strand.annotation.will.be.deprecated"),
+    ;
+
+    private final String diagnosticId;
+    private final String messageKey;
+
+    DiagnosticWarningCode(String diagnosticId, String messageKey) {
+        this.diagnosticId = diagnosticId;
+        this.messageKey = messageKey;
+    }
+
+    @Override
+    public DiagnosticSeverity severity() {
+        return DiagnosticSeverity.WARNING;
+    }
+
+    @Override
+    public String diagnosticId() {
+        return diagnosticId;
+    }
+
+    @Override
+    public String messageKey() {
+        return messageKey;
+    }
+
+    public boolean equals(DiagnosticCode code) {
+        return this.messageKey.equals(code.messageKey());
+    }
+}

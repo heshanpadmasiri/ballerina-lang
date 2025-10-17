@@ -1,0 +1,85 @@
+/*
+ *  Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+package io.ballerina.projects.internal;
+
+import io.ballerina.projects.ModuleDescriptor;
+import io.ballerina.projects.ProjectKind;
+
+import java.nio.file.Path;
+
+/**
+ * Data holder class for {@code ModuleContext}.
+ *
+ * @since 2.0.0
+ */
+public class ModuleContextDataHolder {
+
+    private final boolean exported;
+    private final ModuleDescriptor descriptor;
+    private final ProjectKind projectKind;
+    private final boolean skipTests;
+    private final Path sourceRoot;
+    private final boolean isObservabiltyIncluded;
+    private final boolean dumpBir;
+    private final String cloud;
+
+    public ModuleContextDataHolder(boolean exported, ModuleDescriptor descriptor, ProjectKind projectKind,
+                                   boolean skipTests, Path sourceRoot, boolean isObservabiltyIncluded,
+                                   boolean dumpBir, String cloud) {
+        this.exported = exported;
+        this.descriptor = descriptor;
+        this.projectKind = projectKind;
+        this.skipTests = skipTests;
+        this.sourceRoot = sourceRoot;
+        this.isObservabiltyIncluded = isObservabiltyIncluded;
+        this.dumpBir = dumpBir;
+        this.cloud = cloud;
+    }
+
+    public boolean isExported() {
+        return exported;
+    }
+
+    public ModuleDescriptor descriptor() {
+        return descriptor;
+    }
+
+    public ProjectKind projectKind() {
+        return projectKind;
+    }
+
+    public boolean skipTests() {
+        return skipTests;
+    }
+
+    public Path sourceRoot() {
+        return sourceRoot;
+    }
+
+    public boolean isObservabiltyIncluded() {
+        return isObservabiltyIncluded;
+    }
+
+    public boolean isDumpBir() {
+        return dumpBir;
+    }
+
+    public String cloud() {
+        return cloud;
+    }
+}

@@ -146,6 +146,7 @@ include(':project-api-test-artifact:pkg-provided-compiler-plugin-with-shared-dat
 include(':project-api-test-artifact:pkg-provided-compiler-plugin-with-resource-addition')
 include(':identifier-util')
 include(':ballerina-profiler')
+include(':web-compiler')
 
 //include(':ballerina-libs')
 include(':bir-spec')
@@ -262,6 +263,7 @@ project(':jballerina-debugger-integration-test').projectDir = file('tests/jballe
 project(':bal-tools-integration-tests').projectDir = file( 'tests/bal-tools-integration-tests')
 project(':bir-spec').projectDir = file('docs/bir-spec')
 project(':identifier-util').projectDir = file('misc/identifier-util')
+project(':web-compiler').projectDir = file('web-compiler')
 
 project(':debug-adapter:debug-adapter-core').projectDir = file('misc/debug-adapter/modules/debug-adapter-core')
 project(':debug-adapter:debug-adapter-cli').projectDir = file('misc/debug-adapter/modules/debug-adapter-cli')
