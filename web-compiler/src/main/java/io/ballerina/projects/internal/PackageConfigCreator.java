@@ -98,7 +98,7 @@ public final class PackageConfigCreator {
     }
 
     public static PackageConfig createSingleFileProjectConfig(Path filePath, Boolean disableSyntaxTree) {
-        ProjectFiles.validateSingleFileProjectFilePath(filePath);
+//        ProjectFiles.validateSingleFileProjectFilePath(filePath);
 
         // Create a PackageManifest instance
         PackageDescriptor packageDesc = PackageDescriptor.from(PackageOrg.from(ProjectConstants.ANON_ORG),
