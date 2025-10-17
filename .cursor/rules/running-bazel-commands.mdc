@@ -1,0 +1,5 @@
+---
+description: Running bazel commands
+alwaysApply: false
+---
+When running bazel commands always keep the number of jobs as 2

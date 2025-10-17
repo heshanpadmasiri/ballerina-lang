@@ -1,0 +1,11 @@
+---
+description: How to fix various incompatibilities with java and j2cl
+alwaysApply: false
+---
+
+# Stream
++ Replace `toList` with `collect(Collectors.toList())` collector
++ Replace `toArray(T[]::new)` with actual array allocation (`toArray(new T[0])`)
+
+# Arrays
++ Replace `T[].clone` with `Arrays.copyof`

@@ -1,0 +1,11 @@
+---
+description: When modifying/deleting java source code for j2cl library
+alwaysApply: false
+---
+# Modifying file
++ If the file is already super sourced you can directly modify the super souced file.
++ If not super source it first and then modify it.
+
+# Deleting file
++ If not super sourced, explicitly exclude the file the BUILD.bazel file
++ If super sourced already just delete the super sourced file.
