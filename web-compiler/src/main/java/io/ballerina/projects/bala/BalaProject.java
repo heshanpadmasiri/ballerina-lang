@@ -79,7 +79,7 @@ public class BalaProject extends Project {
     }
 
     private BalaProject(ProjectEnvironmentBuilder environmentBuilder, Path balaPath, BuildOptions buildOptions) {
-        super(ProjectKind.BALA_PROJECT, balaPath, environmentBuilder, buildOptions, null);
+        super(ProjectKind.BALA_PROJECT, balaPath, environmentBuilder, buildOptions);
         this.platform = BalaFiles.readPackageJson(balaPath).getPlatform();
         this.balaVersion = BalaFiles.readBalaJson(balaPath).getBala_version();
     }

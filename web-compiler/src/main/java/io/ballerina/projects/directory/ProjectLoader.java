@@ -62,25 +62,7 @@ public final class ProjectLoader {
      */
     public static ProjectLoadResult load(Path path, ProjectEnvironmentBuilder projectEnvironmentBuilder,
                                       BuildOptions buildOptions) throws ProjectException {
-        if (!Files.exists(path)) {
-            throw new ProjectException("provided file path does not exist");
-        }
-        Optional<Path> workspaceRoot = ProjectPaths.workspaceRoot(path);
-        if (workspaceRoot.isPresent()) {
-            // If the path is in a workspace, load the workspace project
-            return WorkspaceProject.loadProject(workspaceRoot.get(), EnvironmentBuilder.getBuilder(), buildOptions);
-        }
-        try {
-            Path packageRoot = ProjectPaths.packageRoot(path);
-            if (ProjectPaths.isBuildProjectRoot(packageRoot)) {
-                return BuildProject.loadProject(packageRoot, projectEnvironmentBuilder, buildOptions, null, null);
-            }
-            projectEnvironmentBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-            return BalaProject.load(packageRoot, projectEnvironmentBuilder, buildOptions);
-        } catch (ProjectException e) {
-            // If the path is not a valid package root, it might be a single file project
-            return SingleFileProject.loadProject(path, projectEnvironmentBuilder, buildOptions);
-        }
+        throw new RuntimeException("web");
     }
 
     /**

@@ -75,14 +75,13 @@ import static io.ballerina.projects.util.ProjectUtils.readBuildJson;
 public class BuildProject extends Project implements Comparable<Project> {
 
     static ProjectLoadResult loadProject(Path projectPath, ProjectEnvironmentBuilder environmentBuilder,
-                                         BuildOptions buildOptions, WorkspaceProject workspaceProject, String org) {
+                                         BuildOptions buildOptions, String org) {
         PackageConfig packageConfig = PackageConfigCreator.createBuildProjectConfig(projectPath,
                 buildOptions.disableSyntaxTree(), org);
         BuildOptions mergedBuildOptions = ProjectFiles.createBuildOptions(
                 packageConfig, buildOptions, projectPath, org);
 
-        BuildProject buildProject = new BuildProject(environmentBuilder, projectPath, mergedBuildOptions,
-                workspaceProject);
+        BuildProject buildProject = new BuildProject(environmentBuilder, projectPath, mergedBuildOptions);
         buildProject.addPackage(packageConfig);
         return new ProjectLoadResult(buildProject, buildProject.currentPackage().manifest().diagnostics());
     }
@@ -143,15 +142,13 @@ public class BuildProject extends Project implements Comparable<Project> {
         BuildOptions mergedBuildOptions = ProjectFiles.createBuildOptions(
                 packageConfig, buildOptions, projectPath, null);
 
-        BuildProject buildProject = new BuildProject(environmentBuilder, projectPath, mergedBuildOptions,
-                null);
+        BuildProject buildProject = new BuildProject(environmentBuilder, projectPath, mergedBuildOptions);
         buildProject.addPackage(packageConfig);
         return buildProject;
     }
 
-    private BuildProject(ProjectEnvironmentBuilder environmentBuilder, Path projectPath, BuildOptions buildOptions,
-                         WorkspaceProject workspaceProject) {
-        super(ProjectKind.BUILD_PROJECT, projectPath, environmentBuilder, buildOptions, workspaceProject);
+    private BuildProject(ProjectEnvironmentBuilder environmentBuilder, Path projectPath, BuildOptions buildOptions) {
+        super(ProjectKind.BUILD_PROJECT, projectPath, environmentBuilder, buildOptions);
         populateCompilerContext();
     }
 
@@ -230,8 +227,7 @@ public class BuildProject extends Project implements Comparable<Project> {
     public Project duplicate() {
         BuildOptions duplicateBuildOptions = BuildOptions.builder().build().acceptTheirs(buildOptions());
         BuildProject buildProject = new BuildProject(
-                ProjectEnvironmentBuilder.getDefaultBuilder(), this.sourceRoot, duplicateBuildOptions,
-                this.workspaceProject);
+                ProjectEnvironmentBuilder.getDefaultBuilder(), this.sourceRoot, duplicateBuildOptions);
         return resetPackage(buildProject);
     }
 

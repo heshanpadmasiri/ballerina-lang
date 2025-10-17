@@ -114,7 +114,7 @@ public class SingleFileProject extends Project implements Comparable<Project> {
     }
 
     private SingleFileProject(ProjectEnvironmentBuilder environmentBuilder, Path filePath, BuildOptions buildOptions) {
-        super(ProjectKind.SINGLE_FILE_PROJECT, filePath, environmentBuilder, buildOptions, null);
+        super(ProjectKind.SINGLE_FILE_PROJECT, filePath, environmentBuilder, buildOptions);
 
         try {
             this.targetDir = Files.createTempDirectory("ballerina-cache" + System.nanoTime());

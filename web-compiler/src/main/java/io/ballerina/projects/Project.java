@@ -18,7 +18,6 @@
 package io.ballerina.projects;
 
 import io.ballerina.projects.buildtools.ToolContext;
-import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.projects.environment.ProjectEnvironment;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.CompilerOptions;
@@ -42,17 +41,14 @@ public abstract class Project {
     private final ProjectKind projectKind;
     private Map<PackageManifest.Tool.Field, ToolContext> toolContextMap;
     private final List<CompilerPluginContextIml> compilerPluginContexts;
-    protected WorkspaceProject workspaceProject;
 
     protected Project(ProjectKind projectKind, Path projectPath,
-                      ProjectEnvironmentBuilder projectEnvironmentBuilder, BuildOptions buildOptions,
-                      WorkspaceProject workspaceProject) {
+                      ProjectEnvironmentBuilder projectEnvironmentBuilder, BuildOptions buildOptions) {
         this.projectKind = projectKind;
         this.sourceRoot = projectPath.toAbsolutePath().normalize();
         this.buildOptions = buildOptions;
         this.projectEnvironment = projectEnvironmentBuilder.build(this);
         this.compilerPluginContexts = new ArrayList<>();
-        this.workspaceProject = workspaceProject;
     }
 
     protected Project(ProjectKind projectKind, Path projectPath, BuildOptions buildOptions) {
@@ -159,9 +155,5 @@ public abstract class Project {
 
     List<CompilerPluginContextIml> compilerPluginContexts() {
         return this.compilerPluginContexts;
-    }
-
-    public Optional<WorkspaceProject> workspaceProject () {
-        return Optional.ofNullable(this.workspaceProject);
     }
 }
