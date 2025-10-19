@@ -28,7 +28,6 @@ dependencies {
     implementation project(':toml-parser')
     implementation project(':semtypes')
     implementation project(':central-client')
-    implementation project(':maven-resolver')
     implementation project(':identifier-util')
     implementation libs.toml4j
     implementation libs.netty.buffer

@@ -25,7 +25,7 @@ import io.ballerina.projects.util.ProjectUtils;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
-import org.apache.maven.artifact.versioning.ComparableVersion;
+import io.ballerina.projects.SemanticVersion;
 import org.wso2.ballerinalang.compiler.util.CompilerUtils;
 
 import java.net.MalformedURLException;
@@ -165,11 +165,11 @@ public class JarResolver {
                         existingEntry.version().isEmpty()) {
                     continue;
                 }
-                ComparableVersion existingVersion = new ComparableVersion(existingEntry.version().orElseThrow());
-                ComparableVersion newVersion = new ComparableVersion(newEntry.version().get());
+                SemanticVersion existingVersion = SemanticVersion.from(existingEntry.version().orElseThrow());
+                SemanticVersion newVersion = SemanticVersion.from(newEntry.version().get());
 
-                if (existingVersion.compareTo(newVersion) >= 0) {
-                    if (existingVersion.compareTo(newVersion) != 0) {
+                if (existingVersion.greaterThanOrEqualTo(newVersion)) {
+                    if (!existingVersion.equals(newVersion)) {
                         reportDiagnostic(newEntry, existingEntry);
                     }
                     continue;

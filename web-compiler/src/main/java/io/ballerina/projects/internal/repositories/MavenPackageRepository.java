@@ -32,7 +32,6 @@ import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.environment.ResolutionRequest;
 import io.ballerina.projects.internal.model.Proxy;
 import io.ballerina.projects.internal.model.Repository;
-import org.ballerinalang.maven.bala.client.MavenResolverClient;
 import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.util.Collection;
@@ -51,15 +50,10 @@ public class MavenPackageRepository extends AbstractPackageRepository {
 
     public static final String PLATFORM = "platform";
     private final FileSystemRepository fileSystemCache;
-    private final MavenResolverClient client;
-    private final String repoLocation;
 
 
-    public MavenPackageRepository(Environment environment, Path cacheDirectory, String distributionVersion,
-                                  MavenResolverClient client, String repoLocation) {
+    public MavenPackageRepository(Environment environment, Path cacheDirectory, String distributionVersion) {
         this.fileSystemCache = new FileSystemRepository(environment, cacheDirectory, distributionVersion);
-        this.client = client;
-        this.repoLocation = repoLocation;
     }
 
     public static MavenPackageRepository from(Environment environment, Path cacheDirectory, Repository repository) {
@@ -71,22 +65,8 @@ public class MavenPackageRepository extends AbstractPackageRepository {
             throw new ProjectException("repository url is not provided");
         }
         String ballerinaShortVersion = RepoUtils.getBallerinaShortVersion();
-        MavenResolverClient mvnClient = new MavenResolverClient();
-        if (!repository.username().isEmpty() && !repository.password().isEmpty()) {
-            mvnClient.addRepository(repository.id(), repository.url(), repository.username(), repository.password());
-        } else {
-            mvnClient.addRepository(repository.id(), repository.url());
-        }
 
-        Settings settings;
-        settings = RepoUtils.readSettings();
-        Proxy proxy = settings.getProxy();
-        mvnClient.setProxy(proxy.host(), proxy.port(), proxy.username(), proxy.password());
-
-        String repoLocation = cacheDirectory.resolve("bala").toAbsolutePath().toString();
-
-        return new MavenPackageRepository(environment, cacheDirectory, ballerinaShortVersion, mvnClient,
-                repoLocation);
+        return new MavenPackageRepository(environment, cacheDirectory, ballerinaShortVersion);
     }
 
     @Override
@@ -160,6 +140,7 @@ public class MavenPackageRepository extends AbstractPackageRepository {
     public boolean getPackageFromRemoteRepo(String org,
                                             String name,
                                             String version) {
-        throw new RuntimeException();
+        // Stub implementation - web compiler doesn't support remote repositories
+        return false;
     }
 }

@@ -16,7 +16,6 @@ module io.ballerina.lang {
     requires io.ballerina.semtype;
     requires io.ballerina.identifier;
     requires java.semver;
-    requires maven.resolver;
     requires io.ballerina.tools.envutils;
     exports io.ballerina.compiler.api;
     exports io.ballerina.compiler.api.symbols;
