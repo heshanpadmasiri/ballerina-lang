@@ -92,11 +92,7 @@ public class JMethod {
     }
 
     public String getSignature() {
-        if (kind == JMethodKind.CONSTRUCTOR) {
-            return JvmCodeGenUtil.getMethodSig(void.class, method.getParameterTypes());
-        } else {
-            return JvmCodeGenUtil.getMethodSig(getReturnType(), method.getParameterTypes());
-        }
+        throw new RuntimeException();
     }
 
     public Class<?>[] getParamTypes() {

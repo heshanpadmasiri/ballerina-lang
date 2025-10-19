@@ -18,7 +18,6 @@
 package org.wso2.ballerinalang.compiler.bir.codegen.model;
 
 import org.wso2.ballerinalang.compiler.bir.codegen.interop.JFieldMethod;
-import org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -55,7 +54,7 @@ public class JavaField {
     }
 
     public String getSignature() {
-        return JvmCodeGenUtil.getSig(field.getType());
+        throw new RuntimeException();
     }
 
     public Class<?> getFieldType() {

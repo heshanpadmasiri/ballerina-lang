@@ -36,7 +36,6 @@ dependencies {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
     }
     implementation libs.netty.buffer
-    implementation libs.ow2.asm
     implementation libs.commons.io
     implementation libs.zafarkhaja.jsemver
     testImplementation(libs.guru.nidi.graphviz) {

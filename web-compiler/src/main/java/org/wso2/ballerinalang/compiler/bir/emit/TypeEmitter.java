@@ -17,7 +17,6 @@
  */
 package org.wso2.ballerinalang.compiler.bir.emit;
 
-import org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BAttachedFunction;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BObjectTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.Symbols;
@@ -394,7 +393,7 @@ final class TypeEmitter {
 
     /////////////////////// Emitting type reference ///////////////////////////
     static String emitTypeRef(BType type, int tabs) {
-        BType bType = JvmCodeGenUtil.getImpliedType(type);
+        BType bType = getImpliedType(type);
         String tName = getTypeName(bType);
         if (!("".equals(tName))) {
             return tName;
@@ -406,6 +405,30 @@ final class TypeEmitter {
             return bType.tsymbol.toString();
         }
         return emitType(type, tabs);
+    }
+
+    /**
+     * Retrieve the referred type if a given type is a type reference type or
+     * retrieve the effective type if the given type is an intersection type.
+     *
+     * @param type type to retrieve the implied type
+     * @return the implied type if provided with a type reference type or an intersection type,
+     * else returns the original type
+     */
+    private static BType getImpliedType(BType type) {
+        if (type == null) {
+            return null;
+        }
+
+        if (type.tag == TypeTags.TYPEREFDESC) {
+            return getImpliedType(((BTypeReferenceType) type).referredType);
+        }
+
+        if (type.tag == TypeTags.INTERSECTION) {
+            return getImpliedType(((BIntersectionType) type).effectiveType);
+        }
+
+        return type;
     }
 }
 

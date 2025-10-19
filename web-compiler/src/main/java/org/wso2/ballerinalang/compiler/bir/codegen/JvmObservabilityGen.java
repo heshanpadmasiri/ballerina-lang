@@ -84,7 +84,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static org.ballerinalang.model.symbols.SymbolOrigin.VIRTUAL;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.DISPLAY_ANNOTATION;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LAMBDA_PREFIX;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.OBSERVABLE_ANNOTATION;
@@ -108,6 +107,9 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.g
  * @since 2.0.0
  */
 class JvmObservabilityGen {
+    // ASM Opcode constant (from org.objectweb.asm.Opcodes.INVOKESTATIC = 184)
+    private static final int INVOKESTATIC = 184;
+
     private static final String ENTRY_POINT_MAIN_METHOD_NAME = "main";
     private static final String NEW_BB_PREFIX = "observabilityDesugaredBB";
     private static final String INVOCATION_INSTRUMENTATION_TYPE = "invocation";

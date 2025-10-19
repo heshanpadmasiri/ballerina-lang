@@ -21,7 +21,6 @@ package org.wso2.ballerinalang.compiler.bir.optimizer;
 import org.wso2.ballerinalang.compiler.bir.codegen.model.JLargeArrayInstruction;
 import org.wso2.ballerinalang.compiler.bir.codegen.model.JLargeMapInstruction;
 import org.wso2.ballerinalang.compiler.bir.codegen.model.JMethodCallInstruction;
-import org.wso2.ballerinalang.compiler.bir.codegen.optimizer.LargeMethodOptimizer;
 import org.wso2.ballerinalang.compiler.bir.model.BIRAbstractInstruction;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode.BIRBasicBlock;
@@ -63,7 +62,6 @@ public class BIROptimizer {
     private final LHSTempVarOptimizer lhsTempVarOptimizer;
     private final BIRLockOptimizer lockOptimizer;
     private final BIRBasicBlockOptimizer bbOptimizer;
-    private final LargeMethodOptimizer largeMethodOptimizer;
 
     public static BIROptimizer getInstance(CompilerContext context) {
         BIROptimizer birGen = context.get(BIR_OPTIMIZER);
@@ -80,14 +78,12 @@ public class BIROptimizer {
         this.lhsTempVarOptimizer = new LHSTempVarOptimizer();
         this.lockOptimizer = new BIRLockOptimizer();
         this.bbOptimizer = new BIRBasicBlockOptimizer();
-        this.largeMethodOptimizer = new LargeMethodOptimizer(SymbolTable.getInstance(context));
     }
 
     public void optimizePackage(BIRPackage pkg) {
         // RHS temp var optimization
         pkg.accept(this.rhsTempVarOptimizer);
-        // Split large BIR functions into smaller methods based on maps and arrays
-        largeMethodOptimizer.splitLargeBIRFunctions(pkg);
+        // Large method optimization removed (JVM-specific bytecode generation optimization)
         // LHS temp var optimization
         this.lhsTempVarOptimizer.optimizeNode(pkg, null);
 
