@@ -22,7 +22,7 @@ import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.tools.diagnostics.Diagnostic;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Optional;
 
 /**

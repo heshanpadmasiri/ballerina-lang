@@ -21,7 +21,7 @@ import io.ballerina.projects.internal.model.CompilerPluginDescriptor;
 import io.ballerina.projects.internal.plugins.CompilerPlugins;
 import io.ballerina.projects.plugins.CompilerPlugin;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

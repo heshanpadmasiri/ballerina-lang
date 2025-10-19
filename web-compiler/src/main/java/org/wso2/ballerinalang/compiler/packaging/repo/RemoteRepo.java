@@ -27,7 +27,7 @@ import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
 
 import java.net.URI;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Map;
 
 import static org.wso2.ballerinalang.util.RepoUtils.COMPILE_BALLERINA_ORG;

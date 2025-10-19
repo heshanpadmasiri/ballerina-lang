@@ -18,6 +18,7 @@
 
 package io.ballerina.projects.internal;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Diagnostics;
@@ -56,27 +57,21 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static io.ballerina.projects.internal.ManifestUtils.ToolNodeValueType;
 import static io.ballerina.projects.internal.ManifestUtils.convertDiagnosticToString;
 import static io.ballerina.projects.internal.ManifestUtils.getBooleanFromTomlTableNode;
 import static io.ballerina.projects.internal.ManifestUtils.getBuildToolTomlValueType;
 import static io.ballerina.projects.internal.ManifestUtils.getStringFromTomlTableNode;
-import static io.ballerina.projects.util.ProjectConstants.DOT;
 import static io.ballerina.projects.util.ProjectUtils.defaultName;
 import static io.ballerina.projects.util.ProjectUtils.defaultOrg;
 import static io.ballerina.projects.util.ProjectUtils.defaultVersion;
@@ -307,181 +302,11 @@ public class ManifestBuilder {
 
     private List<PackageManifest.Module> getModuleEntries(
             TomlTableNode pkgNode, String customReadmeVal, PackageName packageName) {
-
-        TopLevelNode dependencyEntries = validateAndGetModuleNodes(pkgNode, packageName);
-
-        List<PackageManifest.Module> moduleList = new ArrayList<>();
-        Path modulesRoot = this.projectPath.resolve(ProjectConstants.MODULES_ROOT);
-        if (!Files.exists(modulesRoot)) {
-            return moduleList;
-        }
-        Map<String, Path> moduleDirs;
-        try (Stream<Path> stream = Files.walk(modulesRoot, 1)) {
-            moduleDirs = stream
-                    .filter(Files::isDirectory)
-                    .filter(path -> !path.equals(modulesRoot))
-                    .collect(Collectors.toMap(path -> Optional.of(path.getFileName()).get().toString(), path -> path));
-        } catch (IOException e) {
-            throw new ProjectException("Failed to read the module README:", e);
-        }
-
-        if (customReadmeVal == null) {
-            if (Files.exists(this.projectPath.resolve(ProjectConstants.PACKAGE_MD_FILE_NAME))) {
-                // old structure. Module READMEs are captured by <module-root>/Module.md file.
-                for (Map.Entry<String, Path> pathEntry : moduleDirs.entrySet()) {
-                    Path modReadmePath = pathEntry.getValue().resolve(ProjectConstants.MODULE_MD_FILE_NAME);
-                    String modReadme = null;
-                    if (Files.exists(modReadmePath)) {
-                        modReadme = Paths.get(ProjectConstants.MODULES_ROOT).resolve(pathEntry.getKey())
-                                .resolve(ProjectConstants.MODULE_MD_FILE_NAME).toString();
-                    }
-                    PackageManifest.Module module = new PackageManifest.Module(
-                            packageName + DOT + Optional.of(pathEntry.getValue().getFileName()).get(), false,
-                            "", modReadme);
-                    moduleList.add(module);
-                }
-                return moduleList;
-            }
-        }
-
-        // new structure
-        if (dependencyEntries == null || dependencyEntries.kind() == TomlType.NONE) {
-            for (Map.Entry<String, Path> pathEntry : moduleDirs.entrySet()) {
-                Path modReadmePath = pathEntry.getValue().resolve(ProjectConstants.README_MD_FILE_NAME);
-                String modReadme = "";
-                if (Files.exists(modReadmePath)) {
-                    modReadme = Paths.get(ProjectConstants.MODULES_ROOT).resolve(pathEntry.getKey())
-                            .resolve(ProjectConstants.README_MD_FILE_NAME).toString();;
-                }
-                PackageManifest.Module module = new PackageManifest.Module(
-                        packageName + DOT + Optional.of(pathEntry.getValue().getFileName()).get(), false,
-                        "", modReadme);
-                moduleList.add(module);
-            }
-            return moduleList;
-        }
-        if (dependencyEntries.kind() == TomlType.TABLE_ARRAY) {
-            TomlTableArrayNode dependencyTableArray = (TomlTableArrayNode) dependencyEntries;
-            for (TomlTableNode modulesNode : dependencyTableArray.children()) {
-                String moduleName = getStringValueFromTomlTableNode(modulesNode, NAME, null);
-                if (moduleName == null
-                        || !moduleName.contains(DOT)) { // The invalid module name is already handled
-                    continue;
-                }
-                String moduleNamepart = moduleName.substring(packageName.toString().length() + 1);
-
-                boolean export = Boolean.TRUE.equals(getBooleanValueFromTomlTableNode(modulesNode, EXPORT));
-                String description = getStringValueFromTomlTableNode(modulesNode, DESCRIPTION, null);
-                String modReadme = getStringValueFromTomlTableNode(modulesNode, README, null);
-                if (modReadme == null) {
-                    Path defaultReadme = modulesRoot.resolve(moduleNamepart)
-                            .resolve(ProjectConstants.README_MD_FILE_NAME);
-                    if (Files.exists(defaultReadme)) {
-                        modReadme = defaultReadme.toString();
-                    }
-                } else {
-                    if (!Paths.get(modReadme).isAbsolute()) {
-                        modReadme = this.projectPath.resolve(modReadme).toString();
-                    }
-                }
-                PackageManifest.Module module = new PackageManifest.Module(moduleName, export,
-                        description, modReadme);
-                moduleList.add(module);
-                moduleDirs.remove(moduleNamepart);
-            }
-            // If there are README.mds in other modules, add them
-            for (Map.Entry<String, Path> pathEntry : moduleDirs.entrySet()) {
-                Path modReadmePath = pathEntry.getValue().resolve(ProjectConstants.README_MD_FILE_NAME);
-                String modReadme = "";
-                if (Files.exists(modReadmePath)) {
-                    modReadme = modReadmePath.toString();
-                }
-                PackageManifest.Module module = new PackageManifest.Module(
-                        packageName + DOT + Optional.of(pathEntry.getValue().getFileName()).get(), false,
-                        "", modReadme);
-                moduleList.add(module);
-            }
-        }
-        return moduleList;
-    }
-
-    private TopLevelNode validateAndGetModuleNodes(TomlTableNode pkgNode, PackageName packageName) {
-        TopLevelNode dependencyEntries = pkgNode.entries().get("modules");
-        if (dependencyEntries != null && dependencyEntries.kind() == TomlType.TABLE_ARRAY) {
-            TomlTableArrayNode dependencyTableArray = (TomlTableArrayNode) dependencyEntries;
-            for (TomlTableNode modulesNode : dependencyTableArray.children()) {
-                String moduleName = getStringValueFromTomlTableNode(modulesNode, NAME, null);
-                if (moduleName == null) {
-                    continue;
-                }
-                if (moduleName.equals(packageName.toString())) {
-                    String warning = "module '" + moduleName + "' is not allowed\n";
-                    reportDiagnostic(modulesNode.entries().get(NAME), warning,
-                            ProjectDiagnosticErrorCode.INVALID_MODULE, DiagnosticSeverity.ERROR);
-                    continue;
-                }
-
-                try {
-                    if (Files.notExists(this.projectPath.resolve(ProjectConstants.MODULES_ROOT)
-                            .resolve(moduleName.split(packageName + DOT)[1]))) {
-                        String warning = "module '" + moduleName + "' not found";
-                        reportDiagnostic(modulesNode.entries().get(NAME), warning,
-                                ProjectDiagnosticErrorCode.INVALID_MODULE, DiagnosticSeverity.ERROR);
-                    }
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    String warning = "module '" + moduleName + "' not found";
-                    reportDiagnostic(modulesNode.entries().get(NAME), warning,
-                            ProjectDiagnosticErrorCode.INVALID_MODULE, DiagnosticSeverity.ERROR);
-                }
-            }
-        }
-        return dependencyEntries;
+        throw new RuntimeException();
     }
 
     private String validateAndGetReadmePath(TomlTableNode pkgNode, String readme, PackageName name) {
-        Path readmeMdPath;
-        if (readme == null) {
-            readmeMdPath = this.projectPath.resolve(ProjectConstants.PACKAGE_MD_FILE_NAME);
-            if (Files.exists(readmeMdPath)) {
-                String warning = """
-                        The default file for package documentation is changed to README.md. If you prefer to \
-                        use the Package.md, add the following line under the '[package]' section in your \
-                        Ballerina.toml file:
-                        \treadme = "Package.md"
-                        """;
-                DiagnosticInfo diagnosticInfo = new DiagnosticInfo(ProjectDiagnosticErrorCode.
-                        DEPRECATED_DOC_FILE.diagnosticId(), warning, DiagnosticSeverity.WARNING);
-                PackageDiagnostic packageDiagnostic = new PackageDiagnostic(diagnosticInfo,
-                        name.toString());
-                ProjectUtils.addMiscellaneousProjectDiagnostics(packageDiagnostic);
-                isOldStructure = true;
-                return readmeMdPath.toString();
-            } else {
-                readmeMdPath = this.projectPath.resolve(ProjectConstants.README_MD_FILE_NAME);
-                if (Files.exists(readmeMdPath)) {
-                    return readmeMdPath.toString();
-                } else {
-                    return null;
-                }
-            }
-        }
-
-        readmeMdPath = Paths.get(readme);
-        if (!readmeMdPath.isAbsolute()) {
-            readmeMdPath = this.projectPath.resolve(readmeMdPath);
-        }
-        if (Files.notExists(readmeMdPath)) {
-            reportDiagnostic(pkgNode.entries().get(README),
-                    "could not locate the readme file '" + readmeMdPath + "'",
-                    ProjectDiagnosticErrorCode.INVALID_PATH, DiagnosticSeverity.ERROR);
-        }
-
-        if (!FilenameUtils.getExtension(readme).equals(ProjectConstants.README_EXTENSION)) {
-            reportDiagnostic(pkgNode.entries().get(README),
-                    "invalid 'readme' under [package]: 'readme' can only have '.md' files",
-                    ProjectDiagnosticErrorCode.INVALID_FILE_FORMAT, DiagnosticSeverity.ERROR);
-        }
-        return readmeMdPath.toString();
+        throw new RuntimeException();
     }
 
     private List<PackageManifest.Tool> getTools() {
@@ -572,116 +397,11 @@ public class ManifestBuilder {
     }
 
     private PackageDescriptor getPackageDescriptor(TomlTableNode tomlTableNode) {
-        // set defaults
-        String org;
-        String name;
-        String version;
-
-        String errorMessage = "missing table '[package]' in 'Ballerina.toml'. Defaulting to:\n" +
-                "[package]\n" +
-                "org = \"" + defaultOrg().value() + "\"\n" +
-                "name = \"" + defaultName(this.projectPath).value() + "\"\n" +
-                "version = \"" + defaultVersion().value().toString() + "\"";
-
-        if (tomlTableNode.entries().isEmpty()) {
-            reportDiagnostic(tomlTableNode, errorMessage,
-                    ProjectDiagnosticErrorCode.MISSING_PKG_INFO_IN_BALLERINA_TOML,
-                    DiagnosticSeverity.WARNING);
-            return PackageDescriptor.from(defaultOrg(), defaultName(this.projectPath), defaultVersion());
-        }
-
-        TopLevelNode topLevelPkgNode = tomlTableNode.entries().get(PACKAGE);
-        if (topLevelPkgNode == null || topLevelPkgNode.kind() != TomlType.TABLE) {
-            reportDiagnostic(tomlTableNode, errorMessage,
-                    ProjectDiagnosticErrorCode.MISSING_PKG_INFO_IN_BALLERINA_TOML,
-                    DiagnosticSeverity.WARNING);
-            return PackageDescriptor.from(defaultOrg(), defaultName(this.projectPath), defaultVersion());
-        }
-
-        TomlTableNode pkgNode = (TomlTableNode) topLevelPkgNode;
-
-        org = getStringValueFromTomlTableNode(pkgNode, ORG, "");
-        if (pkgNode.entries().get(ORG) == null) {
-            org = defaultOrg().value();
-            reportDiagnostic(pkgNode, "missing key 'org' in table '[package]' in 'Ballerina.toml'. " +
-                            "Defaulting to 'org = \"" + org + "\"'",
-                    ProjectDiagnosticErrorCode.MISSING_PKG_INFO_IN_BALLERINA_TOML,
-                    DiagnosticSeverity.WARNING);
-        } else if (this.packageOrg != null && !this.packageOrg.equals(org)) {
-            // If the org is set in the project, use that instead of the one in Ballerina.toml
-            reportDiagnostic(pkgNode.entries().get(ORG),
-                    "multiple orgs are not allowed in a workspace. Found '" +
-                            org + "', defaulting to '" + this.packageOrg + "'",
-                    ProjectDiagnosticErrorCode.ORG_NAME_MISMATCH_IN_WORKSPACE, DiagnosticSeverity.WARNING);
-            org = this.packageOrg;
-        }
-        name = getStringValueFromTomlTableNode(pkgNode, NAME, "");
-        if (pkgNode.entries().get(NAME) == null) {
-            name = defaultName(this.projectPath).value();
-            reportDiagnostic(pkgNode, "missing key 'name' in table '[package]' in 'Ballerina.toml'. " +
-                            "Defaulting to 'name = \"" + name + "\"'",
-                    ProjectDiagnosticErrorCode.MISSING_PKG_INFO_IN_BALLERINA_TOML,
-                    DiagnosticSeverity.WARNING);
-        }
-        version = getStringValueFromTomlTableNode(pkgNode, VERSION, "");
-        if (pkgNode.entries().get(VERSION) == null) {
-            version = defaultVersion().value().toString();
-            reportDiagnostic(pkgNode, "missing key 'version' in table '[package]' in 'Ballerina.toml'. " +
-                            "Defaulting to 'version = \"" + version + "\"'",
-                    ProjectDiagnosticErrorCode.MISSING_PKG_INFO_IN_BALLERINA_TOML,
-                    DiagnosticSeverity.WARNING);
-        }
-
-        // check org is valid identifier
-        boolean isValidOrg = ProjectUtils.validateOrgName(org);
-        if (!isValidOrg) {
-            org = defaultOrg().value();
-        }
-
-        // check that the package name is valid
-        boolean isValidPkg = ProjectUtils.validatePackageName(org, name);
-        if (!isValidPkg) {
-            name = defaultName(this.projectPath).value();
-        }
-
-        // check version is compatible with semver
-        try {
-            SemanticVersion.from(version);
-        } catch (ProjectException e) {
-            version = defaultVersion().value().toString();
-        }
-
-        return PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name), PackageVersion.from(version));
+        throw new RuntimeException();
     }
 
     private void validateIconPathForPng(String icon, TomlTableNode pkgNode) {
-        if (icon != null && hasPngExtension(icon)) {
-            Path iconPath = Path.of(icon);
-            if (!iconPath.isAbsolute()) {
-                iconPath = this.projectPath.resolve(iconPath);
-            }
-
-            if (Files.notExists(iconPath)) {
-                // validate icon path
-                // if file path does not exist, throw this error
-                reportDiagnostic(pkgNode.entries().get(ICON),
-                        "could not locate icon path '" + icon + "'",
-                        ProjectDiagnosticErrorCode.INVALID_PATH, DiagnosticSeverity.ERROR);
-            } else {
-                // validate file content
-                // if other file types renamed as png, throw this error
-                try {
-                    if (!FileUtils.isValidPng(iconPath)) {
-                        reportDiagnostic(pkgNode.entries().get("icon"),
-                                "invalid 'icon' under [package]: 'icon' can only have 'png' images",
-                                ProjectDiagnosticErrorCode.INVALID_FILE_FORMAT, DiagnosticSeverity.ERROR);
-                    }
-                } catch (IOException e) {
-                    // should not reach to this line
-                    throw new ProjectException("failed to read icon: '" + icon + "'");
-                }
-            }
-        }
+        throw new RuntimeException();
     }
 
     private BuildOptions parseBuildOptions() {
@@ -777,54 +497,7 @@ public class ManifestBuilder {
     }
 
     private PackageManifest.Platform getDependencyPlatform(TopLevelNode dependencyNode) {
-        PackageManifest.Platform platform = null;
-        if (dependencyNode.kind() == TomlType.TABLE_ARRAY) {
-            TomlTableArrayNode dependencyTableArray = (TomlTableArrayNode) dependencyNode;
-            List<TomlTableNode> children = dependencyTableArray.children();
-            if (!children.isEmpty()) {
-                List<Map<String, Object>> platformEntry = new ArrayList<>();
-                for (TomlTableNode platformEntryTable : children) {
-                    if (!platformEntryTable.entries().isEmpty()) {
-                        Map<String, Object> platformEntryMap = new HashMap<>();
-                        String pathValue = getStringValueFromPlatformEntry(platformEntryTable, PATH);
-                        if (pathValue != null) {
-                            Path path = Path.of(pathValue);
-                            if (!path.isAbsolute()) {
-                                path = this.projectPath.resolve(path);
-                            }
-                            if (Files.notExists(path)) {
-                                reportDiagnostic(platformEntryTable.entries().get(PATH),
-                                        "could not locate dependency path '" + pathValue + "'",
-                                        ProjectDiagnosticErrorCode.INVALID_PATH, DiagnosticSeverity.ERROR);
-                            }
-                        }
-                        String groupId = getStringValueFromPlatformEntry(platformEntryTable, GROUP_ID);
-                        String artifactId = getStringValueFromPlatformEntry(platformEntryTable, ARTIFACT_ID);
-                        String version = getStringValueFromPlatformEntry(platformEntryTable, VERSION);
-                        String scope = getStringValueFromPlatformEntry(platformEntryTable, SCOPE);
-                        Boolean graalvmCompatibility = getBooleanValueFromTomlTableNode(platformEntryTable,
-                                GRAALVM_COMPATIBLE);
-                        if (PlatformLibraryScope.PROVIDED.getStringValue().equals(scope)
-                                && !providedPlatformDependencyIsValid(artifactId, groupId, version)) {
-                            reportDiagnostic(platformEntryTable,
-                                    "artifactId, groupId and version must be provided for platform " +
-                                            "dependencies with provided scope",
-                                    ProjectDiagnosticErrorCode.INVALID_PROVIDED_DEPENDENCY, DiagnosticSeverity.ERROR);
-                        }
-                        platformEntryMap.put(PATH,
-                                pathValue);
-                        platformEntryMap.put(GROUP_ID, groupId);
-                        platformEntryMap.put(ARTIFACT_ID, artifactId);
-                        platformEntryMap.put(VERSION, version);
-                        platformEntryMap.put(SCOPE, scope);
-                        platformEntryMap.put(GRAALVM_COMPATIBLE, graalvmCompatibility);
-                        platformEntry.add(platformEntryMap);
-                    }
-                }
-                platform = new PackageManifest.Platform(platformEntry);
-            }
-        }
-        return platform;
+        throw new RuntimeException();
     }
 
     private PackageManifest.Platform getGraalvmCompatibilityPlatform(TopLevelNode graalvmCompatibleNode) {

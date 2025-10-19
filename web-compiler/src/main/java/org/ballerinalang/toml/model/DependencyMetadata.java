@@ -19,7 +19,7 @@ package org.ballerinalang.toml.model;
 
 import org.ballerinalang.toml.util.PathUtils;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Defines dependency object fields. The same object will be used to define patches.

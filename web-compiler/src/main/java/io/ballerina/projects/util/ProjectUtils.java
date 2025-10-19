@@ -18,13 +18,13 @@
 package io.ballerina.projects.util;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.fs.Path;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.JarLibrary;
@@ -39,7 +39,6 @@ import io.ballerina.projects.PackageManifest;
 import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageOrg;
 import io.ballerina.projects.PackageVersion;
-import io.ballerina.projects.PlatformLibraryScope;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
@@ -62,9 +61,7 @@ import org.wso2.ballerinalang.util.Lists;
 import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -74,8 +71,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -87,9 +82,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.jar.Attributes;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -97,26 +89,17 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static io.ballerina.projects.util.FileUtils.getFileNameWithoutExtension;
-import static io.ballerina.projects.util.ProjectConstants.ASM_COMMONS_JAR;
-import static io.ballerina.projects.util.ProjectConstants.ASM_JAR;
-import static io.ballerina.projects.util.ProjectConstants.ASM_TREE_JAR;
 import static io.ballerina.projects.util.ProjectConstants.BALLERINA_HOME;
-import static io.ballerina.projects.util.ProjectConstants.BALLERINA_HOME_BRE;
 import static io.ballerina.projects.util.ProjectConstants.BALLERINA_TOML;
 import static io.ballerina.projects.util.ProjectConstants.BLANG_COMPILED_JAR_EXT;
 import static io.ballerina.projects.util.ProjectConstants.BLANG_COMPILED_PKG_BINARY_EXT;
 import static io.ballerina.projects.util.ProjectConstants.BUILD_FILE;
 import static io.ballerina.projects.util.ProjectConstants.CACHES_DIR_NAME;
-import static io.ballerina.projects.util.ProjectConstants.DIFF_UTILS_JAR;
 import static io.ballerina.projects.util.ProjectConstants.DIR_PATH_SEPARATOR;
 import static io.ballerina.projects.util.ProjectConstants.DOT;
-import static io.ballerina.projects.util.ProjectConstants.JACOCO_CORE_JAR;
-import static io.ballerina.projects.util.ProjectConstants.JACOCO_REPORT_JAR;
 import static io.ballerina.projects.util.ProjectConstants.LIB_DIR;
 import static io.ballerina.projects.util.ProjectConstants.RESOURCE_DIR_NAME;
 import static io.ballerina.projects.util.ProjectConstants.TARGET_DIR_NAME;
-import static io.ballerina.projects.util.ProjectConstants.TEST_CORE_JAR_PREFIX;
-import static io.ballerina.projects.util.ProjectConstants.TEST_RUNTIME_JAR_PREFIX;
 import static io.ballerina.projects.util.ProjectConstants.TOOL_DIR;
 import static io.ballerina.projects.util.ProjectConstants.USER_NAME;
 import static io.ballerina.projects.util.ProjectConstants.WILD_CARD;
@@ -331,8 +314,8 @@ public final class ProjectUtils {
     public static Path findProjectRoot(Path filePath) {
         if (filePath != null) {
             filePath = filePath.toAbsolutePath().normalize();
-            if (filePath.toFile().isDirectory()) {
-                if (Files.exists(filePath.resolve(BALLERINA_TOML))) {
+            if (filePath.isDirectory()) {
+                if (filePath.resolve(BALLERINA_TOML).exists()) {
                     return filePath;
                 }
             }
@@ -349,9 +332,9 @@ public final class ProjectUtils {
      */
     public static boolean isBallerinaProject(Path sourceRoot) {
         Path ballerinaToml = sourceRoot.resolve(BALLERINA_TOML);
-        return Files.isDirectory(sourceRoot)
-                && Files.exists(ballerinaToml)
-                && Files.isRegularFile(ballerinaToml);
+        return sourceRoot.isDirectory()
+                && ballerinaToml.exists()
+                && ballerinaToml.isRegularFile();
     }
 
     /**
@@ -513,45 +496,7 @@ public final class ProjectUtils {
     }
 
     public static List<JarLibrary> testDependencies() {
-        List<JarLibrary> dependencies = new ArrayList<>();
-        String testPkgName = "ballerina/test";
-
-        String ballerinaVersion = RepoUtils.getBallerinaPackVersion();
-        Path homeLibPath = getBalHomePath().resolve(BALLERINA_HOME_BRE).resolve(LIB_DIR);
-        String testRuntimeJarName = TEST_RUNTIME_JAR_PREFIX + ballerinaVersion + BLANG_COMPILED_JAR_EXT;
-        String testCoreJarName = TEST_CORE_JAR_PREFIX + ballerinaVersion + BLANG_COMPILED_JAR_EXT;
-        String langJarName = "ballerina-lang-" + ballerinaVersion + BLANG_COMPILED_JAR_EXT;
-
-        Path testRuntimeJarPath = homeLibPath.resolve(testRuntimeJarName);
-        Path testCoreJarPath = homeLibPath.resolve(testCoreJarName);
-        Path langJarPath = homeLibPath.resolve(langJarName);
-        Path jacocoCoreJarPath = homeLibPath.resolve(JACOCO_CORE_JAR);
-        Path jacocoReportJarPath = homeLibPath.resolve(JACOCO_REPORT_JAR);
-        Path asmJarPath = homeLibPath.resolve(ASM_JAR);
-        Path asmTreeJarPath = homeLibPath.resolve(ASM_TREE_JAR);
-        Path asmCommonsJarPath = homeLibPath.resolve(ASM_COMMONS_JAR);
-        Path diffUtilsJarPath = homeLibPath.resolve(DIFF_UTILS_JAR);
-
-        dependencies.add(new JarLibrary(testRuntimeJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        dependencies.add(new JarLibrary(testCoreJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        dependencies.add(new JarLibrary(langJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        dependencies.add(new JarLibrary(jacocoCoreJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        dependencies.add(new JarLibrary(jacocoReportJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        dependencies.add(new JarLibrary(asmJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        dependencies.add(new JarLibrary(asmTreeJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        dependencies.add(new JarLibrary(asmCommonsJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        dependencies.add(new JarLibrary(diffUtilsJarPath, PlatformLibraryScope.TEST_ONLY, testPkgName));
-        return dependencies;
-    }
-
-    public static Path generateObservabilitySymbolsJar(String packageName) throws IOException {
-        Path jarPath = Files.createTempFile(packageName + "-", "-observability-symbols.jar");
-        Manifest manifest = new Manifest();
-        manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        JarOutputStream jarOutputStream = new JarOutputStream(new BufferedOutputStream(
-                new FileOutputStream(jarPath.toFile())), manifest);
-        jarOutputStream.close();
-        return jarPath;
+        throw new RuntimeException();
     }
 
     /**
@@ -683,21 +628,10 @@ public final class ProjectUtils {
         }
 
         homeRepoPath = homeRepoPath.toAbsolutePath();
-        if (Files.exists(homeRepoPath) && !Files.isDirectory(homeRepoPath, LinkOption.NOFOLLOW_LINKS)) {
+        if (homeRepoPath.exists() && !homeRepoPath.isDirectory()) {
             throw new BLangCompilerException("Home repository is not a directory: " + homeRepoPath);
         }
         return homeRepoPath;
-    }
-
-    /**
-     * Check if a ballerina module exist.
-     * @param projectPath project path
-     * @param moduleName module name
-     * @return module exist
-     */
-    public static boolean isModuleExist(Path projectPath, String moduleName) {
-        Path modulePath = projectPath.resolve(ProjectConstants.MODULES_ROOT).resolve(moduleName);
-        return Files.exists(modulePath);
     }
 
     /**
@@ -733,19 +667,19 @@ public final class ProjectUtils {
     }
 
     public static void checkWritePermission(Path path) {
-        if (!path.toFile().canWrite()) {
+        if (!path.canWrite()) {
             throw new ProjectException("'" + path.normalize() + "' does not have write permissions");
         }
     }
 
     public static void checkReadPermission(Path path) {
-        if (!path.toFile().canRead()) {
+        if (!path.canRead()) {
             throw new ProjectException("'" + path.normalize() + "' does not have read permissions");
         }
     }
 
     public static void checkExecutePermission(Path path) {
-        if (!path.toFile().canExecute()) {
+        if (!path.canExecute()) {
             throw new ProjectException("'" + path.normalize() + "' does not have execute permissions");
         }
     }
@@ -954,10 +888,10 @@ public final class ProjectUtils {
      * @throws IOException if extraction fails
      */
     public static void extractBala(Path balaFilePath, Path balaFileDestPath) throws IOException {
-        if (Files.exists(balaFileDestPath) && Files.isDirectory(balaFilePath)) {
+        if (balaFileDestPath.exists() && balaFilePath.isDirectory()) {
             deleteDirectory(balaFileDestPath);
         } else {
-            Files.createDirectories(balaFileDestPath);
+            balaFileDestPath.createDirectories();
         }
 
         byte[] buffer = new byte[1024 * 4];
@@ -973,13 +907,13 @@ public final class ProjectUtils {
                     Path outputPath = balaFileDestPath.resolve(fileName);
                     // If the zip entry is for a directory, we create the directory and continue with the next entry.
                     if (zipEntry.isDirectory()) {
-                        Files.createDirectories(outputPath);
+                        outputPath.createDirectories();
                         zipEntry = zipInputStream.getNextEntry();
                         continue;
                     }
 
                     // Create all non-existing directories.
-                    Files.createDirectories(Optional.of(outputPath.getParent()).get());
+                    outputPath.getParent().createDirectories();
                     // Create a new file output stream.
                     try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath.toFile())) {
                         // Write the content from zip input stream to the file output stream.
@@ -1003,46 +937,7 @@ public final class ProjectUtils {
      * @param directoryPath Directory to delete.
      */
     public static boolean deleteDirectory(Path directoryPath) {
-        File directory = new File(String.valueOf(directoryPath));
-        if (directory.isDirectory()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File f : files) {
-                    boolean success = deleteDirectory(f.toPath());
-                    if (!success) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return directory.delete();
-    }
-
-    /**
-     * Delete the all contents in the given directory except for selected files.
-     *
-     * @param directoryPath Directory to delete.
-     * @param filesToKeep files to keep.
-     */
-    public static boolean deleteSelectedFilesInDirectory(Path directoryPath, List<Path> filesToKeep) {
-        if (filesToKeep.isEmpty()) {
-            return deleteDirectory(directoryPath);
-        }
-        File directory = new File(String.valueOf(directoryPath));
-        File[] files = directory.listFiles();
-        boolean success = true;
-        if (files != null) {
-            for (File f : files) {
-                if (!filesToKeep.contains(f.toPath()) && f.isDirectory()) {
-                    success = deleteDirectory(f.toPath());
-                } else if (!filesToKeep.contains(f.toPath()) && f.isFile()) {
-                    success = f.delete();
-                }
-
-            }
-            return success;
-        }
-        return true;
+        return directoryPath.deleteDirectory();
     }
 
     /**
@@ -1054,7 +949,7 @@ public final class ProjectUtils {
      * @throws IOException if json read fails
      */
     public static BuildJson readBuildJson(Path buildJsonPath) throws JsonSyntaxException, IOException {
-        try (BufferedReader bufferedReader = Files.newBufferedReader(buildJsonPath)) {
+        try (BufferedReader bufferedReader = buildJsonPath.bufferedReader()) {
             return new Gson().fromJson(bufferedReader, BuildJson.class);
         }
     }
@@ -1101,7 +996,7 @@ public final class ProjectUtils {
                 // if reading `build` file fails
                 // delete `build` file and return true
                 try {
-                    Files.deleteIfExists(buildFile);
+                    buildFile.deleteIfExists();
                 } catch (IOException ex) {
                     // ignore
                 }
@@ -1119,28 +1014,6 @@ public final class ProjectUtils {
     public static String getTemporaryTargetPath() {
         return Path.of(System.getProperty("java.io.tmpdir"))
                 .resolve("ballerina-cache" + System.nanoTime()).toString();
-    }
-
-    /**
-     * Write build file from given object.
-     *
-     * @param buildFilePath build file path
-     * @param buildJson     BuildJson object
-     */
-    public static void writeBuildFile(Path buildFilePath, BuildJson buildJson) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-        // Check write permissions
-        if (!buildFilePath.toFile().canWrite()) {
-            throw new ProjectException("'build' file does not have write permissions");
-        }
-
-        // write build file
-        try {
-            Files.write(buildFilePath, Collections.singleton(gson.toJson(buildJson)));
-        } catch (IOException e) {
-            throw new ProjectException("Failed to write to the '" + BUILD_FILE + "' file");
-        }
     }
 
     /**
@@ -1215,41 +1088,11 @@ public final class ProjectUtils {
     }
 
     private static void addMatchingIncludePaths(String pattern, List<Path> allMatchingPaths, Path packageRoot) {
-        String combinedPattern = getGlobFormatPattern(pattern);
-        try (Stream<Path> pathStream = Files.walk(packageRoot)) {
-            List<Path> patternPaths = filterPathStream(pathStream, combinedPattern);
-            for (Path absolutePath : patternPaths) {
-                if (isCorrectPatternPathMatch(absolutePath, packageRoot, pattern)) {
-                    Path relativePath = packageRoot.relativize(absolutePath);
-                    allMatchingPaths.add(relativePath);
-                }
-            }
-        } catch (IOException e) {
-            throw new ProjectException("Failed to read files matching the include pattern '" + pattern + "': " +
-                    e.getMessage(), e);
-        }
-    }
-
-    private static boolean isCorrectPatternPathMatch(Path absolutePath, Path packageRoot, String pattern) {
-        Path relativePath = packageRoot.relativize(absolutePath);
-        boolean correctMatch = true;
-        if (relativePath.startsWith(TARGET_DIR_NAME)) {
-            // ignore paths inside target directory
-            correctMatch = false;
-        } else if (pattern.startsWith("/") && !packageRoot.equals(absolutePath.getParent())) {
-            // ignore non-root level paths if the pattern is root directory only
-            correctMatch = false;
-        } else if (pattern.endsWith("/") && absolutePath.toFile().isFile()) {
-            // ignore files if the pattern is directory only
-            correctMatch = false;
-        }
-        return correctMatch;
+        throw new RuntimeException();
     }
 
     private static List<Path> filterPathStream(Stream<Path> pathStream, String combinedPattern) {
-        return pathStream.filter(
-                        FileSystems.getDefault().getPathMatcher("glob:" + combinedPattern)::matches)
-                .toList();
+                throw new RuntimeException();
     }
 
     private static String getGlobFormatPattern(String pattern) {
@@ -1286,10 +1129,10 @@ public final class ProjectUtils {
         //First we will check for a bala that match any platform
         Path balaPath = balaDirPath.resolve(
                 ProjectUtils.getRelativeBalaPath(org, name, version, null));
-        if (!Files.exists(balaPath)) {
+        if (!balaPath.exists()) {
             for (JvmTarget jvmTarget : JvmTarget.values()) {
                 balaPath = balaDirPath.resolve(ProjectUtils.getRelativeBalaPath(org, name, version, jvmTarget.code()));
-                if (Files.exists(balaPath)) {
+                if (balaPath.exists()) {
                     break;
                 }
             }
@@ -1312,7 +1155,7 @@ public final class ProjectUtils {
         // set sticky only if `build` file exists and `last_update_time` not passed 24 hours
         if (project.kind() == ProjectKind.BUILD_PROJECT) {
             Path buildFilePath = project.targetDir().resolve(BUILD_FILE);
-            if (Files.exists(buildFilePath) && buildFilePath.toFile().length() > 0) {
+            if (buildFilePath.exists() && buildFilePath.toFile().length() > 0) {
                 try {
                     BuildJson buildJson = readBuildJson(buildFilePath);
                     // if distribution is not same, we anyway return sticky as false
@@ -1382,25 +1225,7 @@ public final class ProjectUtils {
     }
 
     public static Map<String, byte[]> getAllGeneratedResources(Path generatedResourcesPath) {
-        Map<String, byte[]> resourcesMap = new HashMap<>();
-        if (Files.isDirectory(generatedResourcesPath)) {
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(
-                    generatedResourcesPath, Files::isRegularFile)) {
-                for (Path entry : stream) {
-                    Path entryName = entry.getFileName();
-                    if (entryName == null) {
-                        continue;
-                    }
-                    String resourcePath = RESOURCE_DIR_NAME + DIR_PATH_SEPARATOR + entryName.toString();
-                    resourcesMap.put(resourcePath, Files.readAllBytes(entry));
-                }
-            } catch (IOException e) {
-                throw new ProjectException("An error occurred while reading the cached resources from: " +
-                        generatedResourcesPath, e);
-            }
-        }
-
-        return resourcesMap;
+        throw new RuntimeException();
     }
 
     public static String getConflictingResourcesMsg(String packageDesc, List<String> conflictingResourceFiles) {

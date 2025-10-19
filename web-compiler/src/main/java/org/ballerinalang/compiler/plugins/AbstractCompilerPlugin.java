@@ -29,7 +29,7 @@ import org.ballerinalang.model.tree.TypeDefinition;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangTestablePackage;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.List;
 
 /**

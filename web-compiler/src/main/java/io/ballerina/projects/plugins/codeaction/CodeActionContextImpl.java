@@ -20,7 +20,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Implementation of code action plugin context.

@@ -17,6 +17,7 @@
  */
 package org.wso2.ballerinalang.util;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.Settings;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.internal.SettingsBuilder;
@@ -32,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -96,7 +96,7 @@ public final class RepoUtils {
         }
 
         homeRepoPath = homeRepoPath.toAbsolutePath();
-        if (Files.exists(homeRepoPath) && !Files.isDirectory(homeRepoPath, LinkOption.NOFOLLOW_LINKS)) {
+        if (homeRepoPath.exists() && !homeRepoPath.isDirectory()) {
             throw new BLangCompilerException("Home repository is not a directory: " + homeRepoPath);
         }
         return homeRepoPath;
@@ -110,7 +110,7 @@ public final class RepoUtils {
      */
     public static boolean isBallerinaProject(Path sourceRoot) {
         Path manifest = sourceRoot.resolve(ProjectDirConstants.MANIFEST_FILE_NAME);
-        return Files.isDirectory(sourceRoot) && Files.exists(manifest) && Files.isRegularFile(manifest);
+        return sourceRoot.isDirectory() && manifest.exists() && manifest.isRegularFile();
     }
 
     /**
@@ -121,7 +121,7 @@ public final class RepoUtils {
      */
     public static boolean isBallerinaStandaloneFile(Path file) {
         // Check if the file is a regular file
-        if (!Files.isRegularFile(file)) {
+        if (!file.isRegularFile()) {
             return false;
         }
         // Check if it is a file with bal extention.
@@ -355,14 +355,9 @@ public final class RepoUtils {
      */
     public static Settings readSettings() {
         Path settingsFilePath = RepoUtils.createAndGetHomeReposPath().resolve(ProjectConstants.SETTINGS_FILE_NAME);
-        try {
-            TomlDocument settingsTomlDocument = TomlDocument
-                    .from(String.valueOf(settingsFilePath.getFileName()), Files.readString(settingsFilePath));
-            SettingsBuilder settingsBuilder = SettingsBuilder.from(settingsTomlDocument);
-            return settingsBuilder.settings();
-        } catch (IOException e) {
-            // If Settings.toml not exists return empty Settings object
-            return Settings.from();
-        }
+        TomlDocument settingsTomlDocument = TomlDocument
+                .from(String.valueOf(settingsFilePath.getFileName()), settingsFilePath.readString());
+        SettingsBuilder settingsBuilder = SettingsBuilder.from(settingsTomlDocument);
+        return settingsBuilder.settings();
     }
 }

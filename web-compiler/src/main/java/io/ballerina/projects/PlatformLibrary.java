@@ -17,7 +17,7 @@
  */
 package io.ballerina.projects;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Represents a platform-specific library.

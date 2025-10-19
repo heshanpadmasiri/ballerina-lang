@@ -51,7 +51,7 @@ import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -169,13 +169,13 @@ public class BuildProject extends Project implements Comparable<Project> {
             Optional<Path> generatedModulePath = Optional.of(sourceRoot.
                     resolve(ProjectConstants.GENERATED_MODULES_ROOT));
             if (currentPackage().getDefaultModule().moduleId() == moduleId
-                    && Files.isDirectory(generatedModulePath.get())) {
+                    && generatedModulePath.get().isDirectory()) {
                 return generatedModulePath;
             }
             String moduleName = currentPackage().module(moduleId).moduleName().moduleNamePart();
-            if (Files.isDirectory(generatedModulePath.get())) {
+            if (generatedModulePath.get().isDirectory()) {
                 Optional<Path> generatedModuleDirPath = Optional.of(generatedModulePath.get().resolve(moduleName));
-                if (Files.isDirectory(generatedModuleDirPath.get())) {
+                if (generatedModuleDirPath.get().isDirectory()) {
                     return Optional.of(generatedModulePath.get().resolve(moduleName));
                 }
             }
@@ -190,8 +190,7 @@ public class BuildProject extends Project implements Comparable<Project> {
             Optional<Path> modulePath = modulePath(moduleId);
             if (module.documentIds().contains(documentId)) {
                 Optional<Path> generatedModulePath = generatedModulePath(moduleId);
-                if (generatedModulePath.isPresent() && Files.exists(
-                        generatedModulePath.get().resolve(module.document(documentId).name()))) {
+                if (generatedModulePath.isPresent() && generatedModulePath.get().resolve(module.document(documentId).name()).exists()) {
                     return Optional.of(generatedModulePath.get().resolve(module.document(documentId).name()));
                 }
                 if (modulePath.isPresent()) {
@@ -199,10 +198,9 @@ public class BuildProject extends Project implements Comparable<Project> {
                 }
             } else if (module.testDocumentIds().contains(documentId)) {
                 Optional<Path> generatedModulePath = generatedModulePath(moduleId);
-                if (generatedModulePath.isPresent() && Files.exists(
-                        generatedModulePath.get().resolve(ProjectConstants.TEST_DIR_NAME).
+                if (generatedModulePath.isPresent() && generatedModulePath.get().resolve(ProjectConstants.TEST_DIR_NAME).
                                 resolve(module.document(documentId).name()
-                                        .split(ProjectConstants.TEST_DIR_NAME + "/")[1]))) {
+                                        .split(ProjectConstants.TEST_DIR_NAME + "/")[1]).exists()) {
                     return Optional.of(generatedModulePath.get().resolve(ProjectConstants.TEST_DIR_NAME).
                             resolve(module.document(documentId).name()
                                     .split(ProjectConstants.TEST_DIR_NAME + "/")[1]));
@@ -491,32 +489,16 @@ public class BuildProject extends Project implements Comparable<Project> {
 
     private static void createIfNotExists(Path filePath) {
         if (!filePath.toFile().exists()) {
-            try {
-                Files.createFile(filePath);
-            } catch (IOException e) {
-                throw new ProjectException("Failed to create 'Dependencies.toml' file to write dependencies");
-            }
+            filePath.createFile();
         }
     }
 
     private static void writeContent(Path filePath, String content) {
-        try {
-            Files.write(filePath, Collections.singleton(content));
-        } catch (IOException e) {
-            throw new ProjectException("Failed to write dependencies to the 'Dependencies.toml' file");
-        }
+        throw new RuntimeException();
     }
 
     private static void createBuildFile(Path buildFilePath) {
-        try {
-            if (!buildFilePath.getParent().toFile().exists()) {
-                // create target directory if not exists
-                Files.createDirectory(buildFilePath.getParent());
-            }
-            Files.createFile(buildFilePath);
-        } catch (IOException e) {
-            throw new ProjectException("Failed to create '" + BUILD_FILE + "' file");
-        }
+        throw new RuntimeException();
     }
 
     private void writeBuildFile(Path buildFilePath) {
@@ -531,17 +513,7 @@ public class BuildProject extends Project implements Comparable<Project> {
     }
 
     private static void writeBuildFile(Path buildFilePath, BuildJson buildJson) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        // Check write permissions
-        if (!buildFilePath.toFile().canWrite()) {
-            return;
-        }
-        // write build file
-        try {
-            Files.write(buildFilePath, Collections.singleton(gson.toJson(buildJson)));
-        } catch (IOException e) {
-            // ignore
-        }
+        throw new RuntimeException();
     }
 
     @Override
@@ -555,15 +527,7 @@ public class BuildProject extends Project implements Comparable<Project> {
 
     @Override
     public Path generatedResourcesDir() {
-        Path generatedResourcesPath = targetDir().resolve(ProjectConstants.RESOURCE_DIR_NAME);
-        if (!Files.exists(generatedResourcesPath)) {
-            try {
-                Files.createDirectories(generatedResourcesPath);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return generatedResourcesPath;
+        throw new RuntimeException();
     }
 
     @Override

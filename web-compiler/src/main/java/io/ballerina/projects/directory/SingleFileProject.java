@@ -17,6 +17,7 @@
  */
 package io.ballerina.projects.directory;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.PackageConfig;
@@ -31,7 +32,6 @@ import io.ballerina.projects.util.ProjectConstants;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
 /**
@@ -116,11 +116,7 @@ public class SingleFileProject extends Project implements Comparable<Project> {
     private SingleFileProject(ProjectEnvironmentBuilder environmentBuilder, Path filePath, BuildOptions buildOptions) {
         super(ProjectKind.SINGLE_FILE_PROJECT, filePath, environmentBuilder, buildOptions);
 
-        try {
-            this.targetDir = Files.createTempDirectory("ballerina-cache" + System.nanoTime());
-        } catch (IOException e) {
-            // ignore
-        }
+        this.targetDir = null;
 
         populateCompilerContext();
     }
@@ -170,12 +166,8 @@ public class SingleFileProject extends Project implements Comparable<Project> {
     @Override
     public Path generatedResourcesDir() {
         Path generatedResourcesPath = this.targetDir.resolve(ProjectConstants.RESOURCE_DIR_NAME);
-        if (!Files.exists(generatedResourcesPath)) {
-            try {
-                Files.createDirectories(generatedResourcesPath);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (!generatedResourcesPath.exists()) {
+            generatedResourcesPath.createDirectories();
         }
         return generatedResourcesPath;
     }

@@ -17,6 +17,7 @@
  */
 package io.ballerina.projects.util;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.BalToolsManifest;
 import io.ballerina.projects.JvmTarget;
 import io.ballerina.projects.ProjectException;
@@ -31,7 +32,6 @@ import org.ballerinalang.central.client.model.ToolResolutionCentralRequest;
 import org.ballerinalang.central.client.model.ToolResolutionCentralResponse;
 import org.wso2.ballerinalang.util.RepoUtils;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
@@ -165,25 +165,7 @@ public class BalToolsUtil {
 
     public static BalToolsManifest.Tool pullToolPackageFromRemote(String toolId, String version)
             throws CentralClientException {
-        String supportedPlatform = Arrays.stream(JvmTarget.values())
-                .map(JvmTarget::code)
-                .collect(Collectors.joining(","));
-        Path balaCacheDirPath = BuildToolsUtil.getCentralBalaDirPath();
-        Settings settings;
-        settings = RepoUtils.readSettings();
-        // Ignore Settings.toml diagnostics in the pull command
-
-        System.setProperty(CentralClientConstants.ENABLE_OUTPUT_STREAM, Boolean.TRUE.toString());
-        CentralAPIClient client = new CentralAPIClient(RepoUtils.getRemoteRepoURL(),
-                initializeProxy(settings.getProxy()), settings.getProxy().username(),
-                settings.getProxy().password(), getAccessTokenOfCLI(settings),
-                settings.getCentral().getConnectTimeout(),
-                settings.getCentral().getReadTimeout(), settings.getCentral().getWriteTimeout(),
-                settings.getCentral().getCallTimeout(), settings.getCentral().getMaxRetries());
-        String[] toolInfo = client.pullTool(toolId, version, balaCacheDirPath, supportedPlatform,
-                RepoUtils.getBallerinaVersion(), false);
-
-        return new BalToolsManifest.Tool(toolId, toolInfo[0], toolInfo[1], toolInfo[2], true, null);
+        throw new RuntimeException();
     }
 
     private static Optional<SemanticVersion> getToolDistVersionFromCache(

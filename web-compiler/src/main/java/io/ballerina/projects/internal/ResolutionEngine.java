@@ -98,7 +98,7 @@ public class ResolutionEngine {
         // 3) Update the dependency versions if required
         //    This method traverse through the graph as many time as time until the graph is completed.
         //    Graph is complete when it contains latest compatible versions of all dependencies.
-        updateDependencyVersions();
+//        updateDependencyVersions();
 
         // 4) Now the first round of update is done, but there may be more unresolved nodes in the graph builder.
         //    We need to keep resolving the unresolved nodes until the graph is complete.

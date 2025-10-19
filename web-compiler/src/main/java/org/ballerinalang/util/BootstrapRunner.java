@@ -26,7 +26,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -81,11 +81,7 @@ public final class BootstrapRunner {
     }
 
     public static void buildDirectoryFromPath(Path directory) {
-        try {
-            Files.createDirectories(directory);
-        } catch (IOException e) {
-            throw new BLangCompilerException("could not create native folder inside target folder", e);
-        }
+        directory.createDirectories();
     }
 
     private static void genObjectFile(String entryBir, String objFileOutputPath, boolean dumpLLVM,
@@ -244,4 +240,3 @@ public final class BootstrapRunner {
         return ballerinaNativeMap == null ? " " : ballerinaNativeMap;
     }
 }
-

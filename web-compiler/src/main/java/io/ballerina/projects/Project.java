@@ -17,12 +17,13 @@
  */
 package io.ballerina.projects;
 
+import io.ballerina.fs.NativePath;
+import io.ballerina.fs.Path;
 import io.ballerina.projects.buildtools.ToolContext;
 import io.ballerina.projects.environment.ProjectEnvironment;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.CompilerOptions;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

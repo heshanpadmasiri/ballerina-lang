@@ -33,7 +33,7 @@ import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.tree.BLangTestablePackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Collections;
 import java.util.List;
 

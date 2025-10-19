@@ -28,7 +28,7 @@ import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Toml parser util methods.
@@ -47,15 +47,10 @@ public final class TomlParserUtils {
      */
     public static Settings readSettings() { // TODO: Should be removed after removing old repo structure
         Path settingsFilePath = RepoUtils.createAndGetHomeReposPath().resolve(ProjectConstants.SETTINGS_FILE_NAME);
-        try {
-            TomlDocument settingsTomlDocument = TomlDocument
-                    .from(String.valueOf(settingsFilePath.getFileName()), Files.readString(settingsFilePath));
-            SettingsBuilder settingsBuilder = SettingsBuilder.from(settingsTomlDocument);
-            return settingsBuilder.settings();
-        } catch (IOException e) {
-            // If Settings.toml not exists return empty Settings object
-            return Settings.from();
-        }
+        TomlDocument settingsTomlDocument = TomlDocument
+                .from(String.valueOf(settingsFilePath.getFileName()), settingsFilePath.readString());
+        SettingsBuilder settingsBuilder = SettingsBuilder.from(settingsTomlDocument);
+        return settingsBuilder.settings();
     }
 
     /**

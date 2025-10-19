@@ -25,7 +25,7 @@ import org.wso2.ballerinalang.compiler.packaging.converters.Converter;
 import org.wso2.ballerinalang.compiler.packaging.converters.PathConverter;
 import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Calculate bal files' path pattens in a project, excluding test files.

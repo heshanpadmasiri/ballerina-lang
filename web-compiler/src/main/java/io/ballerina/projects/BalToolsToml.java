@@ -27,7 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Map;
 
 import static io.ballerina.projects.util.ProjectConstants.BAL_TOOLS_TOML;
@@ -52,29 +52,7 @@ public class BalToolsToml {
     }
 
     private static String read(Path balToolsTomlPath) {
-        StringBuilder content = new StringBuilder();
-        if (!balToolsTomlPath.toFile().exists()) {
-            try {
-                Path parentDirectory = balToolsTomlPath.getParent();
-                if (parentDirectory != null && !parentDirectory.toFile().exists()) {
-                    Files.createDirectories(parentDirectory);
-                }
-                Files.createFile(balToolsTomlPath);
-            } catch (IOException e) {
-                throw new RuntimeException("Error while creating bal-tools.toml :" + e);
-            }
-        }
-        try (BufferedReader reader = new BufferedReader(
-                new FileReader(balToolsTomlPath.toString(), Charset.defaultCharset()))) {
-            String line = reader.readLine();
-            while (line != null) {
-                content.append(line).append("\n");
-                line = reader.readLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error while reading bal-tools.toml :" + e);
-        }
-        return String.valueOf(content);
+        throw new RuntimeException();
     }
 
     TomlDocumentContext ballerinaTomlContext() {

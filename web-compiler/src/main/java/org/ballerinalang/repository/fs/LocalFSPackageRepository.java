@@ -19,7 +19,7 @@ package org.ballerinalang.repository.fs;
 
 import org.wso2.ballerinalang.compiler.util.Name;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * This represents a local file system based {@link org.ballerinalang.repository.PackageRepository}.

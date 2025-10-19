@@ -21,18 +21,10 @@ import org.ballerinalang.compiler.BLangCompilerException;
 import org.ballerinalang.model.elements.PackageID;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.Map;
+
+import io.ballerina.fs.Path;
+
 import java.util.stream.Stream;
 
 import static org.wso2.ballerinalang.compiler.util.ProjectDirConstants.BLANG_SOURCE_EXT;
@@ -44,13 +36,11 @@ import static org.wso2.ballerinalang.compiler.util.ProjectDirConstants.BLANG_SOU
  */
 public final class FileUtils {
 
-    private static final String SRC_DIR = "src";
-
     private FileUtils() {
     }
 
     public static void deleteFile(Path filePath) throws IOException {
-        Files.deleteIfExists(filePath);
+        filePath.deleteIfExists();
     }
 
     /**
@@ -68,13 +58,8 @@ public final class FileUtils {
                                   packageID.getOrgName().getValue(),
                                   packageID.getName().getValue(),
                                   packageID.getPackageVersion().getValue());
-        if (!Files.exists(destPath)) {
-            try {
-                Files.createDirectories(destPath);
-            } catch (IOException e) {
-                throw new BLangCompilerException("error creating directories in ./ballerina/repo/ to save the " +
-                                                         "artifact");
-            }
+        if (!destPath.exists()) {
+            destPath.createDirectories();
         }
         String fileName = packageID.getName() + ".zip";
         Path balaDirPath = destPath.resolve(fileName);
@@ -89,7 +74,7 @@ public final class FileUtils {
      */
     private static void deleteBala(Path balaDirPath) {
         try {
-            Files.deleteIfExists(balaDirPath);
+            balaDirPath.deleteIfExists();
         } catch (IOException ignore) {
             throw new BLangCompilerException("error deleting artifact : " + balaDirPath);
         }
@@ -102,64 +87,7 @@ public final class FileUtils {
      * @param outDirPath        output archive file path
      */
     private static void createArchive(Stream<Path> filesToBeArchived, Path outDirPath) {
-        Map<String, String> zipFSEnv = new HashMap<>();
-        zipFSEnv.put("create", "true");
-        URI filepath = outDirPath.toUri();
-        URI zipFileURI;
-        try {
-            zipFileURI = new URI("jar:" + filepath.getScheme(),
-                                 filepath.getUserInfo(), filepath.getHost(), filepath.getPort(),
-                                 filepath.getPath() + "!/",
-                                 filepath.getQuery(), filepath.getFragment());
-        } catch (URISyntaxException ignore) {
-            throw new BLangCompilerException("error creating artifact: " + outDirPath.getFileName());
-        }
-        try (FileSystem zipFS = FileSystems.newFileSystem(zipFileURI, zipFSEnv)) {
-            addFileToArchive(filesToBeArchived, zipFS, outDirPath);
-        } catch (IOException e) {
-            throw new BLangCompilerException("error creating artifact: " + outDirPath.getFileName());
-        }
-    }
-
-    /**
-     * Add file to archive.
-     *
-     * @param filesToBeArchived files to be archived
-     * @param zipFS             Zip file system
-     * @param outDirPath        output archive name
-     */
-    private static void addFileToArchive(Stream<Path> filesToBeArchived, FileSystem zipFS, Path outDirPath) {
-        filesToBeArchived.forEach((path) -> {
-            String fileName = path.getFileName().toString();
-            Path dest = zipFS.getPath(SRC_DIR, fileName);
-            if (fileName.equals("Module.md")) {
-                dest = zipFS.getPath(zipFS.getSeparator(), fileName);
-            }
-            try {
-                if (Files.exists(path)) {
-                    copyFileToArchive(new FileInputStream(path.toFile()), dest);
-                }
-            } catch (IOException e) {
-                throw new BLangCompilerException("error generating artifact: " + outDirPath.getFileName());
-            }
-        });
-    }
-
-    /**
-     * Copy file to archive.
-     *
-     * @param srcInputStream inputstream of the file to be copied
-     * @param destPath       output path
-     * @throws IOException i/o exception thrown
-     */
-    private static void copyFileToArchive(InputStream srcInputStream, Path destPath) throws IOException {
-        Path parent = destPath.getParent();
-        if (parent != null) {
-            if (Files.notExists(parent)) {
-                Files.createDirectories(parent);
-            }
-            Files.copy(srcInputStream, destPath, StandardCopyOption.REPLACE_EXISTING);
-        }
+        throw new RuntimeException();
     }
 
     public static String cleanupFileExtension(String targetFileName) {

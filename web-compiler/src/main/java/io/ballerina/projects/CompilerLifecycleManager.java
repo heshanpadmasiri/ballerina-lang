@@ -23,7 +23,7 @@ import io.ballerina.projects.plugins.CompilerLifecycleListener;
 import io.ballerina.projects.plugins.CompilerLifecycleTask;
 import io.ballerina.tools.diagnostics.Diagnostic;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

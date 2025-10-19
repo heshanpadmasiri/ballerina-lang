@@ -16,9 +16,10 @@
 
 package io.ballerina.projects;
 
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+
+import io.ballerina.fs.Path;
 
 /**
  * Record for storing arguments to use in JBallerinaBackend's emit of TEST.

@@ -3,7 +3,7 @@ package org.wso2.ballerinalang.compiler.packaging.repo;
 import org.ballerinalang.compiler.CompilerPhase;
 import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Calculate path pattens for project and home cache.

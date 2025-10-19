@@ -17,9 +17,10 @@
  */
 package io.ballerina.projects.internal;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+
+import io.ballerina.fs.Path;
 
 /**
  * {@code ModuleFileData} represents a Ballerina module directory.

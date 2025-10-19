@@ -19,7 +19,7 @@ package io.ballerina.projects;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Maintains the internal state of a {@code Resource} instance.
@@ -55,14 +55,7 @@ class ResourceContext {
     }
 
     byte[] content() {
-        if (content == null) {
-            try {
-                content = Files.readAllBytes(this.path);
-            } catch (IOException e) {
-                throw new ProjectException("unable to read the resource file: " + path, e);
-            }
-        }
-        return content;
+        throw new RuntimeException();
     }
 
     DocumentId documentId() {

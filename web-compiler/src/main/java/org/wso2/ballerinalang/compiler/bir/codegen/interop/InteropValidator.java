@@ -40,7 +40,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -93,7 +93,7 @@ public class InteropValidator {
         // Add runtime library
         Path runtimeJar = compilerBackend.runtimeLibrary().path();
         // We check if the runtime jar exist to support bootstrap
-        if (Files.exists(runtimeJar)) {
+        if (runtimeJar.exists()) {
             moduleDependencyPaths.add(runtimeJar);
         }
 
@@ -118,7 +118,7 @@ public class InteropValidator {
         // Add runtime library
         Path runtimeJar = compilerBackend.runtimeLibrary().path();
         // We check if the runtime jar exist to support bootstrap
-        if (Files.exists(runtimeJar)) {
+        if (runtimeJar.exists()) {
             testDependencies.add(runtimeJar);
         }
         ClassLoader classLoader = makeClassLoader(testDependencies);
@@ -181,18 +181,7 @@ public class InteropValidator {
     }
 
     private ClassLoader makeClassLoader(Set<Path> moduleDependencies) {
-        if (moduleDependencies == null || moduleDependencies.isEmpty()) {
-            return Thread.currentThread().getContextClassLoader();
-        }
-        List<URL> dependentJars = new ArrayList<>();
-        for (Path dependency : moduleDependencies) {
-            try {
-                dependentJars.add(dependency.toUri().toURL());
-            } catch (MalformedURLException e) {
-                // ignore
-            }
-        }
-        return new URLClassLoader(dependentJars.toArray(new URL[]{}), ClassLoader.getPlatformClassLoader());
+        throw new RuntimeException();
     }
 
     /**

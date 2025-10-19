@@ -26,9 +26,10 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.stream.Stream;
+
+import io.ballerina.fs.Path;
 
 import static org.wso2.ballerinalang.compiler.util.ProjectDirConstants.BLANG_SOURCE_EXT;
 
@@ -52,11 +53,11 @@ public final class ProjectDirs {
     }
 
     public static boolean isSourceFile(Path path) {
-        return !Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS) && SOURCE_FILE_MATCHER.matches(path);
+        throw new RuntimeException();
     }
 
     public static Path getLastComp(Path path) {
-        return path.getName(path.getNameCount() - 1);
+        throw new RuntimeException();
     }
 
     public static BLangCompilerException getPackageNotFoundError(PackageID packageID) {
@@ -82,23 +83,7 @@ public final class ProjectDirs {
      * @return true if source files exists else false
      */
     public static boolean containsSourceFiles(Path pkgPath) throws BLangCompilerException {
-        try (Stream<Path> paths = Files.find(pkgPath, Integer.MAX_VALUE, (path, attrs) ->
-                            path.toString().endsWith(ProjectDirConstants.BLANG_SOURCE_EXT))) {
-            return paths.findAny().isPresent();
-        } catch (IOException ignored) {
-            // Here we are trying to check if there are source files inside the package to be compiled. If an error
-            // occurs when trying to visit the files inside the package then we simply return false.
-            return false;
-        } catch (UncheckedIOException e) {
-            // Files#find returns an UncheckedIOException instead of an AccessDeniedException when there is a file to
-            // which user doesn't have required permission.
-            if (e.getCause() instanceof AccessDeniedException) {
-                throw new BLangCompilerException("permission denied for path " + pkgPath.toString()
-                        + ", cause: " + e.getMessage());
-            } else {
-                throw e;
-            }
-        }
+        throw new RuntimeException();
     }
 
     /**
@@ -109,22 +94,7 @@ public final class ProjectDirs {
      * @return true if its a test source, else false
      */
     public static boolean isTestSource(Path sourcePath, Path sourceRoot, String pkg) {
-        // CASE 1: Check if it the package name is "." i.e. if its a single ballerina source file, if so it should be
-        // added to the bLangPackage
-        if (Names.DOT.value.equals(pkg)) {
-            return false;
-        }
-    
-        // If the pkg is not a part of the sourceRoot project then it wont be a test source.
-        if (!isModuleExist(sourceRoot, pkg)) {
-            return false;
-        }
-        
-        // Resolve package path with the source root
-        Path pkgPath = sourceRoot.resolve(pkg);
-        Path relativizePath = pkgPath.relativize(sourcePath);
-        // Bal files should be inside tests directory but not in test resources
-        return TEST_FILE_MATCHER.matches(relativizePath) && !TEST_RESOURCE_FILE_MATCHER.matches(relativizePath);
+        throw new RuntimeException();
     }
 
     /**
@@ -133,7 +103,7 @@ public final class ProjectDirs {
      * @return true if a project
      */
     public static boolean isProject(Path path) {
-        return Files.exists(path.resolve(ProjectDirConstants.MANIFEST_FILE_NAME));
+        return path.resolve(ProjectDirConstants.MANIFEST_FILE_NAME).exists();
     }
 
     /**
@@ -144,7 +114,7 @@ public final class ProjectDirs {
      */
     public static Path findProjectRoot(Path projectDir) {
         Path path = projectDir.resolve(ProjectDirConstants.MANIFEST_FILE_NAME);
-        if (Files.exists(path)) {
+        if (path.exists()) {
             return projectDir;
         }
         Path parentsParent = projectDir.getParent();
@@ -162,6 +132,6 @@ public final class ProjectDirs {
      */
     public static boolean isModuleExist(Path projectPath, String moduleName) {
         Path modulePath = projectPath.resolve(ProjectDirConstants.SOURCE_DIR_NAME).resolve(moduleName);
-        return Files.exists(modulePath);
+        return modulePath.exists();
     }
 }

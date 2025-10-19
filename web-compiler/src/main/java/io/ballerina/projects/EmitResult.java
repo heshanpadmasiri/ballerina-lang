@@ -17,7 +17,7 @@
  */
 package io.ballerina.projects;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * This class represent the results of the emit operation.

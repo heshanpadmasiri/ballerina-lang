@@ -17,13 +17,13 @@
  */
 package io.ballerina.projects.internal.repositories;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageOrg;
 import io.ballerina.projects.PackageVersion;
 import io.ballerina.projects.environment.Environment;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,7 +48,7 @@ public class LocalPackageRepository extends FileSystemRepository {
         }
 
         Path balaPath = getPackagePath(org.toString(), name.toString(), version.toString());
-        if (Files.exists(balaPath)) {
+        if (balaPath.exists()) {
             return Collections.singletonList(version);
         } else {
             // TODO Do we need a diagnostic HERE

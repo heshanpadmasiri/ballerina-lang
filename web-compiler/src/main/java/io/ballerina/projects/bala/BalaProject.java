@@ -18,6 +18,7 @@
 
 package io.ballerina.projects.bala;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -35,7 +36,6 @@ import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
 /**
@@ -106,7 +106,7 @@ public class BalaProject extends Project {
         if (file == null) {
             throw new ProjectException("file path cannot be null");
         }
-        if (!Files.isDirectory(this.sourceRoot)) {
+        if (!this.sourceRoot.isDirectory()) {
             throw new UnsupportedOperationException("retrieving the DocumentId from " +
                     ProjectConstants.BLANG_COMPILED_PKG_BINARY_EXT + " is not supported");
         }

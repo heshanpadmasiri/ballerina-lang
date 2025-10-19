@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -68,12 +68,8 @@ public class URIConverter implements Converter<URI> {
      * @param dirPath destination dir path
      */
     public void createDirectory(Path dirPath) {
-        if (!Files.exists(dirPath)) {
-            try {
-                Files.createDirectories(dirPath);
-            } catch (IOException e) {
-                throw new RuntimeException("error occurred when creating the directory path " + dirPath);
-            }
+        if (!dirPath.exists()) {
+            dirPath.createDirectories();
         }
     }
 

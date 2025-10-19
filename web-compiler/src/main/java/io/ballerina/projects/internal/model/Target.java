@@ -17,6 +17,7 @@
  */
 package io.ballerina.projects.internal.model;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.util.ProjectConstants;
@@ -24,8 +25,6 @@ import io.ballerina.projects.util.ProjectUtils;
 import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * Represents the target directory model.
@@ -63,44 +62,34 @@ public class Target {
         this.profilerPath = this.targetPath.resolve(ProjectConstants.PROFILER_DIR_NAME);
         this.resourcesPath = this.targetPath.resolve(ProjectConstants.RESOURCE_DIR_NAME);
 
-        if (Files.exists(this.targetPath)) {
+        if (this.targetPath.exists()) {
             ProjectUtils.checkWritePermission(this.targetPath);
         } else {
-            Files.createDirectories(this.targetPath);
+            this.targetPath.createDirectories();
         }
 
-        if (Files.exists(this.cache)) {
+        if (this.cache.exists()) {
             ProjectUtils.checkWritePermission(this.cache);
         }
-        if (Files.exists(this.binPath)) {
+        if (this.binPath.exists()) {
             ProjectUtils.checkWritePermission(this.binPath);
         }
-        if (Files.exists(this.balaCachePath)) {
+        if (this.balaCachePath.exists()) {
             ProjectUtils.checkWritePermission(this.balaCachePath);
         }
-        if (Files.exists(this.docPath)) {
+        if (this.docPath.exists()) {
             ProjectUtils.checkWritePermission(this.docPath);
         }
 
-        if (Files.exists(this.reportPath)) {
+        if (this.reportPath.exists()) {
             ProjectUtils.checkWritePermission(this.reportPath);
         }
-        if (Files.exists(this.profilerPath)) {
+        if (this.profilerPath.exists()) {
             ProjectUtils.checkWritePermission(this.profilerPath);
         }
-        if (Files.exists(this.resourcesPath)) {
+        if (this.resourcesPath.exists()) {
             ProjectUtils.checkWritePermission(this.resourcesPath);
         }
-    }
-
-    /**
-     * Returns the doc target path.
-     *
-     * @return path of the api doc directory
-     */
-    public Path getDocPath() throws IOException {
-        Files.createDirectories(docPath);
-        return docPath;
     }
 
     /**
@@ -109,7 +98,7 @@ public class Target {
      * @return path of the bala file
      */
     public Path getBalaPath() throws IOException {
-        Files.createDirectories(balaCachePath);
+        balaCachePath.createDirectories();
         return balaCachePath;
     }
 
@@ -119,7 +108,7 @@ public class Target {
      * @return path of the executable
      */
     public Path getJarCachePath() throws IOException {
-        Files.createDirectories(jarCachePath);
+        jarCachePath.createDirectories();
         return jarCachePath;
     }
 
@@ -160,23 +149,13 @@ public class Target {
      * @return bin path
      */
     public Path getBinPath() throws IOException {
-        Files.createDirectories(binPath);
+        binPath.createDirectories();
         return binPath;
     }
 
     public Path getTestBinPath() throws IOException {
-        Files.createDirectories(binPath.resolve(ProjectConstants.TEST_DIR_NAME));
+        binPath.resolve(ProjectConstants.TEST_DIR_NAME).createDirectories();
         return binPath.resolve(ProjectConstants.TEST_DIR_NAME);
-    }
-
-    public Path getReportPath() throws IOException {
-        Files.createDirectories(reportPath);
-        return reportPath;
-    }
-
-    public Path getProfilerPath() throws IOException {
-        Files.createDirectories(profilerPath);
-        return profilerPath;
     }
 
     /**
@@ -189,69 +168,12 @@ public class Target {
     }
 
     /**
-     * Returns the bir-cache directory path.
-     *
-     * @return caches path
-     */
-    public Path getBirCachePath() throws IOException {
-        Files.createDirectories(birCachePath);
-        return birCachePath;
-    }
-
-    /**
-     * Returns the tests-cache directory path.
-     *
-     * @return caches path
-     */
-    public Path getTestsCachePath() throws IOException {
-        Files.createDirectories(testsCachePath);
-        return testsCachePath;
-    }
-
-    /**
      * Returns the path of the target directory.
      *
      * @return target path
      */
     public Path path() {
         return this.targetPath;
-    }
-
-    /**
-     * Sets a custom path as the executable jar path.
-     *
-     * @param outputPath path to set for the executable jar
-     * @throws IOException if directory creation fails
-     */
-    public void setOutputPath(Path outputPath) throws IOException {
-        if (Files.exists(outputPath)) {
-            ProjectUtils.checkWritePermission(outputPath);
-            Files.delete(outputPath);
-        }
-        // create parent directories
-        Path parent = outputPath.getParent();
-        if (parent != null) {
-            if (Files.exists(parent)) {
-                ProjectUtils.checkWritePermission(parent);
-            }
-            Files.createDirectories(parent);
-        }
-        this.outputPath = outputPath;
-    }
-
-    /**
-     * Clean any files that created from the build.
-     */
-    public void clean() {
-        // Remove cache directory
-        ProjectUtils.deleteDirectory(this.cache);
-
-        // Remove any generated bala
-        ProjectUtils.deleteDirectory(this.balaCachePath);
-        ProjectUtils.deleteDirectory(this.binPath);
-        ProjectUtils.deleteDirectory(this.docPath);
-        ProjectUtils.deleteDirectory(this.reportPath);
-        ProjectUtils.deleteDirectory(this.resourcesPath);
     }
 
     /**
@@ -272,25 +194,4 @@ public class Target {
         ProjectUtils.deleteDirectory(this.resourcesPath);
     }
 
-    /**
-     * Clean cache files that created from the build.
-     */
-    public void cleanCache() {
-        // Remove from cache
-        ProjectUtils.deleteDirectory(this.cache);
-    }
-
-    public Path getNativePath() throws IOException {
-        Files.createDirectories(nativePath);
-        return nativePath;
-    }
-
-    public Path getNativeConfigPath() throws IOException {
-        Files.createDirectories(nativeConfigPath);
-        return nativeConfigPath;
-    }
-
-    public void cleanBinTests() {
-        ProjectUtils.deleteDirectory(this.binPath.resolve(ProjectConstants.TEST_DIR_NAME));
-    }
 }

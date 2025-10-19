@@ -19,7 +19,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.projects.Document;
 import io.ballerina.tools.text.LinePosition;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.List;
 
 /**

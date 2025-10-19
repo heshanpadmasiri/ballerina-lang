@@ -18,7 +18,7 @@
 
 package io.ballerina.projects;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * {@code ResourceConfig} contains necessary configuration elements required

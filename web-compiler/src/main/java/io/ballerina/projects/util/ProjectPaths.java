@@ -17,22 +17,12 @@
  */
 package io.ballerina.projects.util;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
-import io.ballerina.projects.TomlDocument;
-import io.ballerina.toml.semantic.TomlType;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
-import io.ballerina.toml.semantic.ast.TopLevelNode;
 import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
-
-import static io.ballerina.projects.util.ProjectConstants.BALLERINA_TOML;
-import static io.ballerina.projects.util.TomlUtil.getStringArrayFromTableNode;
 
 /**
  * Consists of static methods that may be used to obtain {@link Project}
@@ -42,7 +32,6 @@ import static io.ballerina.projects.util.TomlUtil.getStringArrayFromTableNode;
  */
 public final class ProjectPaths {
 
-    public static final String WORKSPACE_KEY = "workspace";
     public static final String PACKAGE_KEY = "package";
 
     private ProjectPaths() {
@@ -57,11 +46,11 @@ public final class ProjectPaths {
      */
     public static Path packageRoot(Path filepath) throws ProjectException {
         // check if the file exists
-        if (!Files.exists(filepath)) {
+        if (!filepath.exists()) {
             throw new ProjectException("'" + filepath + "'" + " does not exist");
         }
 
-        if (Files.isDirectory(filepath)) {
+        if (filepath.isDirectory()) {
             if (isBuildProjectRoot(filepath) || hasPackageJson(filepath)) {
                 return filepath;
             }
@@ -74,7 +63,7 @@ public final class ProjectPaths {
         }
 
         // check if the file is a regular file
-        if (!Files.isRegularFile(filepath)) {
+        if (!filepath.isRegularFile()) {
             throw new ProjectException("'" + filepath + "'" + " is not a regular file");
         }
 
@@ -238,8 +227,8 @@ public final class ProjectPaths {
      * @return true if the path is a Ballerina source file
      */
     public static boolean isBalFile(Path filepath) {
-        return Files.exists(filepath)
-                && Files.isRegularFile(filepath)
+        return filepath.exists()
+                && filepath.isRegularFile()
                 && filepath.toString().endsWith(ProjectDirConstants.BLANG_SOURCE_EXT);
     }
 
@@ -372,99 +361,8 @@ public final class ProjectPaths {
         return Optional.empty();
     }
 
-    private static Optional<Path> findWorkspaceRoot(Path filePath) {
-        if (filePath != null) {
-            filePath = filePath.toAbsolutePath().normalize();
-            if (filePath.toFile().isDirectory()) {
-                if (isWorkspaceProjectRoot(filePath)) {
-                    return Optional.of(filePath);
-                }
-            }
-            return findWorkspaceRoot(filePath.getParent());
-        }
-        return Optional.empty();
-    }
-
-    public static Optional<Path> workspaceRoot(Path filePath) {
-        Path absFilePath = filePath.toAbsolutePath().normalize();
-        if (isWorkspaceProjectRoot(absFilePath)) {
-            return Optional.of(absFilePath);
-        }
-
-        Optional<Path> workspaceRoot = findWorkspaceRoot(absFilePath);
-        if (workspaceRoot.isPresent()) {
-            try {
-                TomlDocument tomlDocument = TomlDocument.from(BALLERINA_TOML, Files.readString(workspaceRoot.get()
-                        .resolve(BALLERINA_TOML)));
-                TomlTableNode tomlAstNode = tomlDocument.toml().rootNode();
-                TopLevelNode topLevelPkgNode = tomlAstNode.entries().get(WORKSPACE_KEY);
-                if (topLevelPkgNode != null && topLevelPkgNode.kind() == TomlType.TABLE) {
-                    if (absFilePath.equals(workspaceRoot.get().resolve(BALLERINA_TOML))) {
-                        return workspaceRoot;
-                    }
-                    // If the file is not the workspace Ballerina.toml,
-                    // check if it belongs to a package in the workspace.
-                    Path packageRoot = packageRoot(filePath);
-                    TomlTableNode pkgNode = (TomlTableNode) topLevelPkgNode;
-                    List<String> packages = getStringArrayFromTableNode(pkgNode, "packages");
-                    for (String pkgEntry : packages) {
-                        if (workspaceRoot.get().resolve(pkgEntry).toAbsolutePath().normalize().equals(
-                                packageRoot.toAbsolutePath().normalize())) {
-                            return workspaceRoot;
-                        }
-                    }
-                    return Optional.empty();
-                }
-            } catch (IOException e) {
-                return Optional.empty();
-            }
-        }
-        return Optional.empty();
-    }
-
     public static boolean isBuildProjectRoot(Path filePath) {
-        if (!filePath.toFile().isDirectory()) {
-            return false;
-        }
-        Path absFilePath = filePath.resolve(BALLERINA_TOML).toAbsolutePath().normalize();
-        if (absFilePath.toFile().exists()) {
-            try {
-                TomlDocument tomlDocument = TomlDocument.from(BALLERINA_TOML,
-                        Files.readString(absFilePath));
-                if (tomlDocument.toml().getTable(PACKAGE_KEY).isPresent()) {
-                    return true;
-                }
-                // If the package table is not present, check for the workspace table.
-                // If the workspace table is not present, it is a package root.
-                return tomlDocument.toml().getTable(WORKSPACE_KEY).isEmpty();
-            } catch (IOException e) {
-                throw new ProjectException("error while validating workspace root: " + e);
-            }
-        }
-        return false;
+        throw new RuntimeException();
     }
 
-    public static boolean isBalaProjectRoot(Path filePath) {
-        if (FileUtils.hasExtension(filePath)) {
-            return filePath.toAbsolutePath().normalize().endsWith(ProjectConstants.BLANG_COMPILED_PKG_BINARY_EXT);
-        }
-        return hasPackageJson(filePath);
-    }
-
-    public static boolean isWorkspaceProjectRoot(Path filePath) {
-        if (!filePath.toFile().isDirectory()) {
-            return false;
-        }
-        Path absFilePath = filePath.resolve(BALLERINA_TOML).toAbsolutePath().normalize();
-        if (absFilePath.toFile().exists()) {
-            try {
-                TomlDocument tomlDocument = TomlDocument.from(BALLERINA_TOML,
-                        Files.readString(absFilePath));
-                return tomlDocument.toml().getTable(WORKSPACE_KEY).isPresent();
-            } catch (IOException e) {
-                throw new ProjectException("error while validating workspace root: " + e);
-            }
-        }
-        return false;
-    }
 }

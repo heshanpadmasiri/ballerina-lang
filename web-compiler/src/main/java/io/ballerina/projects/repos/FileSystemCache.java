@@ -17,6 +17,7 @@
  */
 package io.ballerina.projects.repos;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.CompilationCache;
 import io.ballerina.projects.CompilationCacheFactory;
 import io.ballerina.projects.CompilerBackend;
@@ -30,8 +31,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
 /**
@@ -64,7 +63,7 @@ public class FileSystemCache extends CompilationCache {
     public byte[] getBir(ModuleName moduleName) {
         Path birFilePath = getBirPath().resolve(moduleName.toString()
                 + ProjectConstants.BLANG_COMPILED_PKG_BIR_EXT);
-        if (Files.exists(birFilePath)) {
+        if (birFilePath.exists()) {
             try {
                 return FileUtils.readFileToByteArray(birFilePath.toFile());
             } catch (IOException e) {
@@ -78,7 +77,7 @@ public class FileSystemCache extends CompilationCache {
     @Override
     public void cacheBir(ModuleName moduleName, ByteArrayOutputStream birContent) {
         Path birFilePath = getBirPath().resolve(moduleName.toString() + ProjectConstants.BLANG_COMPILED_PKG_BIR_EXT);
-        if (!Files.exists(birFilePath)) {
+        if (!birFilePath.exists()) {
             try {
                 File tempBirFile = birPath.resolve(".tmp").toFile();
                 // TODO Can we improve this logic
@@ -96,7 +95,7 @@ public class FileSystemCache extends CompilationCache {
         String libraryFileName = libraryName + compilerBackend.libraryFileExtension();
         Path targetPlatformCacheDirPath = getTargetPlatformCacheDirPath(compilerBackend);
         Path jarFilePath = targetPlatformCacheDirPath.resolve(libraryFileName);
-        return Files.exists(jarFilePath) ? Optional.of(jarFilePath) : Optional.empty();
+        return jarFilePath.exists() ? Optional.of(jarFilePath) : Optional.empty();
     }
 
     @Override
@@ -135,16 +134,11 @@ public class FileSystemCache extends CompilationCache {
     }
 
     private void createDirectories(Path dirPath) {
-        if (Files.exists(dirPath)) {
+        if (dirPath.exists()) {
             return;
         }
 
-        try {
-            Files.createDirectories(dirPath);
-        } catch (IOException e) {
-            // TODO improve the error handling
-            throw new RuntimeException("Failed to create directory: " + dirPath, e);
-        }
+        dirPath.createDirectories();
     }
 
     private Path getBirPath() {

@@ -22,7 +22,7 @@ import org.wso2.ballerinalang.compiler.packaging.repo.Repo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * This represents the Java SPI interface for a Ballerina system package repository provider.

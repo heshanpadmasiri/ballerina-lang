@@ -17,7 +17,7 @@
  */
 package io.ballerina.projects;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Objects;
 import java.util.Optional;
 

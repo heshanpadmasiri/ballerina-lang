@@ -21,6 +21,7 @@ plugins {
 }
 
 dependencies {
+    implementation project(':ballerina-envutils')
     implementation project(':ballerina-tools-api')
     implementation project(':ballerina-parser')
     implementation project(':ballerina-runtime')

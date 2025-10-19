@@ -30,7 +30,7 @@ import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
 import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -78,13 +78,13 @@ public class PathBalaRepo implements Repo<Path> {
         Path balaPath = dep.getMetadata().getPath();
         
         // if bala file does not exists
-        if (Files.notExists(balaPath)) {
+        if (balaPath.notExists()) {
             throw new BLangCompilerException("bala file for dependency [" + dep.getModuleID() + "] does not exists: " +
                                              dep.getMetadata().getPath().toAbsolutePath().normalize());
         }
     
         // if bala file is not a file
-        if (!Files.isRegularFile(balaPath)) {
+        if (!balaPath.isRegularFile()) {
             throw new BLangCompilerException("bala file for dependency [" + dep.getModuleID() + "] is not a file: " +
                                              dep.getMetadata().getPath().toAbsolutePath().normalize());
         }

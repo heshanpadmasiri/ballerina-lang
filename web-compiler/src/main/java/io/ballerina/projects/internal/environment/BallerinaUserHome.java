@@ -1,5 +1,6 @@
 package io.ballerina.projects.internal.environment;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.Settings;
 import io.ballerina.projects.TomlDocument;
@@ -16,7 +17,6 @@ import org.wso2.ballerinalang.util.RepoUtils;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,14 +39,7 @@ public final class BallerinaUserHome {
         Path repositoryPath = ballerinaUserHomeDirPath.resolve(ProjectConstants.REPOSITORIES_DIR);
         Path remotePackageRepositoryPath = ballerinaUserHomeDirPath.resolve(ProjectConstants.REPOSITORIES_DIR)
                 .resolve(ProjectConstants.CENTRAL_REPOSITORY_CACHE_NAME);
-        try {
-            Files.createDirectories(remotePackageRepositoryPath);
-        } catch (AccessDeniedException ae) {
-            throw new ProjectException("permission denied to create the directory: " + repositoryPath);
-        } catch (IOException exception) {
-            throw new ProjectException("unable to create the file system cache of Ballerina Central repository: " +
-                    remotePackageRepositoryPath);
-        }
+//        remotePackageRepositoryPath.createDirectories();
 
         this.remotePackageRepository = RemotePackageRepository
                 .from(environment, remotePackageRepositoryPath, readSettings());
@@ -60,11 +53,7 @@ public final class BallerinaUserHome {
         for (Repository repository : repositories) {
             Path repositoryPath = ballerinaUserHomeDirPath.resolve(ProjectConstants.REPOSITORIES_DIR)
                     .resolve(repository.id());
-            try {
-                Files.createDirectories(repositoryPath);
-            } catch (IOException exception) {
-                throw new ProjectException("unable to create repository: " + ProjectConstants.LOCAL_REPOSITORY_NAME);
-            }
+            repositoryPath.createDirectories();
 
             if (!customRepositories.containsKey(repository.id())) {
                 customRepositories.put(repository.id(), MavenPackageRepository.from(environment, repositoryPath,
@@ -112,49 +101,28 @@ public final class BallerinaUserHome {
      */
     private Settings readSettings() {
         Path settingsFilePath = this.ballerinaUserHomeDirPath.resolve(ProjectConstants.SETTINGS_FILE_NAME);
-        if (Files.notExists(settingsFilePath)) {
-            try {
-                Files.createFile(settingsFilePath);
-            } catch (AccessDeniedException ae) {
-                throw new ProjectException("permission denied to create the file: "
-                        + ProjectConstants.SETTINGS_FILE_NAME + " in " + this.ballerinaUserHomeDirPath);
-            } catch (IOException e) {
-                throw new ProjectException("failed to create file: " +  ProjectConstants.SETTINGS_FILE_NAME + " in "
-                        + this.ballerinaUserHomeDirPath + " " + e.getMessage());
-            }
-        }
-        try {
-            TomlDocument settingsTomlDocument = TomlDocument
-                    .from(String.valueOf(settingsFilePath.getFileName()), Files.readString(settingsFilePath));
-            SettingsBuilder settingsBuilder = SettingsBuilder.from(settingsTomlDocument);
-            return settingsBuilder.settings();
-        } catch (IOException e) {
-            // Ignore 'Settings.toml' reading and parsing errors and return empty Settings object
-            return Settings.from();
-        }
+        String settings = """
+                """;
+//        if (settingsFilePath.notExists()) {
+//            settingsFilePath.createFile();
+//        }
+        TomlDocument settingsTomlDocument = TomlDocument
+                .from(String.valueOf(settingsFilePath.getFileName()), settings);
+        SettingsBuilder settingsBuilder = SettingsBuilder.from(settingsTomlDocument);
+        return settingsBuilder.settings();
     }
 
     private static void validateBallerinaUserHomeDir(Path ballerinaUserHomeDirPath) {
         // If directory does not exists, create it
-        if (Files.notExists(ballerinaUserHomeDirPath) || !Files.isDirectory(ballerinaUserHomeDirPath)) {
-            try {
-                Files.createDirectories(ballerinaUserHomeDirPath);
-            } catch (IOException e) {
-                throw new ProjectException(
-                        "Ballerina user home directory does not exists in '" + ballerinaUserHomeDirPath
-                                + "', Directory creation also failed");
-            }
-        }
+//        if (ballerinaUserHomeDirPath.notExists() || !ballerinaUserHomeDirPath.isDirectory()) {
+//            ballerinaUserHomeDirPath.createDirectories();
+//        }
     }
 
     private LocalPackageRepository createLocalRepository(Environment environment) {
         Path repositoryPath = ballerinaUserHomeDirPath.resolve(ProjectConstants.REPOSITORIES_DIR)
                 .resolve(ProjectConstants.LOCAL_REPOSITORY_NAME);
-        try {
-            Files.createDirectories(repositoryPath);
-        } catch (IOException exception) {
-            throw new ProjectException("unable to create repository: " + ProjectConstants.LOCAL_REPOSITORY_NAME);
-        }
+//        repositoryPath.createDirectories();
         String ballerinaShortVersion = RepoUtils.getBallerinaShortVersion();
         return new LocalPackageRepository(environment, repositoryPath, ballerinaShortVersion);
     }

@@ -18,6 +18,8 @@ package io.ballerina.projects.internal.repositories;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import io.ballerina.fs.Path;
 import io.ballerina.projects.DependencyGraph;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Package;
@@ -32,24 +34,14 @@ import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.environment.ResolutionRequest;
 import io.ballerina.projects.internal.model.Proxy;
 import io.ballerina.projects.internal.model.Repository;
-import io.ballerina.projects.util.ProjectUtils;
-import org.apache.commons.io.FileUtils;
 import org.ballerinalang.maven.bala.client.MavenResolverClient;
-import org.ballerinalang.maven.bala.client.MavenResolverClientException;
 import org.wso2.ballerinalang.util.RepoUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static io.ballerina.projects.util.ProjectConstants.BALA_EXTENSION;
 
 /**
  * This class represents the maven package repositories.
@@ -73,7 +65,7 @@ public class MavenPackageRepository extends AbstractPackageRepository {
     }
 
     public static MavenPackageRepository from(Environment environment, Path cacheDirectory, Repository repository) {
-        if (Files.notExists(cacheDirectory)) {
+        if (cacheDirectory.notExists()) {
             throw new ProjectException("cache directory does not exists: " + cacheDirectory);
         }
 
@@ -145,7 +137,7 @@ public class MavenPackageRepository extends AbstractPackageRepository {
         }
 
         Path balaPath = this.fileSystemCache.getPackagePath(org.toString(), name.toString(), version.toString());
-        if (Files.exists(balaPath)) {
+        if (balaPath.exists()) {
             return Collections.singletonList(version);
         } else {
             return Collections.emptyList();
@@ -170,27 +162,6 @@ public class MavenPackageRepository extends AbstractPackageRepository {
     public boolean getPackageFromRemoteRepo(String org,
                                             String name,
                                             String version) {
-        try {
-            Path tmpDownloadDirectory = Files.createTempDirectory("ballerina-" + System.nanoTime());
-            client.pullPackage(org, name, version,
-                    String.valueOf(tmpDownloadDirectory.toAbsolutePath()));
-            Path balaDownloadPath = tmpDownloadDirectory.resolve(org).resolve(name).resolve(version)
-                    .resolve(name + "-" + version + BALA_EXTENSION);
-            Path temporaryExtractionPath = tmpDownloadDirectory.resolve(org).resolve(name)
-                    .resolve(version).resolve(PLATFORM);
-            ProjectUtils.extractBala(balaDownloadPath, temporaryExtractionPath);
-            Path packageJsonPath = temporaryExtractionPath.resolve("package.json");
-            try (BufferedReader bufferedReader = Files.newBufferedReader(packageJsonPath, StandardCharsets.UTF_8)) {
-                JsonObject resultObj = new Gson().fromJson(bufferedReader, JsonObject.class);
-                String platform = resultObj.get(PLATFORM).getAsString();
-                Path actualBalaPath = Path.of(this.repoLocation).resolve(org).resolve(name)
-                        .resolve(version).resolve(platform);
-                FileUtils.copyDirectory(temporaryExtractionPath.toFile(),
-                        actualBalaPath.toFile());
-            }
-        } catch (IOException | MavenResolverClientException e) {
-            return false;
-        }
-        return true;
+        throw new RuntimeException();
     }
 }

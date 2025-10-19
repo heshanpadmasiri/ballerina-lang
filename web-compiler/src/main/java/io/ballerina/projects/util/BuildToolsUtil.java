@@ -18,6 +18,7 @@
 
 package io.ballerina.projects.util;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.BalToolsManifest;
 import io.ballerina.projects.BalToolsToml;
 import io.ballerina.projects.BlendedBalToolsManifest;
@@ -38,7 +39,6 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import org.wso2.ballerinalang.util.RepoUtils;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

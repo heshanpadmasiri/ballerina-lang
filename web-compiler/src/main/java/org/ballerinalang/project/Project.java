@@ -20,7 +20,7 @@ package org.ballerinalang.project;
 import org.ballerinalang.model.elements.PackageID;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Defines functionality of the Project.

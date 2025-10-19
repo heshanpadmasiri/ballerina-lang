@@ -18,8 +18,9 @@
 package io.ballerina.projects;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.file.Path;
 import java.util.Optional;
+
+import io.ballerina.fs.Path;
 
 /**
  * Represents the compilation cache of a single Package.

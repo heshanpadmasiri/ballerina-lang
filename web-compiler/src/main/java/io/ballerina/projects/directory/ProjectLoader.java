@@ -28,7 +28,7 @@ import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Optional;
 
 /**
@@ -119,7 +119,7 @@ public final class ProjectLoader {
                                       BuildOptions buildOptions) throws ProjectException {
         Path absFilePath = Optional.of(path.toAbsolutePath()).get();
         Path projectRoot;
-        if (!Files.exists(path)) {
+        if (!path.exists()) {
             throw new ProjectException("provided file path does not exist");
         }
         if (absFilePath.toFile().isDirectory()) {
@@ -136,9 +136,9 @@ public final class ProjectLoader {
             } else {
                 projectRoot = absFilePath;
             }
-            if (Files.exists(projectRoot.resolve(ProjectConstants.BALLERINA_TOML))) {
+            if (projectRoot.resolve(ProjectConstants.BALLERINA_TOML).exists()) {
                 return BuildProject.load(projectEnvironmentBuilder, projectRoot, buildOptions);
-            } else if (Files.exists(projectRoot.resolve(ProjectConstants.PACKAGE_JSON))) {
+            } else if (projectRoot.resolve(ProjectConstants.PACKAGE_JSON).exists()) {
                 projectEnvironmentBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
                 return io.ballerina.projects.bala.BalaProject.loadProject(
                         projectEnvironmentBuilder, projectRoot, buildOptions);

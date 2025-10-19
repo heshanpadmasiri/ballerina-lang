@@ -21,7 +21,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.plugins.codeaction.PositionedActionContextImpl;
 import io.ballerina.tools.text.LinePosition;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Implementation of completion plugin context.

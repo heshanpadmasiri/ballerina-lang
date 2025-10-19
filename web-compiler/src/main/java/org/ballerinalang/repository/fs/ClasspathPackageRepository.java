@@ -17,16 +17,13 @@
 */
 package org.ballerinalang.repository.fs;
 
-import org.apache.commons.lang3.SystemUtils;
 import org.wso2.ballerinalang.compiler.util.Name;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,28 +43,7 @@ public class ClasspathPackageRepository extends GeneralFSPackageRepository {
     }
 
     private static Path generatePath(Class<? extends Object> providerClassRef, String orgName) {
-        try {
-            URI classURI = providerClassRef.getProtectionDomain().getCodeSource().getLocation().toURI();
-            String classPath = classURI.getPath();
-            // TODO Fix this properly for other platforms too
-            if (SystemUtils.IS_OS_WINDOWS) {
-                classPath = classPath.replace(" ", "%20");
-            }
-            URI pathUri;
-            String basePath = JAR_SOURCE_LOCATION + orgName;
-            if (classPath.endsWith(".jar")) {
-                pathUri = URI.create("jar:file:" + classPath + "!" + basePath);
-            } else {
-                if (classPath.endsWith(File.separator)) {
-                    classPath = classPath.substring(0, classPath.length() - 1);
-                }
-                pathUri = URI.create("file:" + classPath + basePath);
-            }
-            initFS(pathUri);
-            return Path.of(pathUri);
-        } catch (URISyntaxException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        throw new RuntimeException();
     }
 
     @SuppressWarnings("resource")
@@ -83,7 +59,7 @@ public class ClasspathPackageRepository extends GeneralFSPackageRepository {
     
     @Override
     public String toString() {
-        return "ClasspathModuleRepository: " + this.basePath.toUri();
+        return "ClasspathModuleRepository: " + this.basePath;
     }
 
 }

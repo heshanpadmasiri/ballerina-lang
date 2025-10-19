@@ -17,6 +17,7 @@
  */
 package io.ballerina.projects.internal.model;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.internal.bala.BalToolJson;
 import io.ballerina.toml.semantic.TomlType;
@@ -30,7 +31,6 @@ import io.ballerina.toml.semantic.ast.TopLevelNode;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -204,19 +204,6 @@ public class BalToolDescriptor {
     }
 
     private static List<Path> getToolJarsMatchingPattern(String pattern, Path parentPath) {
-        PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-        List<Path> matchingPaths = new ArrayList<>();
-        try (Stream<Path> paths = Files.list(parentPath)) {
-            paths.filter(Files::isRegularFile)
-                    .filter(path -> {
-                        Path fileName = path.getFileName();
-                        return fileName != null && fileName.toString().endsWith(".jar");
-                    })
-                    .filter(path -> pathMatcher.matches(path.getFileName()))
-                    .forEach(matchingPaths::add);
-        } catch (IOException e) {
-            // ignore
-        }
-        return matchingPaths;
+        throw new RuntimeException();
     }
 }

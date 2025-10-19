@@ -34,7 +34,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;

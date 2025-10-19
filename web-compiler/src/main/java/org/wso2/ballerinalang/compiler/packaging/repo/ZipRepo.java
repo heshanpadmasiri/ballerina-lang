@@ -5,7 +5,7 @@ import org.wso2.ballerinalang.compiler.packaging.Patten;
 import org.wso2.ballerinalang.compiler.packaging.converters.Converter;
 import org.wso2.ballerinalang.compiler.packaging.converters.ZipConverter;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 import static org.wso2.ballerinalang.compiler.packaging.Patten.LATEST_VERSION_DIR;
 import static org.wso2.ballerinalang.compiler.packaging.Patten.WILDCARD_SOURCE;

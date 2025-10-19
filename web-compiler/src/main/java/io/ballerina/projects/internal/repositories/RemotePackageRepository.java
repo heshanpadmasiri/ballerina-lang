@@ -1,5 +1,6 @@
 package io.ballerina.projects.internal.repositories;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.DependencyGraph;
 import io.ballerina.projects.JvmTarget;
 import io.ballerina.projects.Package;
@@ -31,7 +32,6 @@ import org.wso2.ballerinalang.util.RepoUtils;
 import java.io.PrintStream;
 import java.net.Proxy;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,9 +67,9 @@ public class RemotePackageRepository implements PackageRepository {
 
     public static RemotePackageRepository from(Environment environment, Path cacheDirectory, String repoUrl,
                                                Settings settings) {
-        if (Files.notExists(cacheDirectory)) {
-            throw new ProjectException("cache directory does not exists: " + cacheDirectory);
-        }
+//        if (cacheDirectory.notExists()) {
+//            throw new ProjectException("cache directory does not exists: " + cacheDirectory);
+//        }
         String ballerinaShortVersion = RepoUtils.getBallerinaShortVersion();
         FileSystemRepository fileSystemRepository = new FileSystemRepository(
                 environment, cacheDirectory, ballerinaShortVersion);
@@ -93,39 +93,7 @@ public class RemotePackageRepository implements PackageRepository {
 
     @Override
     public Optional<Package> getPackage(ResolutionRequest request, ResolutionOptions options) {
-        // Check if the package is in cache
-        Optional<Package> cachedPackage = this.fileSystemRepo.getPackage(request, options);
-        if (cachedPackage.isPresent()) {
-            return cachedPackage;
-        }
-
-        String packageName = request.packageName().value();
-        String orgName = request.orgName().value();
-        String version = request.version().isPresent() ? request.version().get().toString() : null;
-
-        Path packagePathInBalaCache = this.fileSystemRepo.bala.resolve(orgName).resolve(packageName);
-
-        // If environment is online pull from central
-        if (!options.offline()) {
-            String supportedPlatform = Arrays.stream(JvmTarget.values())
-                    .map(target -> target.code())
-                    .collect(Collectors.joining(","));
-            try {
-                this.client.pullPackage(orgName, packageName, version, packagePathInBalaCache, supportedPlatform,
-                        RepoUtils.getBallerinaVersion(), true);
-            } catch (CentralClientException e) {
-                boolean enableOutputStream =
-                        Boolean.parseBoolean(System.getProperty(CentralClientConstants.ENABLE_OUTPUT_STREAM));
-                if (enableOutputStream) {
-                    final PrintStream out = System.out;
-                    out.println("Error while pulling package [" + orgName + "/" + packageName + ":" + version +
-                            "]: " + e.getMessage());
-
-                }
-            }
-        }
-
-        return this.fileSystemRepo.getPackage(request, options);
+        throw new RuntimeException();
     }
 
     @Override

@@ -25,7 +25,7 @@ import io.ballerina.projects.internal.repositories.BallerinaDistributionReposito
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Represents the Ballerina distribution and responsible for initializing the {@code CompilerContext}, distribution
@@ -54,7 +54,7 @@ public final class BallerinaDistribution {
     }
 
     public static BallerinaDistribution from(Environment environment, Path ballerinaHomeDirPath) {
-        validateBallerinaHomeDir(ballerinaHomeDirPath);
+//        validateBallerinaHomeDir(ballerinaHomeDirPath);
         return new BallerinaDistribution(environment, ballerinaHomeDirPath);
     }
 
@@ -70,12 +70,12 @@ public final class BallerinaDistribution {
     }
 
     private static void validateBallerinaHomeDir(Path ballerinaHomeDirPath) {
-        if (Files.notExists(ballerinaHomeDirPath)) {
+        if (ballerinaHomeDirPath.notExists()) {
             throw new ProjectException("Ballerina distribution directory does not exists in `" +
                     ballerinaHomeDirPath + "'");
         }
 
-        if (!Files.isDirectory(ballerinaHomeDirPath)) {
+        if (!ballerinaHomeDirPath.isDirectory()) {
             throw new ProjectException("Invalid Ballerina distribution directory: " + ballerinaHomeDirPath);
         }
 

@@ -5,7 +5,7 @@ import org.wso2.ballerinalang.compiler.packaging.Patten;
 import org.wso2.ballerinalang.compiler.packaging.converters.Converter;
 import org.wso2.ballerinalang.compiler.packaging.converters.PathConverter;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 
 /**
  * Calculate path pattens for home repo.

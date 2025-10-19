@@ -28,7 +28,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -101,15 +101,7 @@ public final class CompilerPlugins {
     }
 
     private static URL[] getJarURLS(List<Path> jarDependencyPaths) {
-        URL[] jarURLS = new URL[jarDependencyPaths.size()];
-        for (int i = 0; i < jarDependencyPaths.size(); i++) {
-            try {
-                jarURLS[i] = jarDependencyPaths.get(i).toUri().toURL();
-            } catch (MalformedURLException e) {
-                throw new ProjectException(e.getMessage(), e);
-            }
-        }
-        return jarURLS;
+        throw new RuntimeException();
     }
 
     public static List<String> annotationsAsStr(NodeList<AnnotationNode> supportedAnnotations) {

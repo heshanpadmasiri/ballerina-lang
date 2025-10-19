@@ -17,6 +17,7 @@
  */
 package io.ballerina.projects.internal;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Project;
@@ -33,7 +34,6 @@ import io.ballerina.tools.text.TextRange;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,16 +74,16 @@ public class PackageDiagnostic extends Diagnostic {
             if (!moduleName.isDefaultModuleName()) {
                 Path generatedPath = generatedRoot.
                         resolve(moduleName.moduleNamePart());
-                if (Files.exists(project.sourceRoot().resolve(generatedPath).
-                        resolve(diagnosticPath).toAbsolutePath())) {
+                if (project.sourceRoot().resolve(generatedPath).
+                        resolve(diagnosticPath).toAbsolutePath().exists()) {
                     filePath = generatedPath.resolve(diagnosticPath).toString();
                 } else {
                     filePath = modulesRoot.resolve(moduleName.moduleNamePart()).
                             resolve(diagnosticPath).toString();
                 }
             } else {
-                filePath = Files.exists(project.sourceRoot().resolve(generatedRoot).
-                        resolve(diagnosticPath).toAbsolutePath()) ?
+                filePath = project.sourceRoot().resolve(generatedRoot).
+                        resolve(diagnosticPath).toAbsolutePath().exists() ?
                         generatedRoot.resolve(diagnosticPath).toString() : diagnosticPath;
 
             }

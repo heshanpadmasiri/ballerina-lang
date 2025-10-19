@@ -22,7 +22,7 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ResourceConfig;
 import io.ballerina.projects.util.ProjectConstants;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Locale;
 
 /**
@@ -44,19 +44,7 @@ public class ProvidedResourceConfig extends ResourceConfig {
     }
 
     public static ProvidedResourceConfig from(DocumentId documentId, Path resource, Path packagePath) {
-        Path relativeResourcePath;
-        if (resource.startsWith(packagePath)) {
-            relativeResourcePath = packagePath.relativize(resource);
-        } else {
-            relativeResourcePath = resource;
-        }
-        String resourcePath = relativeResourcePath.toString();
-        String marker = ProjectConstants.RESOURCE_DIR_NAME + (OS.contains("win") ? "\\" : "/");
-        int markerIndex = resourcePath.indexOf(marker);
-        String path = markerIndex != -1
-                ? resourcePath.substring(markerIndex + marker.length())
-                : resourcePath;
-        return new ProvidedResourceConfig(documentId, resource, convertWinPathToUnixFormat(path), null);
+        throw new RuntimeException();
     }
 
     public static String convertWinPathToUnixFormat(String path) {

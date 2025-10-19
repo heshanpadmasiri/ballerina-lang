@@ -17,13 +17,13 @@
  */
 package io.ballerina.projects.repos;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.util.ProjectConstants;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * A {@code CompilationCache} instance that caches artifacts in a temp directory.
@@ -38,7 +38,8 @@ public class TempDirCompilationCache extends FileSystemCache {
     }
 
     public static TempDirCompilationCache from(Project project) {
-        Path targetPath = createTempProjectRoot();
+//        Path targetPath = createTempProjectRoot();
+        Path targetPath = Path.of("tmp/comp-cache");
         return new TempDirCompilationCache(project, targetPath);
     }
 
@@ -50,10 +51,6 @@ public class TempDirCompilationCache extends FileSystemCache {
     }
 
     private static Path createTempProjectRoot() {
-        try {
-            return Files.createTempDirectory("ballerina-compilation-cache" + System.nanoTime());
-        } catch (IOException e) {
-            throw new RuntimeException("Error while creating a temp directory.", e);
-        }
+            throw new RuntimeException();
     }
 }

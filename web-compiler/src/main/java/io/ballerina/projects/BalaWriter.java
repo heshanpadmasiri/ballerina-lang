@@ -21,6 +21,8 @@ package io.ballerina.projects;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+
+import io.ballerina.fs.Path;
 import io.ballerina.projects.environment.PackageCache;
 import io.ballerina.projects.internal.bala.BalaJson;
 import io.ballerina.projects.internal.bala.DependencyGraphJson;
@@ -48,8 +50,6 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -115,11 +115,7 @@ public abstract class BalaWriter {
             throw new ProjectException("Failed to create bala :" + e.getMessage(), e);
         } catch (BLangCompilerException be) {
             // clean up if an error occur
-            try {
-                Files.delete(balaPath);
-            } catch (IOException e) {
-                // We ignore this error and throw out the original blang compiler error to the user
-            }
+            balaPath.delete();
             throw be;
         }
         return balaPath.resolve(balaName);
@@ -202,7 +198,7 @@ public abstract class BalaWriter {
     private void setReadme(PackageManifest packageManifest, PackageJson packageJson) {
         if (packageManifest.readme() != null) { // Null check is required for ballerinai packages
             packageJson.setReadme(BALA_DOCS_DIR + UNIX_FILE_SEPARATOR +
-                    Paths.get(packageManifest.readme()).getFileName());
+                    Path.of(packageManifest.readme()).getFileName());
         }
     }
 
@@ -215,7 +211,7 @@ public abstract class BalaWriter {
             String moduleDoc = null;
             if (module.readme() != null && !module.readme().isEmpty()) {
                 moduleDoc = packageDocPathPrefix + MODULES_ROOT + UNIX_FILE_SEPARATOR + module.name() +
-                        UNIX_FILE_SEPARATOR + Paths.get(module.readme()).getFileName();
+                        UNIX_FILE_SEPARATOR + Path.of(module.readme()).getFileName();
             }
             modules.add(new PackageManifest.Module(
                     module.name(),
@@ -286,37 +282,7 @@ public abstract class BalaWriter {
 
     private void addPackageDoc(ZipOutputStream balaOutputStream, PackageManifest packageManifest)
             throws IOException {
-
-        if (packageManifest.readme() == null) {
-            return;
-        }
-        Path sourceRoot = this.packageContext.project().sourceRoot;
-        Path pkgReadme = Paths.get(packageManifest.readme());
-        Path docsDirInBala = Path.of(BALA_DOCS_DIR);
-
-        Path packageMdInBala = docsDirInBala.resolve(pkgReadme.getFileName());
-        putZipEntry(balaOutputStream, packageMdInBala,
-                new FileInputStream(pkgReadme.toString()));
-
-        // If `icon` mentioned in the Ballerina.toml, add it to docs directory
-        String icon = this.packageContext.packageManifest().icon();
-        if (icon != null && !icon.isEmpty()) {
-            Path iconPath = getIconPath(icon);
-            Path iconInBala = docsDirInBala.resolve(iconPath.getFileName());
-            putZipEntry(balaOutputStream, iconInBala, new FileInputStream(String.valueOf(iconPath)));
-        }
-
-        Path modulesDirInBalaDocs = docsDirInBala.resolve(MODULES_ROOT);
-
-        for (PackageManifest.Module module : packageManifest.modules()) {
-            if (module.readme() == null || module.readme().isEmpty()) {
-                continue;
-            }
-            Path otherReadmeMdInBalaDocs = modulesDirInBalaDocs.resolve(module.name())
-                    .resolve(Paths.get(module.readme()).getFileName());
-            putZipEntry(balaOutputStream, otherReadmeMdInBalaDocs,
-                    new FileInputStream(sourceRoot.resolve(module.readme()).toString()));
-        }
+        throw new RuntimeException();
     }
 
     private void addPackageSource(ZipOutputStream balaOutputStream) throws IOException {
@@ -430,19 +396,7 @@ public abstract class BalaWriter {
     }
 
     private Path updateModuleDirectoryToMatchNamingInBala(Path relativePath) {
-        // a project with non-default module dir modules/<submodule_name> when packed into a BALA has the structure
-        // modules/<package_name>.<submodule_name>
-        Path moduleRootPath = Path.of(MODULES_ROOT);
-        if (relativePath.startsWith(moduleRootPath)) {
-            String packageName = this.packageContext.packageName().toString();
-            Path modulePath = moduleRootPath.resolve(moduleRootPath.relativize(relativePath).subpath(0, 1));
-            Path pathInsideModule = modulePath.relativize(relativePath);
-            String moduleName = Optional.ofNullable(modulePath.getFileName()).orElse(Path.of("")).toString();
-            String updatedModuleName = packageName + ProjectConstants.DOT + moduleName;
-            Path updatedModulePath = moduleRootPath.resolve(updatedModuleName);
-            return updatedModulePath.resolve(pathInsideModule);
-        }
-        return relativePath;
+        throw new RuntimeException();
     }
 
     private List<Dependency> getPackageDependencies(DependencyGraph<ResolvedPackageDependency> dependencyGraph) {
@@ -523,22 +477,7 @@ public abstract class BalaWriter {
 
     protected void putDirectoryToZipFile(Path sourceDir, Path pathInZipFile, ZipOutputStream out)
             throws IOException {
-        if (sourceDir.toFile().exists()) {
-            File[] files = new File(sourceDir.toString()).listFiles();
-
-            if (files != null && files.length > 0) {
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        putDirectoryToZipFile(sourceDir.resolve(file.getName()), pathInZipFile, out);
-                    } else {
-                        Path fileNameInBala =
-                                pathInZipFile.resolve(sourceDir.relativize(Path.of(file.getPath())));
-                        putZipEntry(out, fileNameInBala,
-                                new FileInputStream(sourceDir + File.separator + file.getName()));
-                    }
-                }
-            }
-        }
+        throw new RuntimeException();
     }
 
     protected abstract Optional<JsonArray> addPlatformLibs(ZipOutputStream balaOutputStream)

@@ -17,8 +17,7 @@
  */
 package io.ballerina.projects.internal.repositories;
 
-import com.github.zafarkhaja.semver.UnexpectedCharacterException;
-import com.github.zafarkhaja.semver.Version;
+import io.ballerina.fs.Path;
 import io.ballerina.projects.DependencyGraph;
 import io.ballerina.projects.JvmTarget;
 import io.ballerina.projects.ModuleDescriptor;
@@ -39,19 +38,15 @@ import io.ballerina.projects.repos.FileSystemCache;
 import io.ballerina.projects.util.FileUtils;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectUtils;
-import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Package Repository stored in file system.
@@ -102,7 +97,7 @@ public class FileSystemRepository extends AbstractPackageRepository {
                 request.version().get().toString() : "0.0.0";
 
         Path balaPath = getPackagePath(orgName, packageName, version);
-        if (!Files.exists(balaPath)) {
+        if (!balaPath.exists()) {
             return Optional.empty();
         }
 
@@ -121,7 +116,7 @@ public class FileSystemRepository extends AbstractPackageRepository {
     void updateDeprecatedStatusForPackage(PackageDescriptor descriptor) {
         Path balaPath = getPackagePath(descriptor.org().value(), descriptor.name().value(),
                 descriptor.version().value().toString());
-        if (balaPath != null && Files.exists(balaPath)) {
+        if (balaPath != null && balaPath.exists()) {
             Path deprecateMsgMetaFile = Path.of(balaPath.toString(), ProjectConstants.DEPRECATED_META_FILE_NAME);
             if (descriptor.getDeprecated() && !deprecateMsgMetaFile.toFile().exists()) {
                 FileUtils.addDeprecatedMetaFile(deprecateMsgMetaFile, descriptor.getDeprecationMsg());
@@ -141,7 +136,7 @@ public class FileSystemRepository extends AbstractPackageRepository {
             return false;
         }
         Path balaPath = getPackagePath(org.value(), name.value(), version.value().toString());
-        return Files.exists(balaPath);
+        return balaPath.exists();
     }
 
     @Override
@@ -208,82 +203,7 @@ public class FileSystemRepository extends AbstractPackageRepository {
 
     @Override
     protected List<PackageVersion> getPackageVersions(PackageOrg org, PackageName name, PackageVersion version) {
-        List<Path> versions = new ArrayList<>();
-        try {
-            Path balaPackagePath = bala.resolve(org.value()).resolve(name.value());
-            if (Files.exists(balaPackagePath)) {
-                try (Stream<Path> collect = Files.list(balaPackagePath)) {
-                    versions.addAll(collect.toList());
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error while accessing Distribution cache: " + e.getMessage());
-        }
-
-        versions.removeAll(getIncompatibleVer(versions, org, name));
-        return pathToVersions(versions);
-    }
-
-    protected List<Path> getIncompatibleVer(List<Path> versions, PackageOrg org, PackageName name) {
-        List<Path> incompatibleVersions = new ArrayList<>();
-
-        if (!versions.isEmpty()) {
-            for (Path ver : versions) {
-                Path pkgJsonPath = getPackagePath(org.value(), name.value(),
-                        Optional.of(ver.getFileName()).get().toFile().getName()).resolve(ProjectConstants.PACKAGE_JSON);
-                if (Files.exists(pkgJsonPath)) {
-                    String packageVer = BalaFiles.readPkgJson(pkgJsonPath).getBallerinaVersion();
-                    String packVer = RepoUtils.getBallerinaShortVersion();
-                    if (!isCompatible(packageVer, packVer)) {
-                        incompatibleVersions.add(ver);
-                    }
-                } else {
-                    incompatibleVersions.add(ver);
-                }
-            }
-        }
-
-        return incompatibleVersions;
-    }
-
-    /**
-     * Returns if a package is compatible with the current platform version
-     * (ballerinaShortVersion of the current distribution).
-     *
-     * A package is considered to be compatible with the current platform
-     * if the platform version that the package is built on has the same major
-     * version and is not greater than the version of the current platform.
-     *
-     * slbeta versions are considered compatible which is a special case.
-     * TODO: we can check if this is necessary after the SL GA
-     *
-     * @param pkgBalVer version of the platform that the package is built on
-     * @param distBalVer version of the current platform
-     *
-     * @return true if compatible
-     */
-    private boolean isCompatible(String pkgBalVer, String distBalVer) {
-        if (pkgBalVer.equals(distBalVer) || pkgBalVer.startsWith("slbeta")) {
-            return true;
-        }
-        Version pkgSemVer;
-        Version distSemVer;
-        try {
-            pkgSemVer = Version.valueOf(pkgBalVer);
-            distSemVer = Version.valueOf(distBalVer);
-
-            if (pkgSemVer.getMajorVersion() == distSemVer.getMajorVersion()) {
-                if (pkgSemVer.getMinorVersion() == distSemVer.getMinorVersion()) {
-                    return true;
-                }
-                return !pkgSemVer.greaterThan(distSemVer);
-            }
-        } catch (UnexpectedCharacterException ignore) {
-            // SemVer incompatible versions will throw this exception.
-            // Catching this is mainly to handle slalpha versions
-        }
-
-        return false;
+        throw new RuntimeException();
     }
 
     @Override
@@ -308,11 +228,11 @@ public class FileSystemRepository extends AbstractPackageRepository {
         //First we will check for a bala that match any platform
         Path balaPath = this.bala.resolve(
                 ProjectUtils.getRelativeBalaPath(org, name, version, null));
-        if (!Files.exists(balaPath)) {
+        if (!balaPath.exists()) {
             // If bala for any platform not exist check for specific platform
             for (JvmTarget jvmTarget : JvmTarget.values()) {
                 balaPath = this.bala.resolve(ProjectUtils.getRelativeBalaPath(org, name, version, jvmTarget.code()));
-                if (Files.exists(balaPath)) {
+                if (balaPath.exists()) {
                     break;
                 }
             }

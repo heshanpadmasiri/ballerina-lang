@@ -17,11 +17,11 @@
  */
 package io.ballerina.projects.internal;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.DependencyGraph;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.PackageDescriptor;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 

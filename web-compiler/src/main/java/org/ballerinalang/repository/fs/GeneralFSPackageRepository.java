@@ -18,29 +18,18 @@
 package org.ballerinalang.repository.fs;
 
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.repository.CompilerInput;
 import org.ballerinalang.repository.PackageEntity;
 import org.ballerinalang.repository.PackageRepository;
 import org.ballerinalang.repository.PackageSource;
 import org.wso2.ballerinalang.compiler.util.Name;
-import org.wso2.ballerinalang.compiler.util.Names;
 
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
+import io.ballerina.fs.Path;
+
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * This represents a general file system based {@link PackageRepository}.
@@ -72,10 +61,10 @@ public class GeneralFSPackageRepository implements PackageRepository {
             path = this.generatePath(pkgID);
         }
 
-        if (!Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+        if (!path.isDirectory()) {
             // TODO remove, temp hack until builtin are flattned
             path = this.generatePathOld(pkgID);
-            if (!Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+            if (!path.isDirectory()) {
                 return null;
             }
         }
@@ -84,7 +73,7 @@ public class GeneralFSPackageRepository implements PackageRepository {
 
     protected PackageSource lookupPackageSource(PackageID pkgID, String entryName) {
         Path path = this.generatePathOld(pkgID);
-        if (!Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+        if (!path.isDirectory()) {
             return null;
         }
         try {
@@ -115,50 +104,12 @@ public class GeneralFSPackageRepository implements PackageRepository {
     }
 
     private boolean isBALFile(Path path) {
-        return !Files.isDirectory(path) && path.getFileName().toString().endsWith(BAL_SOURCE_EXT);
+        return !path.isDirectory() && path.getFileName().toString().endsWith(BAL_SOURCE_EXT);
     }
 
     @Override
     public Set<PackageID> listPackages(int maxDepth) {
-        if (maxDepth <= 0) {
-            throw new IllegalArgumentException("maxDepth must be greater than zero");
-        }
-        if (!Files.isDirectory(this.basePath)) {
-            return Collections.emptySet();
-        }
-        Set<PackageID> result = new LinkedHashSet<>();
-        int baseNameCount = this.basePath.getNameCount();
-        String separator = this.basePath.getFileSystem().getSeparator();
-        try {
-            Files.walkFileTree(this.basePath, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    if (Files.isHidden(dir)) {
-                        return FileVisitResult.SKIP_SUBTREE;
-                    }
-                    List<Name> nameComps = new ArrayList<>();
-                    boolean balFilesExist;
-                    try (Stream<Path> paths = Files.list(dir)) {
-                        balFilesExist = paths.filter(f -> isBALFile(f)).count() > 0;
-                    }
-                    if (balFilesExist) {
-                        int dirNameCount = dir.getNameCount();
-                        if (dirNameCount > baseNameCount) {
-                            dir.subpath(baseNameCount, dirNameCount).forEach(
-                                    f -> nameComps.add(new Name(sanitize(f.getFileName().toString(), separator))));
-                            result.add(new PackageID(Names.ANON_ORG, nameComps, Names.DEFAULT_VERSION));
-                        }
-                    }
-                    if ((dir.getNameCount() + 1) - baseNameCount > maxDepth) {
-                        return FileVisitResult.SKIP_SUBTREE;
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            throw new RuntimeException("Error in listing modules: " + e.getMessage(), e);
-        }
-        return result;
+        throw new RuntimeException();
     }
 
     protected Path generatePathOld(PackageID pkgID) {
@@ -223,7 +174,7 @@ public class GeneralFSPackageRepository implements PackageRepository {
                 throws FSPackageEntityNotAvailableException {
             this.pkgID = pkgID;
             this.pkgPath = pkgPath;
-            if (Files.exists(pkgPath.resolve(entryName))) {
+            if (pkgPath.resolve(entryName).exists()) {
                 this.cachedEntryNames = Collections.singletonList(entryName);
             } else {
                 throw new FSPackageEntityNotAvailableException();
@@ -237,19 +188,7 @@ public class GeneralFSPackageRepository implements PackageRepository {
 
         @Override
         public List<String> getEntryNames() {
-            if (this.cachedEntryNames == null) {
-                try (Stream<Path> paths = Files.walk(this.pkgPath, 1)) {
-                    List<Path> files = paths.filter(
-                            Files::isRegularFile).filter(e -> e.getFileName().toString().endsWith(BAL_SOURCE_EXT)).
-                            toList();
-                    this.cachedEntryNames = new ArrayList<>(files.size());
-                    files.stream().forEach(e -> this.cachedEntryNames.add(e.getFileName().toString()));
-                } catch (IOException e) {
-                    throw new RuntimeException("Error in listing modules at '" + this.pkgID +
-                            "': " + e.getMessage(), e);
-                }
-            }
-            return this.cachedEntryNames;
+            throw new RuntimeException();
         }
 
         @Override
@@ -276,25 +215,7 @@ public class GeneralFSPackageRepository implements PackageRepository {
             private final SyntaxTree tree;
 
             public FSCompilerInput(String name) {
-                this.name = name;
-                Path filePath = basePath.resolve(name);
-                try {
-                    this.code = Files.readAllBytes(basePath.resolve(pkgPath).resolve(name));
-                    this.tree = SyntaxTree.from(TextDocuments.from(getCodeSupplier(name, basePath, pkgPath)), name);
-                } catch (IOException e) {
-                    throw new RuntimeException("Error in loading module source entry '" + filePath +
-                            "': " + e.getMessage(), e);
-                }
-            }
-
-            private static Supplier<String> getCodeSupplier(String name, Path basePath, Path pkgPath) {
-                return () -> {
-                    try {
-                        return new String(Files.readAllBytes(basePath.resolve(pkgPath).resolve(name)));
-                    } catch (IOException e) {
-                        throw new RuntimeException("Error reading source file " + name, e);
-                    }
-                };
+                throw new RuntimeException();
             }
 
             @Override

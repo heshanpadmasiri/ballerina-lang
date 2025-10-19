@@ -17,6 +17,7 @@
  */
 package io.ballerina.projects;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.DependencyGraph.DependencyGraphBuilder;
 import io.ballerina.projects.environment.ModuleLoadRequest;
 import io.ballerina.projects.environment.PackageCache;
@@ -51,7 +52,6 @@ import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -138,7 +138,7 @@ public class PackageResolution {
             // We use the pull command to generate the BIR of the dependency.
             List<String> cmdArgs = new ArrayList<>();
             String balExecutable = isWindows ? "bal.bat" : "bal";
-            cmdArgs.add(Paths.get(System.getProperty(BALLERINA_HOME), "bin", balExecutable).toString());
+            cmdArgs.add(Path.of(System.getProperty(BALLERINA_HOME), "bin", balExecutable).toString());
             cmdArgs.add("pull");
             cmdArgs.add(STICKY_FLAG + EQUAL + resolutionOptions.sticky());
             cmdArgs.add(OFFLINE_FLAG + EQUAL + resolutionOptions.offline());

@@ -30,7 +30,7 @@ import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.nio.file.PathMatcher;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -67,7 +67,7 @@ public class HomeBalaRepo implements Repo<Path> {
             String versionStr = moduleID.getPackageVersion().getValue();
             
             // if the module doesn't exists at all stop looking for it.
-            if (Files.notExists(this.repoLocation.resolve(orgName).resolve(pkgName))) {
+            if (this.repoLocation.resolve(orgName).resolve(pkgName).notExists()) {
                 return Patten.NULL;
             }
             
@@ -96,7 +96,7 @@ public class HomeBalaRepo implements Repo<Path> {
                 
                 // return Patten only if bala file exists.
                 Path balaFileName = balaFilePath.getFileName();
-                if (Files.exists(balaFilePath) && null != balaFileName) {
+                if (balaFilePath.exists() && null != balaFileName) {
                     moduleID.version = new Name(versionStr);
     
                     // update dependency manifests map for imports of this moduleID.
@@ -127,16 +127,7 @@ public class HomeBalaRepo implements Repo<Path> {
      * @throws IOException Error when getting the list of version of the module folder.
      */
     private Optional<Path> getLatestBalaFile(Path moduleFolder) throws IOException {
-        Optional<Path> path;
-        try (Stream<Path> fileStream = Files.list(moduleFolder)) {
-            path = fileStream.map(SortablePath::new)
-                    .filter(SortablePath::valid)
-                    .sorted(Comparator.reverseOrder())
-                    .limit(1)
-                    .map(SortablePath::getPath)
-                    .findFirst();
-        }
-        return path;
+        throw new RuntimeException();
     }
     
     @Override
@@ -152,23 +143,6 @@ public class HomeBalaRepo implements Repo<Path> {
 
     private Path findBalaPath(Path repoLocation, String orgName, String pkgName, String platform, String versionStr)
             throws IOException {
-        Path balaFilePath = this.repoLocation.resolve(orgName).resolve(pkgName).resolve(versionStr);
-        // try to find a compatible bala file
-        if (Files.exists(balaFilePath)) {
-            try (Stream<Path> list = Files.list(balaFilePath)) {
-                PathMatcher pathMatcher = balaFilePath.getFileSystem()
-                        .getPathMatcher("glob:**/" + pkgName + "-*-" +
-                                platform + "-" + versionStr + ".bala");
-                for (Path file : (Iterable<Path>) list::iterator) {
-                    if (pathMatcher.matches(file)) {
-                        return file;
-                    }
-                }
-            }
-        }
-        // if a similar file is not found assume the default bala name
-        String balaFileName = pkgName + "-" + orgName + "-" + platform + "-" + versionStr +
-                ".bala";
-        return balaFilePath.resolve(balaFileName);
+        throw new RuntimeException();
     }
 }

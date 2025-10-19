@@ -18,7 +18,7 @@
 package org.wso2.ballerinalang.compiler.packaging.converters;
 
 import java.math.BigInteger;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

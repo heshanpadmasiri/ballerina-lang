@@ -29,7 +29,7 @@ import org.ballerinalang.compiler.CompilerPhase;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.CompilerOptions;
 
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.Map;
 import java.util.stream.Collectors;
 

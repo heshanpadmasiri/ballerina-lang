@@ -19,6 +19,7 @@ package io.ballerina.projects;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.impl.BallerinaSemanticModel;
+import io.ballerina.fs.Path;
 import io.ballerina.projects.CompilerBackend.TargetPlatform;
 import io.ballerina.projects.environment.ProjectEnvironment;
 import io.ballerina.projects.internal.DefaultDiagnosticResult;
@@ -30,7 +31,6 @@ import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.CompilerOptions;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

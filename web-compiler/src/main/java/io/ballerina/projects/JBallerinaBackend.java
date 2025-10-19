@@ -17,13 +17,13 @@
  */
 package io.ballerina.projects;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.environment.PackageCache;
 import io.ballerina.projects.environment.ProjectEnvironment;
 import io.ballerina.projects.internal.DefaultDiagnosticResult;
 import io.ballerina.projects.internal.PackageDiagnostic;
 import io.ballerina.projects.internal.ProjectDiagnosticErrorCode;
 import io.ballerina.projects.internal.model.Target;
-import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectUtils;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
@@ -33,10 +33,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntryPredicate;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FilenameUtils;
-import org.ballerinalang.maven.Dependency;
-import org.ballerinalang.maven.MavenResolver;
-import org.ballerinalang.maven.Utils;
-import org.ballerinalang.maven.exceptions.MavenResolverException;
 import org.wso2.ballerinalang.compiler.bir.codegen.CodeGenerator;
 import org.wso2.ballerinalang.compiler.bir.codegen.internal.CompiledJarFile;
 import org.wso2.ballerinalang.compiler.bir.codegen.interop.InteropValidator;
@@ -54,7 +50,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -65,8 +60,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
@@ -272,8 +265,7 @@ public class JBallerinaBackend extends CompilerBackend {
     }
 
     private Path emitBala(Path filePath) {
-        JBallerinaBalaWriter writer = new JBallerinaBalaWriter(this);
-        return writer.write(filePath);
+        throw new RuntimeException();
     }
 
     @Override
@@ -292,50 +284,7 @@ public class JBallerinaBackend extends CompilerBackend {
     }
 
     private List<PlatformLibrary> getPlatformLibraries(PackageId packageId) {
-        Package pkg = packageCache.getPackageOrThrow(packageId);
-        Map<String, PackageManifest.Platform> platforms = pkg.manifest().platforms();
-        List<PlatformLibrary> platformLibraries = new ArrayList<>();
-        for (Map.Entry<String, PackageManifest.Platform> entry : platforms.entrySet()) {
-            PackageManifest.Platform javaPlatform = entry.getValue();
-            String platform = entry.getKey();
-            if (javaPlatform == null || javaPlatform.dependencies().isEmpty()) {
-                continue;
-            }
-            for (Map<String, Object> dependency : javaPlatform.dependencies()) {
-                String artifactId = (String) dependency.get(JarLibrary.KEY_ARTIFACT_ID);
-                String version = (String) dependency.get(JarLibrary.KEY_VERSION);
-                String groupId = (String) dependency.get(JarLibrary.KEY_GROUP_ID);
-
-                String dependencyFilePath = (String) dependency.get(JarLibrary.KEY_PATH);
-                PlatformLibraryScope dependencyScope = getPlatformLibraryScope(dependency);
-
-                // If dependencyFilePath does not exist, resolve it using MavenResolver
-                if (dependencyFilePath == null || dependencyFilePath.isEmpty()) {
-                    // if the dependency is transitive and has provided scope, check the current package's
-                    // Ballerina.toml for provided platform dependencies
-                    if (Objects.equals(dependencyScope, PlatformLibraryScope.PROVIDED)
-                            && !Objects.equals(packageId, this.packageContext().packageId())) {
-                        dependencyFilePath = getPlatformLibPathFromProvided(platform, groupId, artifactId, version);
-                        Path jarPath = Path.of(dependencyFilePath);
-                        if (!jarPath.isAbsolute()) {
-                            jarPath = this.packageContext().project().sourceRoot().resolve(jarPath);
-                        }
-                        dependencyFilePath = jarPath.toString();
-                    } else {
-                        dependencyFilePath = getPlatformLibPath(groupId, artifactId, version);
-                    }
-                    dependency.put(JarLibrary.KEY_PATH, dependencyFilePath);
-                }
-                // If the path is relative we will convert to absolute relative to Ballerina.toml file
-                Path jarPath = Path.of(dependencyFilePath);
-                if (!jarPath.isAbsolute()) {
-                    jarPath = pkg.project().sourceRoot().resolve(jarPath);
-                }
-                platformLibraries.add(new JarLibrary(jarPath, dependencyScope, artifactId, groupId, version,
-                        pkg.packageOrg().value() + "/" + pkg.packageName().value()));
-            }
-        }
-        return platformLibraries;
+        throw new RuntimeException();
     }
 
     @Override
@@ -356,7 +305,7 @@ public class JBallerinaBackend extends CompilerBackend {
 
     @Override
     public PlatformLibrary runtimeLibrary() {
-        return new JarLibrary(ProjectUtils.getBallerinaRTJarPath(), PlatformLibraryScope.DEFAULT);
+        throw new RuntimeException();
     }
 
     @Override
@@ -462,37 +411,7 @@ public class JBallerinaBackend extends CompilerBackend {
                                            Path testSuiteJsonPath, String jsonCopyPath,
                                            List<String> excludedClasses, String classPathTextCopyPath)
             throws IOException {
-        // Used to prevent adding duplicated entries during the final jar creation.
-        HashMap<String, JarLibrary> copiedEntries = new HashMap<>();
-
-        // Used to process SPI related metadata entries separately. The reason is unlike the other entry types,
-        // service loader related information should be merged together in the final executable jar creation.
-        HashMap<String, StringBuilder> serviceEntries = new HashMap<>();
-
-        try (ZipArchiveOutputStream outStream = new ZipArchiveOutputStream(
-                new BufferedOutputStream(new FileOutputStream(executableFilePath.toString())))) {
-            writeManifest(manifest, outStream);
-
-            // Sort jar libraries list to avoid inconsistent jar reporting
-            sortAndCopyJars(jarLibraries, outStream, copiedEntries, serviceEntries);
-
-            // Copy merged spi services.
-            copyMergedSpiServices(serviceEntries, outStream);
-
-            // Write the test suite json file
-            JarArchiveEntry testSuiteJsonEntry = new JarArchiveEntry(jsonCopyPath);
-            outStream.putArchiveEntry(testSuiteJsonEntry);
-            outStream.write(Files.readAllBytes(testSuiteJsonPath));
-            outStream.closeArchiveEntry();
-
-            // Get the module jar paths and copy them to the executable jar
-            JarArchiveEntry classPathTextEntry = new JarArchiveEntry(classPathTextCopyPath);
-            outStream.putArchiveEntry(classPathTextEntry);
-            for (String path : excludedClasses) {
-                outStream.write((path + "\n").getBytes(StandardCharsets.UTF_8));
-            }
-            outStream.closeArchiveEntry();
-        }
+        throw new RuntimeException();
     }
 
     private static void copyMergedSpiServices(HashMap<String, StringBuilder> serviceEntries,
@@ -529,24 +448,7 @@ public class JBallerinaBackend extends CompilerBackend {
     }
 
     private Manifest createManifest() {
-        // Getting the jarFileName of the root module of this executable
-        PlatformLibrary rootModuleJarFile = codeGeneratedLibrary(packageContext.packageId(),
-                packageContext.defaultModuleContext().moduleName());
-
-        String mainClassName;
-        try (JarInputStream jarStream = new JarInputStream(Files.newInputStream(rootModuleJarFile.path()))) {
-            Manifest mf = jarStream.getManifest();
-            mainClassName = (String) mf.getMainAttributes().get(Attributes.Name.MAIN_CLASS);
-        } catch (IOException e) {
-            throw new RuntimeException("Generated jar file cannot be found for the module: " +
-                    packageContext.defaultModuleContext().moduleName());
-        }
-
-        Manifest manifest = new Manifest();
-        Attributes mainAttributes = manifest.getMainAttributes();
-        mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        mainAttributes.put(Attributes.Name.MAIN_CLASS, mainClassName);
-        return manifest;
+        throw new RuntimeException();
     }
 
     private Manifest createTestManifest() {
@@ -639,15 +541,7 @@ public class JBallerinaBackend extends CompilerBackend {
                                                  ModuleName moduleName,
                                                  PlatformLibraryScope scope,
                                                  String fileNameSuffix) {
-        Package pkg = packageCache.getPackageOrThrow(packageId);
-        ProjectEnvironment projectEnvironment = pkg.project().projectEnvironmentContext();
-        CompilationCache compilationCache = projectEnvironment.getService(CompilationCache.class);
-        String jarFileName = getJarFileName(pkg.packageContext().moduleContext(moduleName)) + fileNameSuffix;
-        Optional<Path> platformSpecificLibrary = compilationCache.getPlatformSpecificLibrary(
-                this, jarFileName);
-        return new JarLibrary(platformSpecificLibrary.orElseThrow(
-                () -> new IllegalStateException("Cannot find the generated jar library for module: " + moduleName)),
-                scope);
+                    throw new RuntimeException();
     }
 
     private Path emitExecutable(Path executableFilePath, List<Diagnostic> emitResultDiagnostics) {
@@ -720,12 +614,8 @@ public class JBallerinaBackend extends CompilerBackend {
                     "--no-fallback"));
         }
 
-        if (!Files.exists(nativeConfigPath)) {
-            try {
-                Files.createDirectories(nativeConfigPath);
-            } catch (IOException e) {
-                throw new ProjectException("error while generating the necessary graalvm argument file", e);
-            }
+        if (!nativeConfigPath.exists()) {
+            nativeConfigPath.createDirectories();
         }
 
         // There is a command line length limitations in Windows. Therefore, we need to write the arguments to a
@@ -775,27 +665,6 @@ public class JBallerinaBackend extends CompilerBackend {
                     "platform-specific library path: " + dependency.get(JarLibrary.KEY_PATH));
         }
         return scope;
-    }
-
-    /**
-     * Get platform lib path for given maven dependency.
-     *
-     * @param groupId    group id
-     * @param artifactId artifact id
-     * @param version    version
-     * @return platform lib path
-     */
-    private String getPlatformLibPath(String groupId, String artifactId, String version) {
-        String targetRepo =
-                this.packageContext.project().targetDir().resolve(ProjectConstants.TARGET_DIR_NAME)
-                        + File.separator + "platform" + "-libs";
-        MavenResolver resolver = new MavenResolver(targetRepo);
-        try {
-            Dependency dependency = resolver.resolve(groupId, artifactId, version, false);
-            return Utils.getJarPath(targetRepo, dependency);
-        } catch (MavenResolverException e) {
-            throw new ProjectException("cannot resolve " + artifactId + ": " + e.getMessage());
-        }
     }
 
     /**
@@ -894,25 +763,7 @@ public class JBallerinaBackend extends CompilerBackend {
     }
 
     private void addConflictedJars(JarLibrary jarLibrary, HashMap<String, JarLibrary> copiedEntries, String entryName) {
-        if (entryName.endsWith(CLASS_FILE_SUFFIX) && !entryName.endsWith("module-info.class")) {
-            JarLibrary conflictingJar = copiedEntries.get(entryName);
-
-            // Ignore if conflicting jars has same name
-            Path jarFileName = jarLibrary.path().getFileName();
-            Path conflictingJarFileName = conflictingJar.path().getFileName();
-            if (jarFileName != null && conflictingJarFileName != null &&
-                    !jarFileName.toString().equals(conflictingJarFileName.toString())) {
-                JarConflict jarConflict = getJarConflict(conflictingJar);
-
-                // If jar conflict already exists
-                if (jarConflict != null) {
-                    jarConflict.addClasses(entryName);
-                } else { // New jar conflict
-                    this.conflictedJars.add(new JarConflict(conflictingJar, jarLibrary,
-                                                            new ArrayList<>(Collections.singletonList(entryName))));
-                }
-            }
-        }
+        throw new RuntimeException();
     }
 
     private JarConflict getJarConflict(JarLibrary conflictingJar) {
@@ -937,12 +788,7 @@ public class JBallerinaBackend extends CompilerBackend {
     }
 
     private PlatformLibrary codeGeneratedResourcesLibrary(PackageId packageId, PlatformLibraryScope scope) {
-        Package pkg = packageCache.getPackageOrThrow(packageId);
-        CompilationCache compilationCache = pkg.project().projectEnvironmentContext().getService(
-                CompilationCache.class);
-        return compilationCache.getPlatformSpecificLibrary(this, RESOURCE_DIR_NAME)
-                .map(path -> new JarLibrary(path, scope))
-                .orElse(null);
+                throw new RuntimeException();
     }
 
     private Map<String, byte[]> getPackageResources(PackageContext packageContext) {

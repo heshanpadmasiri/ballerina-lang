@@ -22,7 +22,7 @@ import org.wso2.ballerinalang.compiler.packaging.converters.Converter;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
+import io.ballerina.fs.Path;
 import java.util.List;
 
 /**

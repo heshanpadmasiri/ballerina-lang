@@ -17,6 +17,7 @@
  */
 package io.ballerina.projects.internal;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.DependencyGraph;
 import io.ballerina.projects.DependencyManifest;
 import io.ballerina.projects.DocumentConfig;
@@ -38,7 +39,6 @@ import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.internal.model.PackageJson;
 import io.ballerina.projects.util.ProjectConstants;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

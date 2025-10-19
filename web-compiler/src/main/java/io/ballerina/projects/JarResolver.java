@@ -258,25 +258,7 @@ public class JarResolver {
     }
 
     private URLClassLoader createClassLoader(Collection<JarLibrary> jarFiles) {
-        if (jBalBackend.diagnosticResult().hasErrors()) {
-            throw new IllegalStateException("Cannot create a ClassLoader: this compilation has errors.");
-        }
-
-        List<URL> urlList = new ArrayList<>(jarFiles.size());
-        for (JarLibrary jarFile : jarFiles) {
-            try {
-                urlList.add(jarFile.path().toUri().toURL());
-            } catch (MalformedURLException e) {
-                // This path cannot get executed
-                throw new RuntimeException("Failed to create classloader with all jar files", e);
-            }
-        }
-
-        // TODO use the ClassLoader.getPlatformClassLoader() here
-        return AccessController.doPrivileged(
-                (PrivilegedAction<URLClassLoader>) () -> new URLClassLoader(urlList.toArray(new URL[0]),
-                        ClassLoader.getSystemClassLoader())
-        );
+        throw new RuntimeException();
     }
 
     private String getPackageName(PackageContext packageContext) {
