@@ -20,34 +20,18 @@ package io.ballerina.projects.internal.model;
 import io.ballerina.fs.Path;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.internal.bala.BalToolJson;
-import io.ballerina.toml.semantic.TomlType;
-import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
-import io.ballerina.toml.semantic.ast.TomlStringValueNode;
-import io.ballerina.toml.semantic.ast.TomlTableArrayNode;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
-import io.ballerina.toml.semantic.ast.TomlValueNode;
-import io.ballerina.toml.semantic.ast.TopLevelNode;
 
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.PathMatcher;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * {@code BalToolDescriptor} Model for `BalTool.toml` file.
+ * Note: TOML parsing is not supported in web-compiler. This is a stub
+ * implementation.
  *
  * @since 2201.6.0
  */
 public class BalToolDescriptor {
-    public static final String ID = "id";
-    private static final String TOOL = "tool";
-    private static final String DEPENDENCY = "dependency";
-    public static final String PATH = "path";
 
     private final BalToolDescriptor.Tool tool;
     private final List<BalToolDescriptor.Dependency> dependencies;
@@ -58,12 +42,7 @@ public class BalToolDescriptor {
     }
 
     public static BalToolDescriptor from(TomlDocument tomlDocument, Path sourceRoot) {
-        TomlTableNode tomlTableNode = tomlDocument.toml().rootNode();
-        if (tomlTableNode.entries().isEmpty()) {
-            return new BalToolDescriptor(null, Collections.emptyList());
-        }
-        return new BalToolDescriptor(
-                new BalToolDescriptor.Tool(getToolID(tomlTableNode)), getDependencies(tomlTableNode, sourceRoot));
+        throw new UnsupportedOperationException("TOML parsing is not supported in web-compiler");
     }
 
     public static BalToolDescriptor from(BalToolJson balToolJson) {
@@ -128,82 +107,4 @@ public class BalToolDescriptor {
         }
     }
 
-    private static List<BalToolDescriptor.Dependency> getDependencies(TomlTableNode tomlTableNode, Path sourceRoot) {
-        List<BalToolDescriptor.Dependency> dependencies = new ArrayList<>();
-        TopLevelNode dependenciesNode = tomlTableNode.entries().get(DEPENDENCY);
-
-        if (dependenciesNode != null && dependenciesNode.kind() == TomlType.TABLE_ARRAY) {
-            TomlTableArrayNode dependencyTableArray = (TomlTableArrayNode) dependenciesNode;
-
-            for (TomlTableNode dependencyNode : dependencyTableArray.children()) {
-                TopLevelNode pathNode = dependencyNode.entries().get(PATH);
-                String path = getStringFromTomlTableNode(pathNode);
-                if (path == null) {
-                    continue;
-                }
-                Path absoluteJarPath = getAbsoluteJarPath(sourceRoot, path);
-                if (absoluteJarPath.toFile().exists()) {
-                    dependencies.add(new BalToolDescriptor.Dependency(absoluteJarPath.toString()));
-                } else {
-                    dependencies.addAll(getDependenciesInDir(absoluteJarPath.toString()));
-                }
-            }
-        }
-        return dependencies;
-    }
-
-    private static String getToolID(TomlTableNode tomlTableNode) {
-        TomlTableNode toolNode = (TomlTableNode) tomlTableNode.entries().get(TOOL);
-        if (toolNode != null && toolNode.kind() != TomlType.NONE && toolNode.kind() == TomlType.TABLE) {
-            TopLevelNode topLevelNode = toolNode.entries().get(ID);
-            if (!(topLevelNode == null || topLevelNode.kind() == TomlType.NONE)) {
-                return getStringFromTomlTableNode(topLevelNode);
-            }
-        }
-        return null;
-    }
-
-    private static String getStringFromTomlTableNode(TopLevelNode topLevelNode) {
-        if (topLevelNode != null && topLevelNode.kind() == TomlType.KEY_VALUE) {
-            TomlKeyValueNode keyValueNode = (TomlKeyValueNode) topLevelNode;
-            TomlValueNode value = keyValueNode.value();
-            if (value.kind() == TomlType.STRING) {
-                TomlStringValueNode stringValueNode = (TomlStringValueNode) value;
-                return stringValueNode.getValue();
-            }
-        }
-        return null;
-    }
-
-    private static Path getAbsoluteJarPath(Path sourceRoot, String path) {
-        Path relativePath = Path.of(path);
-        if (relativePath.isAbsolute()) {
-            return relativePath;
-        }
-        return sourceRoot.toAbsolutePath().resolve(relativePath);
-    }
-
-    private static List<BalToolDescriptor.Dependency> getDependenciesInDir(String path) {
-        // in the path provided, only the last part can be a pattern. the rest should be an existing directory path
-
-        List<BalToolDescriptor.Dependency> dependencies = new ArrayList<>();
-        Path dependencyPath = Path.of(path);
-        Optional<Path> patternPath = Optional.ofNullable(dependencyPath.getFileName());
-        if (patternPath.isEmpty()) {
-            return dependencies;
-        }
-        String pattern = patternPath.get().toString();
-        Optional<Path> parentPath = Optional.ofNullable(dependencyPath.getParent());
-        if (parentPath.isEmpty() || !parentPath.get().toFile().exists()) {
-            return dependencies;
-        }
-
-        return getToolJarsMatchingPattern(pattern, parentPath.get()).stream()
-                .map(path1 -> new BalToolDescriptor.Dependency(path1.toString()))
-                .toList();
-    }
-
-    private static List<Path> getToolJarsMatchingPattern(String pattern, Path parentPath) {
-        throw new RuntimeException();
-    }
 }

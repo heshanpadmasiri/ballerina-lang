@@ -18,7 +18,6 @@
 package io.ballerina.projects;
 
 import io.ballerina.projects.util.ProjectConstants;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
 
 /**
  * Represents the 'Settings.toml' file `.ballerina` repository.
@@ -38,18 +37,9 @@ public class SettingsToml {
         return new SettingsToml(TomlDocumentContext.from(tomlDocument));
     }
 
-    TomlDocumentContext ballerinaTomlContext() {
-        return settingsTomlContext;
-    }
-
     public String name() {
         return ProjectConstants.SETTINGS_TOML;
     }
-
-    public TomlTableNode tomlAstNode() {
-        return tomlDocument().toml().rootNode();
-    }
-
     public TomlDocument tomlDocument() {
         return this.settingsTomlContext.tomlDocument();
     }

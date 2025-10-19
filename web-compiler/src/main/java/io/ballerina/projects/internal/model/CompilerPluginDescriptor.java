@@ -19,13 +19,6 @@ package io.ballerina.projects.internal.model;
 
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.internal.bala.CompilerPluginJson;
-import io.ballerina.toml.semantic.TomlType;
-import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
-import io.ballerina.toml.semantic.ast.TomlStringValueNode;
-import io.ballerina.toml.semantic.ast.TomlTableArrayNode;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
-import io.ballerina.toml.semantic.ast.TomlValueNode;
-import io.ballerina.toml.semantic.ast.TopLevelNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,12 +26,12 @@ import java.util.List;
 
 /**
  * {@code CompilerPluginDescriptor} Model for `Compiler-plugin.toml` file.
+ * Note: TOML parsing is not supported in web-compiler. This is a stub
+ * implementation.
  *
  * @since 2.0.0
  */
 public class CompilerPluginDescriptor {
-    private static final String DEPENDENCY = "dependency";
-    private static final String CLASS = "class";
 
     private final Plugin plugin;
     private final List<Dependency> dependencies;
@@ -49,12 +42,7 @@ public class CompilerPluginDescriptor {
     }
 
     public static CompilerPluginDescriptor from(TomlDocument tomlDocument) {
-        TomlTableNode tomlTableNode = tomlDocument.toml().rootNode();
-        if (tomlTableNode.entries().isEmpty()) {
-            return new CompilerPluginDescriptor(null, Collections.emptyList());
-        }
-        return new CompilerPluginDescriptor(new Plugin(getPluginID(tomlTableNode), getPluginClass(tomlTableNode)),
-                                            getDependencies(tomlTableNode));
+        throw new UnsupportedOperationException("TOML parsing is not supported in web-compiler");
     }
 
     public static CompilerPluginDescriptor from(CompilerPluginJson compilerPluginJson) {
@@ -130,52 +118,4 @@ public class CompilerPluginDescriptor {
         }
     }
 
-    private static List<Dependency> getDependencies(TomlTableNode tomlTableNode) {
-        List<Dependency> dependencies = new ArrayList<>();
-        TopLevelNode dependenciesNode = tomlTableNode.entries().get(DEPENDENCY);
-
-        if (dependenciesNode != null && dependenciesNode.kind() == TomlType.TABLE_ARRAY) {
-            TomlTableArrayNode dependencyTableArray = (TomlTableArrayNode) dependenciesNode;
-
-            for (TomlTableNode dependencyNode : dependencyTableArray.children()) {
-                TopLevelNode pathNode = dependencyNode.entries().get("path");
-                dependencies.add(new Dependency(getStringFromTomlTableNode(pathNode)));
-            }
-        }
-        return dependencies;
-    }
-
-    private static String getPluginID(TomlTableNode tomlTableNode) {
-        TomlTableNode pluginNode = (TomlTableNode) tomlTableNode.entries().get("plugin");
-        if (pluginNode != null && pluginNode.kind() != TomlType.NONE && pluginNode.kind() == TomlType.TABLE) {
-            TopLevelNode topLevelNode = pluginNode.entries().get("id");
-            if (!(topLevelNode == null || topLevelNode.kind() == TomlType.NONE)) {
-                return getStringFromTomlTableNode(topLevelNode);
-            }
-        }
-        return null;
-    }
-
-    private static String getPluginClass(TomlTableNode tomlTableNode) {
-        TomlTableNode pluginNode = (TomlTableNode) tomlTableNode.entries().get("plugin");
-        if (pluginNode != null && pluginNode.kind() != TomlType.NONE && pluginNode.kind() == TomlType.TABLE) {
-            TopLevelNode topLevelNode = pluginNode.entries().get(CLASS);
-            if (!(topLevelNode == null || topLevelNode.kind() == TomlType.NONE)) {
-                return getStringFromTomlTableNode(topLevelNode);
-            }
-        }
-        return null;
-    }
-
-    private static String getStringFromTomlTableNode(TopLevelNode topLevelNode) {
-        if (topLevelNode != null && topLevelNode.kind() == TomlType.KEY_VALUE) {
-            TomlKeyValueNode keyValueNode = (TomlKeyValueNode) topLevelNode;
-            TomlValueNode value = keyValueNode.value();
-            if (value.kind() == TomlType.STRING) {
-                TomlStringValueNode stringValueNode = (TomlStringValueNode) value;
-                return stringValueNode.getValue();
-            }
-        }
-        return null;
-    }
 }

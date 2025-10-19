@@ -17,21 +17,14 @@
  */
 package org.wso2.ballerinalang.util;
 
-import io.ballerina.projects.Settings;
-import io.ballerina.projects.TomlDocument;
-import io.ballerina.projects.internal.SettingsBuilder;
-import io.ballerina.projects.util.ProjectConstants;
-import org.ballerinalang.toml.exceptions.TomlException;
-import org.ballerinalang.toml.model.Manifest;
-import org.ballerinalang.toml.parser.ManifestProcessor;
-import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
-
-import java.io.IOException;
-import java.nio.file.Files;
 import io.ballerina.fs.Path;
+import io.ballerina.projects.Settings;
+import org.ballerinalang.toml.model.Manifest;
 
 /**
  * Toml parser util methods.
+ * Note: TOML parsing is not supported in web-compiler. This is a stub
+ * implementation.
  *
  * @since 0.982.0
  */
@@ -45,12 +38,8 @@ public final class TomlParserUtils {
      *
      * @return {@link Settings} settings object
      */
-    public static Settings readSettings() { // TODO: Should be removed after removing old repo structure
-        Path settingsFilePath = RepoUtils.createAndGetHomeReposPath().resolve(ProjectConstants.SETTINGS_FILE_NAME);
-        TomlDocument settingsTomlDocument = TomlDocument
-                .from(String.valueOf(settingsFilePath.getFileName()), settingsFilePath.readString());
-        SettingsBuilder settingsBuilder = SettingsBuilder.from(settingsTomlDocument);
-        return settingsBuilder.settings();
+    public static Settings readSettings() {
+        throw new UnsupportedOperationException("TOML parsing is not supported in web-compiler");
     }
 
     /**
@@ -60,11 +49,6 @@ public final class TomlParserUtils {
      * @return {@link Manifest} manifest object
      */
     public static Manifest getManifest(Path projectDirPath) {
-        Path manifestFilePath = projectDirPath.resolve((ProjectDirConstants.MANIFEST_FILE_NAME));
-        try {
-            return ManifestProcessor.parseTomlContentFromFile(manifestFilePath);
-        } catch (IOException | TomlException e) {
-            return new Manifest();
-        }
+        throw new UnsupportedOperationException("TOML parsing is not supported in web-compiler");
     }
 }

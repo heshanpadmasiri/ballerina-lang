@@ -18,15 +18,11 @@
 package io.ballerina.projects;
 
 import io.ballerina.projects.util.ProjectConstants;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import io.ballerina.fs.Path;
 import java.util.Map;
 
@@ -55,18 +51,9 @@ public class BalToolsToml {
         throw new RuntimeException();
     }
 
-    TomlDocumentContext ballerinaTomlContext() {
-        return balToolsTomlContext;
-    }
-
     public String name() {
         return ProjectConstants.BAL_TOOLS_TOML;
     }
-
-    public TomlTableNode tomlAstNode() {
-        return tomlDocument().toml().rootNode();
-    }
-
     public TomlDocument tomlDocument() {
         return this.balToolsTomlContext.tomlDocument();
     }

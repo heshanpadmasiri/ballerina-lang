@@ -20,16 +20,11 @@ package io.ballerina.projects.buildtools;
 import io.ballerina.fs.Path;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageManifest;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
-import io.ballerina.toml.semantic.ast.TopLevelNode;
-import io.ballerina.toml.semantic.diagnostics.TomlNodeLocation;
 import io.ballerina.tools.diagnostics.Diagnostic;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static io.ballerina.projects.util.ProjectConstants.GENERATED_MODULES_ROOT;
 
@@ -44,18 +39,16 @@ public class ToolContext {
     private final String toolId;
     private final String filePath;
     private final String targetModule;
-    private final Map<String, Option> options;
     private final String type;
     private final PrintStream printStream;
     private final List<Diagnostic> diagnostics = new ArrayList<>();
 
     ToolContext(Package currentPackage, String toolId, String filePath,
-                String targetModule, TomlTableNode optionsTable, String type, PrintStream printStream) {
+                String targetModule, String type, PrintStream printStream) {
         this.currentPackage = currentPackage;
         this.toolId = toolId;
         this.filePath = filePath;
         this.targetModule = targetModule;
-        this.options = getOptions(optionsTable);
         this.type = type;
         this.printStream = printStream;
     }
@@ -63,7 +56,7 @@ public class ToolContext {
     public static ToolContext from(PackageManifest.Tool tool, Package currentPackage, PrintStream printStream) {
         return new ToolContext(currentPackage, tool.id().value(),
                 tool.filePath().value(), tool.targetModule().value(),
-                tool.optionsTable(), tool.type().value(), printStream);
+                tool.type().value(), printStream);
     }
 
     /**
@@ -91,15 +84,6 @@ public class ToolContext {
      */
     public String targetModule() {
         return targetModule;
-    }
-
-    /**
-     * Returns the tool-specific configurations.
-     *
-     * @return a map of the optional tool configurations.
-     */
-    public Map<String, Option> options() {
-        return this.options;
     }
 
     /**
@@ -161,29 +145,14 @@ public class ToolContext {
         printStream.printf("\t\t%s%n", message);
     }
 
-    private Map<String, Option> getOptions(TomlTableNode optionsTable) {
-        Map<String, Option> options = new HashMap<>();
-        if (null == optionsTable) {
-            return options;
-        }
-        for (String option: optionsTable.entries().keySet()) {
-            options.put(option, new Option(optionsTable.entries().get(option)));
-        }
-        return options;
-    }
-
     /**
      * Represents a single option Toml node in Ballerina.toml file.
      *
      * @since 2201.9.0
      */
     public static class Option {
-        private final Object value;
-        private final TomlNodeLocation location;
 
-        public Option(TopLevelNode optionNode) {
-            this.value = optionNode.toNativeObject();
-            this.location = optionNode.location();
+        public Option() {
         }
 
         /**
@@ -192,16 +161,8 @@ public class ToolContext {
          * @return the option value.
          */
         public Object value() {
-            return value;
+            throw new RuntimeException();
         }
 
-        /**
-         * Returns the location of the option node in Ballerina.toml.
-         *
-         * @return the option location.
-         */
-        public TomlNodeLocation location() {
-            return location;
-        }
     }
 }

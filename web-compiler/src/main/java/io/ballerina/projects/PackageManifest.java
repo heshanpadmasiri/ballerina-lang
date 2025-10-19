@@ -20,9 +20,6 @@ package io.ballerina.projects;
 import io.ballerina.projects.internal.DefaultDiagnosticResult;
 import io.ballerina.projects.internal.model.BalToolDescriptor;
 import io.ballerina.projects.internal.model.CompilerPluginDescriptor;
-import io.ballerina.toml.api.Toml;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
-import io.ballerina.toml.semantic.diagnostics.TomlNodeLocation;
 import io.ballerina.tools.diagnostics.Location;
 
 import java.util.Collections;
@@ -483,21 +480,16 @@ public class PackageManifest {
      */
     public static class Tool {
         private final Field id;
-        private final TomlTableNode optionsTable;
         private final Field filePath;
         private final Field targetModule;
         private final Field type;
-        private final Toml optionsToml;
         private final boolean hasErrorDiagnostic;
 
-        public Tool(Field type, Field id, Field filePath, Field targetModule, Toml optionsToml,
-                    TomlTableNode optionsTable, boolean hasErrorDiagnostic) {
+        public Tool(Field type, Field id, Field filePath, Field targetModule, boolean hasErrorDiagnostic) {
             this.type = type;
             this.id = id;
             this.filePath = filePath;
             this.targetModule = targetModule;
-            this.optionsTable = optionsTable;
-            this.optionsToml = optionsToml;
             this.hasErrorDiagnostic = hasErrorDiagnostic;
         }
 
@@ -529,30 +521,12 @@ public class PackageManifest {
         }
 
         /**
-         * Returns the tool-specific options as a TomlTableNode.
-         *
-         * @return the tool options table.
-         */
-        public TomlTableNode optionsTable() {
-            return this.optionsTable;
-        }
-
-        /**
          * Returns the type of the tool.
          *
          * @return the tool type.
          */
         public Field type() {
             return type;
-        }
-
-        /**
-         * Returns the tool-specific options as a Toml.
-         *
-         * @return the options toml.
-         */
-        public Toml optionsToml() {
-            return optionsToml;
         }
 
         /**
@@ -564,7 +538,7 @@ public class PackageManifest {
             return hasErrorDiagnostic;
         }
 
-        public record Field(String value, TomlNodeLocation location) {
+        public record Field(String value) {
         }
     }
 

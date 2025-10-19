@@ -17,25 +17,16 @@
  */
 package io.ballerina.projects;
 
-import io.ballerina.toml.api.Toml;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
-import io.ballerina.toml.semantic.ast.TomlTransformer;
-import io.ballerina.toml.syntax.tree.DocumentNode;
-import io.ballerina.toml.syntax.tree.SyntaxTree;
-import io.ballerina.tools.text.TextDocument;
-import io.ballerina.tools.text.TextDocuments;
-
 /**
  * Represents a generic TOML document in a Ballerina package.
+ * Note: TOML parsing is not supported in web-compiler. This is a stub
+ * implementation.
  *
  * @since 2.0.0
  */
 public class TomlDocument {
     private final String fileName;
     private final String content;
-    private TextDocument textDocument;
-    private SyntaxTree syntaxTree;
-    private Toml toml;
 
     protected TomlDocument(String fileName, String content) {
         this.fileName = fileName;
@@ -46,43 +37,23 @@ public class TomlDocument {
         return new TomlDocument(fileName, content);
     }
 
-    public Toml toml() {
-        if (toml != null) {
-            return toml;
-        }
-        parseToml();
-        return toml;
+    public Object toml() {
+        throw new UnsupportedOperationException("TOML parsing is not supported in web-compiler");
     }
 
-    public SyntaxTree syntaxTree() {
-        if (syntaxTree != null) {
-            return syntaxTree;
-        }
-
-        parseToml();
-        return syntaxTree;
+    public Object syntaxTree() {
+        throw new UnsupportedOperationException("TOML parsing is not supported in web-compiler");
     }
 
-    public TextDocument textDocument() {
-        if (textDocument != null) {
-            return textDocument;
-        }
-
-        textDocument = TextDocuments.from(content);
-        return textDocument;
+    public Object textDocument() {
+        throw new UnsupportedOperationException("TOML parsing is not supported in web-compiler");
     }
 
-    private void parseToml() {
-        try {
-            this.textDocument = TextDocuments.from(content);
-            this.syntaxTree = SyntaxTree.from(this.textDocument, this.fileName);
-            TomlTransformer nodeTransformer = new TomlTransformer();
-            TomlTableNode transformedTable = (TomlTableNode) nodeTransformer
-                    .transform((DocumentNode) syntaxTree.rootNode());
-            this.toml = new Toml(transformedTable);
-        } catch (RuntimeException e) {
-            // The toml parser throws runtime exceptions for some cases
-            throw new ProjectException("Failed to parse file: " + fileName, e);
-        }
+    public String fileName() {
+        return fileName;
+    }
+
+    public String content() {
+        return content;
     }
 }

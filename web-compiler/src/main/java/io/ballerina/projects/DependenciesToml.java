@@ -19,7 +19,6 @@
 package io.ballerina.projects;
 
 import io.ballerina.projects.util.ProjectConstants;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
 
 /**
  * Represents the 'Dependencies.toml' file in a package.
@@ -50,15 +49,6 @@ public class DependenciesToml {
     public String name() {
         return ProjectConstants.DEPENDENCIES_TOML;
     }
-
-    public TomlTableNode tomlAstNode() {
-        return tomlDocument().toml().rootNode();
-    }
-
-    public TomlDocument tomlDocument() {
-        return this.dependenciesTomlContext.tomlDocument();
-    }
-
     /** Returns an instance of the Document.Modifier.
      *
      * @return  module modifier
@@ -75,19 +65,7 @@ public class DependenciesToml {
         private final Package oldPackage;
 
         private Modifier(DependenciesToml oldDocument) {
-            this.tomlDocument = oldDocument.tomlDocument();
             this.oldPackage = oldDocument.packageInstance();
-        }
-
-        /**
-         * Sets the content to be changed.
-         *
-         * @param content content to change with
-         * @return Document.Modifier that holds the content to be changed
-         */
-        public DependenciesToml.Modifier withContent(String content) {
-            this.tomlDocument = TomlDocument.from(ProjectConstants.DEPENDENCIES_TOML, content);
-            return this;
         }
 
         /**

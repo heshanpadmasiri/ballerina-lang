@@ -25,11 +25,9 @@ dependencies {
     implementation project(':ballerina-tools-api')
     implementation project(':ballerina-parser')
     implementation project(':ballerina-runtime')
-    implementation project(':toml-parser')
     implementation project(':semtypes')
     implementation project(':central-client')
     implementation project(':identifier-util')
-    implementation libs.toml4j
     implementation libs.zafarkhaja.jsemver
     testImplementation(libs.guru.nidi.graphviz) {
         because("We use this library to execute package resolution tests")

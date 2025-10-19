@@ -18,10 +18,11 @@
 package io.ballerina.projects;
 
 import io.ballerina.projects.util.ProjectConstants;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
 
 /**
  * Represents the 'Ballerina.toml' file in a package.
+ * Note: TOML parsing is not supported in web-compiler. This is a stub
+ * implementation.
  *
  * @since 2.0.0
  */
@@ -52,8 +53,8 @@ public class BallerinaToml {
         return ProjectConstants.BALLERINA_TOML;
     }
 
-    public TomlTableNode tomlAstNode() {
-        return tomlDocument().toml().rootNode();
+    public Object tomlAstNode() {
+        throw new UnsupportedOperationException("TOML parsing is not supported in web-compiler");
     }
 
     public TomlDocument tomlDocument() {

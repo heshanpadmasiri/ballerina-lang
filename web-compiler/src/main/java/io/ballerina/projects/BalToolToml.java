@@ -19,7 +19,6 @@
 package io.ballerina.projects;
 
 import io.ballerina.projects.util.ProjectConstants;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
 
 /**
  * Represents the 'BalTool.toml' file in a package.
@@ -51,14 +50,6 @@ public class BalToolToml {
         return ProjectConstants.BAL_TOOL_TOML;
     }
 
-    public TomlTableNode tomlAstNode() {
-        return tomlDocument().toml().rootNode();
-    }
-
-    public TomlDocument tomlDocument() {
-        return this.balToolTomlContext.tomlDocument();
-    }
-
     /**
      * Returns an instance of the Document.Modifier.
      *
@@ -72,23 +63,10 @@ public class BalToolToml {
      * Inner class that handles Document modifications.
      */
     public static class Modifier {
-        private TomlDocument tomlDocument;
         private final Package oldPackage;
 
         private Modifier(BalToolToml oldDocument) {
-            this.tomlDocument = oldDocument.tomlDocument();
             this.oldPackage = oldDocument.packageInstance();
-        }
-
-        /**
-         * Sets the content to be changed.
-         *
-         * @param content content to change with
-         * @return Document.Modifier that holds the content to be changed
-         */
-        public BalToolToml.Modifier withContent(String content) {
-            this.tomlDocument = TomlDocument.from(ProjectConstants.BAL_TOOL_TOML, content);
-            return this;
         }
 
         /**
@@ -97,10 +75,7 @@ public class BalToolToml {
          * @return document with updated content
          */
         public BalToolToml apply() {
-            BalToolToml balToolToml =
-                    BalToolToml.from(TomlDocumentContext.from(this.tomlDocument), oldPackage);
-            Package newPackage = oldPackage.modify().updateBalToolToml(balToolToml).apply();
-            return newPackage.balToolToml().get();
+            throw new RuntimeException();
         }
     }
 }

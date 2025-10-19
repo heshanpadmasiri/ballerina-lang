@@ -1,7 +1,6 @@
 package io.ballerina.projects;
 
 import io.ballerina.projects.util.ProjectConstants;
-import io.ballerina.toml.semantic.ast.TomlTableNode;
 
 /**
  * Represents the 'Compiler-plugin.toml' file in a package.
@@ -32,15 +31,6 @@ public class CompilerPluginToml {
     public String name() {
         return ProjectConstants.COMPILER_PLUGIN_TOML;
     }
-
-    public TomlTableNode tomlAstNode() {
-        return tomlDocument().toml().rootNode();
-    }
-
-    public TomlDocument tomlDocument() {
-        return this.compilerPluginTomlContext.tomlDocument();
-    }
-
     /**
      * Returns an instance of the Document.Modifier.
      *
@@ -54,23 +44,10 @@ public class CompilerPluginToml {
      * Inner class that handles Document modifications.
      */
     public static class Modifier {
-        private TomlDocument tomlDocument;
         private final Package oldPackage;
 
         private Modifier(CompilerPluginToml oldDocument) {
-            this.tomlDocument = oldDocument.tomlDocument();
             this.oldPackage = oldDocument.packageInstance();
-        }
-
-        /**
-         * Sets the content to be changed.
-         *
-         * @param content content to change with
-         * @return Document.Modifier that holds the content to be changed
-         */
-        public Modifier withContent(String content) {
-            this.tomlDocument = TomlDocument.from(ProjectConstants.COMPILER_PLUGIN_TOML, content);
-            return this;
         }
 
         /**
@@ -79,10 +56,7 @@ public class CompilerPluginToml {
          * @return document with updated content
          */
         public CompilerPluginToml apply() {
-            CompilerPluginToml compilerPluginToml =
-                    CompilerPluginToml.from(TomlDocumentContext.from(this.tomlDocument), oldPackage);
-            Package newPackage = oldPackage.modify().updateCompilerPluginToml(compilerPluginToml).apply();
-            return newPackage.compilerPluginToml().get();
+            throw new RuntimeException();
         }
     }
 }
