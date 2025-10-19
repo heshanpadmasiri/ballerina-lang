@@ -93,10 +93,6 @@ public class NullBackend extends CompilerBackend {
     }
 
     @Override
-    public void performCodeGen(ModuleContext moduleContext, CompilationCache compilationCache) {
-    }
-
-    @Override
     public String libraryFileExtension() {
         return null;
     }

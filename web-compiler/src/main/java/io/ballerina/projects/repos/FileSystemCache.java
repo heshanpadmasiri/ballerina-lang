@@ -26,11 +26,8 @@ import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageManifest;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.util.ProjectConstants;
-import org.apache.commons.io.FileUtils;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -61,33 +58,12 @@ public class FileSystemCache extends CompilationCache {
 
     @Override
     public byte[] getBir(ModuleName moduleName) {
-        Path birFilePath = getBirPath().resolve(moduleName.toString()
-                + ProjectConstants.BLANG_COMPILED_PKG_BIR_EXT);
-        if (birFilePath.exists()) {
-            try {
-                return FileUtils.readFileToByteArray(birFilePath.toFile());
-            } catch (IOException e) {
-                // TODO proper error handling
-                throw new RuntimeException("Failed to read the cached bir of module: " + moduleName, e);
-            }
-        }
-        return new byte[0];
+        throw new RuntimeException("getBir is not supported in web compiler");
     }
 
     @Override
     public void cacheBir(ModuleName moduleName, ByteArrayOutputStream birContent) {
-        Path birFilePath = getBirPath().resolve(moduleName.toString() + ProjectConstants.BLANG_COMPILED_PKG_BIR_EXT);
-        if (!birFilePath.exists()) {
-            try {
-                File tempBirFile = birPath.resolve(".tmp").toFile();
-                // TODO Can we improve this logic
-                FileUtils.writeByteArrayToFile(tempBirFile, birContent.toByteArray());
-                FileUtils.moveFile(tempBirFile, birFilePath.toFile());
-            } catch (IOException e) {
-                // TODO proper error handling
-                throw new RuntimeException("Failed to cache the bir of module: " + moduleName, e);
-            }
-        }
+        throw new RuntimeException("cacheBir is not supported in web compiler");
     }
 
     @Override
@@ -102,19 +78,7 @@ public class FileSystemCache extends CompilationCache {
     public void cachePlatformSpecificLibrary(CompilerBackend compilerBackend,
                                              String libraryName,
                                              ByteArrayOutputStream libraryContent) {
-        String libraryFileName = libraryName + compilerBackend.libraryFileExtension();
-        Path targetPlatformCacheDirPath = getTargetPlatformCacheDirPath(compilerBackend);
-        // Create directories
-        createDirectories(targetPlatformCacheDirPath);
-        Path jarFilePath = targetPlatformCacheDirPath.resolve(libraryFileName);
-
-        // TODO Can we improve this logic
-        try {
-            FileUtils.writeByteArrayToFile(jarFilePath.toFile(), libraryContent.toByteArray());
-        } catch (IOException e) {
-            // TODO improve the error handling
-            throw new RuntimeException("Failed to write library: " + jarFilePath, e);
-        }
+        throw new RuntimeException("cachePlatformSpecificLibrary is not supported in web compiler");
     }
 
     /**

@@ -31,12 +31,7 @@ dependencies {
     implementation project(':maven-resolver')
     implementation project(':identifier-util')
     implementation libs.toml4j
-    implementation(libs.apache.commons.compress) {
-        exclude group: 'commons-codec', module: 'commons-codec'
-        exclude group: 'org.apache.commons', module: 'commons-lang3'
-    }
     implementation libs.netty.buffer
-    implementation libs.commons.io
     implementation libs.zafarkhaja.jsemver
     testImplementation(libs.guru.nidi.graphviz) {
         because("We use this library to execute package resolution tests")

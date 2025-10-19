@@ -49,10 +49,6 @@ import io.ballerina.projects.internal.model.Dependency;
 import io.ballerina.projects.internal.model.ToolDependency;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
-import org.apache.commons.compress.archivers.jar.JarArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntryPredicate;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.ballerinalang.compiler.BLangCompilerException;
 import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.util.Lists;
@@ -499,71 +495,18 @@ public final class ProjectUtils {
 
     /**
      * Copies a given jar file into the executable fat jar.
+     * This method is not supported in web compiler context.
      *
-     * @param ballerinaRTJarPath Ballerina runtime jar path.
-     * @throws IOException If jar file copying is failed.
+     * @param outStream          Output stream (unused)
+     * @param ballerinaRTJarPath Ballerina runtime jar path (unused)
+     * @param copiedEntries      Copied entries set (unused)
+     * @throws RuntimeException Always throws as this is not supported in web
+     *                          compiler
      */
-    public static void copyRuntimeJar(ZipArchiveOutputStream outStream,
-                                      Path ballerinaRTJarPath,
-                                      HashSet<String> copiedEntries) throws IOException {
-        // TODO This code is copied from the current executable jar creation logic. We may need to refactor this.
-        HashMap<String, StringBuilder> services = new HashMap<>();
-        ZipFile zipFile = new ZipFile(ballerinaRTJarPath.toString());
-        ZipArchiveEntryPredicate predicate = entry -> {
-
-            String entryName = entry.getName();
-            if (entryName.equals("META-INF/MANIFEST.MF")) {
-                return false;
-            }
-
-            if (entryName.startsWith("META-INF/services")) {
-                StringBuilder s = services.get(entryName);
-                if (s == null) {
-                    s = new StringBuilder();
-                    services.put(entryName, s);
-                }
-                char c = '\n';
-
-                int len;
-                try (BufferedInputStream inStream = new BufferedInputStream(zipFile.getInputStream(entry))) {
-                    while ((len = inStream.read()) != -1) {
-                        c = (char) len;
-                        s.append(c);
-                    }
-                } catch (IOException e) {
-                    throw new ProjectException(e);
-                }
-                if (c != '\n') {
-                    s.append('\n');
-                }
-
-                // Its not required to copy SPI entries in here as we'll be adding merged SPI related entries
-                // separately. Therefore the predicate should be set as false.
-                return false;
-            }
-
-            // Skip already copied files or excluded extensions.
-            if (isCopiedOrExcludedEntry(entryName, copiedEntries)) {
-                return false;
-            }
-            // SPIs will be merged first and then put into jar separately.
-            copiedEntries.add(entryName);
-            return true;
-        };
-
-        // Transfers selected entries from this zip file to the output stream, while preserving its compression and
-        // all the other original attributes.
-        zipFile.copyRawEntries(outStream, predicate);
-        zipFile.close();
-
-        for (Map.Entry<String, StringBuilder> entry : services.entrySet()) {
-            String s = entry.getKey();
-            StringBuilder service = entry.getValue();
-            JarArchiveEntry e = new JarArchiveEntry(s);
-            outStream.putArchiveEntry(e);
-            outStream.write(service.toString().getBytes(StandardCharsets.UTF_8));
-            outStream.closeArchiveEntry();
-        }
+    public static void copyRuntimeJar(Object outStream,
+                                              Path ballerinaRTJarPath,
+            HashSet<String> copiedEntries) {
+        throw new RuntimeException("copyRuntimeJar is not supported in web compiler");
     }
 
     private static boolean isCopiedOrExcludedEntry(String entryName, HashSet<String> copiedEntries) {

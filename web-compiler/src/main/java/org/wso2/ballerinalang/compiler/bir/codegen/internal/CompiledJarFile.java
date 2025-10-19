@@ -27,13 +27,12 @@ import java.io.IOException;
  */
 public class CompiledJarFile {
 
-    public final JarEntries jarEntries;
 
     public CompiledJarFile(String mainClassName) {
-        this.jarEntries = new JarEntries(mainClassName);
+        throw new RuntimeException();
     }
 
     public ByteArrayOutputStream toByteArrayStream() throws IOException {
-        return jarEntries.getByteArrayOutputStream();
+        throw new RuntimeException();
     }
 }

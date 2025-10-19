@@ -84,9 +84,6 @@ public abstract class CompilerBackend {
      */
     public abstract TargetPlatform targetPlatform();
 
-    // TODO this method should be moved to some other class owned by the CompilerBackend
-    public abstract void performCodeGen(ModuleContext moduleContext, CompilationCache compilationCache);
-
     public abstract String libraryFileExtension();
 
     /**

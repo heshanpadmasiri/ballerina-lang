@@ -22,56 +22,26 @@ import io.ballerina.projects.environment.PackageCache;
 import io.ballerina.projects.environment.ProjectEnvironment;
 import io.ballerina.projects.internal.DefaultDiagnosticResult;
 import io.ballerina.projects.internal.PackageDiagnostic;
-import io.ballerina.projects.internal.ProjectDiagnosticErrorCode;
 import io.ballerina.projects.internal.model.Target;
-import io.ballerina.projects.util.ProjectUtils;
 import io.ballerina.tools.diagnostics.Diagnostic;
-import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
-import org.apache.commons.compress.archivers.jar.JarArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntryPredicate;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.io.FilenameUtils;
 import org.wso2.ballerinalang.compiler.bir.codegen.CodeGenerator;
-import org.wso2.ballerinalang.compiler.bir.codegen.internal.CompiledJarFile;
 import org.wso2.ballerinalang.compiler.bir.codegen.interop.InteropValidator;
-import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
-import org.wso2.ballerinalang.util.Lists;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
 
-import static io.ballerina.projects.util.FileUtils.getFileNameWithoutExtension;
 import static io.ballerina.projects.util.ProjectConstants.BIN_DIR_NAME;
 import static io.ballerina.projects.util.ProjectConstants.DOT;
-import static io.ballerina.projects.util.ProjectConstants.RESOURCE_DIR_NAME;
-import static io.ballerina.projects.util.ProjectUtils.getConflictingResourcesMsg;
-import static io.ballerina.projects.util.ProjectUtils.getThinJarFileName;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CLASS_FILE_SUFFIX;
 
 /**
  * This class represents the Ballerina compiler backend that produces executables that runs on the JVM.
@@ -85,7 +55,6 @@ public class JBallerinaBackend extends CompilerBackend {
     private static final String JAR_FILE_EXTENSION = ".jar";
     private static final String TEST_JAR_FILE_NAME_SUFFIX = "-testable";
     private static final String JAR_FILE_NAME_SUFFIX = "";
-    private static final HashSet<String> excludeExtensions = new HashSet<>(Lists.of("DSA", "SF"));
     private static final String OS = System.getProperty("os.name").toLowerCase(Locale.getDefault());
     public static final String JAR_NAME_SEPARATOR = "-";
 
@@ -100,7 +69,6 @@ public class JBallerinaBackend extends CompilerBackend {
     private final PackageCompilation packageCompilation;
     private DiagnosticResult diagnosticResult;
     private boolean codeGenCompleted;
-    private final List<JarConflict> conflictedJars;
     List<Diagnostic> conflictedResourcesDiagnostics = new ArrayList<>();
 
     public static JBallerinaBackend from(PackageCompilation packageCompilation, JvmTarget jdkVersion) {
@@ -132,7 +100,6 @@ public class JBallerinaBackend extends CompilerBackend {
         this.compilerContext = projectEnvContext.getService(CompilerContext.class);
         this.interopValidator = InteropValidator.getInstance(compilerContext);
         this.jvmCodeGenerator = CodeGenerator.getInstance(compilerContext);
-        this.conflictedJars = new ArrayList<>();
         performCodeGen(shrink);
     }
 
@@ -313,47 +280,6 @@ public class JBallerinaBackend extends CompilerBackend {
         return jdkVersion;
     }
 
-    // TODO This method should be moved to some other class owned by the JBallerinaBackend
-    @Override
-    public void performCodeGen(ModuleContext moduleContext, CompilationCache compilationCache) {
-        BLangPackage bLangPackage = moduleContext.bLangPackage();
-        interopValidator.validate(moduleContext.moduleId(), this, bLangPackage);
-        if (bLangPackage.getErrorCount() > 0) {
-            return;
-        }
-        boolean isRemoteMgtEnabled = moduleContext.project().buildOptions().compilationOptions().remoteManagement();
-        CompiledJarFile compiledJarFile = jvmCodeGenerator.generate(bLangPackage, isRemoteMgtEnabled);
-        String jarFileName = getJarFileName(moduleContext) + JAR_FILE_NAME_SUFFIX;
-        try {
-            ByteArrayOutputStream byteStream = compiledJarFile.toByteArrayStream();
-            compilationCache.cachePlatformSpecificLibrary(this, jarFileName, byteStream);
-        } catch (IOException e) {
-            throw new ProjectException("Failed to cache generated jar, module: " + moduleContext.moduleName());
-        }
-        if (moduleContext.project().currentPackage().packageContext() == packageContext &&
-                moduleContext.isDefaultModule()) {
-            cacheResources(compilationCache, moduleContext.project().buildOptions().skipTests());
-        }
-        // skip generation of the test jar if --with-tests option is not provided
-        if (moduleContext.project().buildOptions().skipTests()) {
-            return;
-        }
-
-        if (!bLangPackage.hasTestablePackage()) {
-            return;
-        }
-
-        String testJarFileName = jarFileName + TEST_JAR_FILE_NAME_SUFFIX;
-        CompiledJarFile compiledTestJarFile = jvmCodeGenerator.generateTestModule(bLangPackage.testablePkgs.get(0),
-                isRemoteMgtEnabled);
-        try {
-            ByteArrayOutputStream byteStream = compiledTestJarFile.toByteArrayStream();
-            compilationCache.cachePlatformSpecificLibrary(this, testJarFileName, byteStream);
-        } catch (IOException e) {
-            throw new ProjectException("Failed to cache generated test jar, module: " + moduleContext.moduleName());
-        }
-    }
-
     @Override
     public String libraryFileExtension() {
         return JAR_FILE_EXTENSION;
@@ -361,180 +287,6 @@ public class JBallerinaBackend extends CompilerBackend {
 
     public JarResolver jarResolver() {
         return jarResolver;
-    }
-
-    public List<JarConflict> conflictedJars() {
-        return conflictedJars;
-    }
-
-    // TODO Can we move this method to Module.displayName()
-    private String getJarFileName(ModuleContext moduleContext) {
-        String jarName;
-        if (moduleContext.project().kind() == ProjectKind.SINGLE_FILE_PROJECT) {
-            DocumentId documentId = moduleContext.srcDocumentIds().iterator().next();
-            String documentName = moduleContext.documentContext(documentId).name();
-            jarName = getFileNameWithoutExtension(documentName);
-        } else {
-            jarName = getThinJarFileName(moduleContext.descriptor().org(),
-                                         moduleContext.moduleName().toString(),
-                                         moduleContext.descriptor().version());
-        }
-
-        return jarName;
-    }
-
-    private void assembleExecutableJar(Path executableFilePath,
-                                       Manifest manifest,
-                                       Collection<JarLibrary> jarLibraries) throws IOException {
-        // Used to prevent adding duplicated entries during the final jar creation.
-        HashMap<String, JarLibrary> copiedEntries = new HashMap<>();
-
-        // Used to process SPI related metadata entries separately. The reason is unlike the other entry types,
-        // service loader related information should be merged together in the final executable jar creation.
-        HashMap<String, StringBuilder> serviceEntries = new HashMap<>();
-
-        try (ZipArchiveOutputStream outStream = new ZipArchiveOutputStream(
-                new BufferedOutputStream(new FileOutputStream(executableFilePath.toString())))) {
-            writeManifest(manifest, outStream);
-
-            // Sort jar libraries list to avoid inconsistent jar reporting
-            sortAndCopyJars(jarLibraries, outStream, copiedEntries, serviceEntries);
-
-            // Copy merged spi services.
-            copyMergedSpiServices(serviceEntries, outStream);
-        }
-    }
-
-    private void assembleTestExecutableJar(Path executableFilePath,
-                                           Manifest manifest,
-                                           Collection<JarLibrary> jarLibraries,
-                                           Path testSuiteJsonPath, String jsonCopyPath,
-                                           List<String> excludedClasses, String classPathTextCopyPath)
-            throws IOException {
-        throw new RuntimeException();
-    }
-
-    private static void copyMergedSpiServices(HashMap<String, StringBuilder> serviceEntries,
-                                              ZipArchiveOutputStream outStream) throws IOException {
-        for (Map.Entry<String, StringBuilder> entry : serviceEntries.entrySet()) {
-            String s = entry.getKey();
-            StringBuilder service = entry.getValue();
-            JarArchiveEntry e = new JarArchiveEntry(s);
-            outStream.putArchiveEntry(e);
-            outStream.write(service.toString().getBytes(StandardCharsets.UTF_8));
-            outStream.closeArchiveEntry();
-        }
-    }
-
-    private void sortAndCopyJars(Collection<JarLibrary> jarLibraries, ZipArchiveOutputStream outStream,
-                                 HashMap<String, JarLibrary> copiedEntries,
-                                 HashMap<String, StringBuilder> serviceEntries) throws IOException {
-
-        List<JarLibrary> sortedJarLibraries = jarLibraries.stream()
-                .sorted(Comparator.comparing(jarLibrary -> jarLibrary.path().getFileName()))
-                .toList();
-
-        // Copy all the jars
-        for (JarLibrary library : sortedJarLibraries) {
-            copyJar(outStream, library, copiedEntries, serviceEntries);
-        }
-    }
-
-    private void writeManifest(Manifest manifest, ZipArchiveOutputStream outStream) throws IOException {
-        JarArchiveEntry e = new JarArchiveEntry(JarFile.MANIFEST_NAME);
-        outStream.putArchiveEntry(e);
-        manifest.write(new BufferedOutputStream(outStream));
-        outStream.closeArchiveEntry();
-    }
-
-    private Manifest createManifest() {
-        throw new RuntimeException();
-    }
-
-    private Manifest createTestManifest() {
-        String mainClassName = "org.ballerinalang.test.runtime.BTestMain";
-        Manifest manifest = new Manifest();
-        Attributes mainAttributes = manifest.getMainAttributes();
-        mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        mainAttributes.put(Attributes.Name.MAIN_CLASS, mainClassName);
-        return manifest;
-    }
-
-    /**
-     * Copies a given jar file into the executable fat jar.
-     *
-     * @param outStream     Output stream of the final uber jar.
-     * @param jarLibrary    jar library.
-     * @param copiedEntries Entries set will be used to ignore duplicate files.
-     * @param services      Services will be used to temporary hold merged spi files.
-     * @throws IOException If jar file copying is failed.
-     */
-    private void copyJar(ZipArchiveOutputStream outStream, JarLibrary jarLibrary,
-                         HashMap<String, JarLibrary> copiedEntries, HashMap<String,
-            StringBuilder> services) throws IOException {
-        if (Thread.currentThread().isInterrupted()) {
-            return;
-        }
-        try (ZipFile zipFile = new ZipFile(jarLibrary.path().toFile())) {
-            ZipArchiveEntryPredicate predicate = entry -> {
-                String entryName = entry.getName();
-                if (entryName.equals("META-INF/MANIFEST.MF")) {
-                    return false;
-                }
-                if (entryName.equals("module-info.class")) {
-                    return false;
-                }
-                if (entryName.startsWith("META-INF/services")) {
-                    StringBuilder s = services.get(entryName);
-                    if (s == null) {
-                        s = new StringBuilder();
-                        services.put(entryName, s);
-                    }
-                    char c = '\n';
-
-                    int len;
-                    try (BufferedInputStream inStream = new BufferedInputStream(zipFile.getInputStream(entry))) {
-                        while ((len = inStream.read()) != -1) {
-                            c = (char) len;
-                            s.append(c);
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    if (c != '\n') {
-                        s.append('\n');
-                    }
-
-                    // Its not required to copy SPI entries in here as we'll be adding merged SPI related entries
-                    // separately. Therefore the predicate should be set as false.
-                    return false;
-                }
-
-                // Skip already copied files or excluded extensions.
-                if (isCopiedEntry(entryName, copiedEntries)) {
-                    addConflictedJars(jarLibrary, copiedEntries, entryName);
-                    return false;
-                }
-                if (isExcludedEntry(entryName)) {
-                    return false;
-                }
-                // SPIs will be merged first and then put into jar separately.
-                copiedEntries.put(entryName, jarLibrary);
-                return true;
-            };
-
-            // Transfers selected entries from this zip file to the output stream, while preserving its compression and
-            // all the other original attributes.
-            zipFile.copyRawEntries(outStream, predicate);
-        }
-    }
-
-    private static boolean isCopiedEntry(String entryName, HashMap<String, JarLibrary> copiedEntries) {
-        return copiedEntries.containsKey(entryName);
-    }
-
-    private static boolean isExcludedEntry(String entryName) {
-        return excludeExtensions.contains(entryName.substring(entryName.lastIndexOf('.') + 1));
     }
 
     private PlatformLibrary codeGeneratedLibrary(PackageId packageId,
@@ -545,31 +297,13 @@ public class JBallerinaBackend extends CompilerBackend {
     }
 
     private Path emitExecutable(Path executableFilePath, List<Diagnostic> emitResultDiagnostics) {
-        Manifest manifest = createManifest();
-        Collection<JarLibrary> jarLibraries = jarResolver.getJarFilePathsRequiredForExecution();
-        // Add warning when provided platform dependencies are found
-        addProvidedDependencyWarning(emitResultDiagnostics);
-        try {
-            assembleExecutableJar(executableFilePath, manifest, jarLibraries);
-        } catch (IOException e) {
-            throw new ProjectException("error while creating the executable jar file for package '" +
-                    this.packageContext.packageName().toString() + "' : " + e.getMessage(), e);
-        }
-        return executableFilePath;
+        throw new RuntimeException();
     }
 
     private Path emitTestExecutable(Path executableFilePath, HashSet<JarLibrary> jarDependencies,
                           Path testSuiteJsonPath, String jsonCopyPath, List<String> excludedClasses,
                           String classPathTextCopyPath) {
-        Manifest manifest = createTestManifest();
-        try {
-            assembleTestExecutableJar(executableFilePath, manifest, jarDependencies, testSuiteJsonPath, jsonCopyPath,
-                    excludedClasses, classPathTextCopyPath);
-        } catch (IOException e) {
-            throw new ProjectException("error while creating the test executable jar file for package '" +
-                    this.packageContext.packageName().toString() + "' : " + e.getMessage(), e);
-        }
-        return executableFilePath;
+        throw new RuntimeException();
     }
 
     private Path emitGraalExecutable(Path executableFilePath, List<Diagnostic> emitResultDiagnostics) {
@@ -648,52 +382,13 @@ public class JBallerinaBackend extends CompilerBackend {
             Thread.currentThread().interrupt();
         }
 
-        return Path.of(FilenameUtils.removeExtension(executableFilePath.toString()));
-    }
-
-    private PlatformLibraryScope getPlatformLibraryScope(Map<String, Object> dependency) {
-        PlatformLibraryScope scope;
-        String scopeValue = (String) dependency.get(JarLibrary.KEY_SCOPE);
-        if (scopeValue == null || scopeValue.isEmpty()) {
-            scope = PlatformLibraryScope.DEFAULT;
-        } else if (PlatformLibraryScope.TEST_ONLY.getStringValue().equals(scopeValue)) {
-            scope = PlatformLibraryScope.TEST_ONLY;
-        } else if (PlatformLibraryScope.PROVIDED.getStringValue().equals(scopeValue)) {
-            scope = PlatformLibraryScope.PROVIDED;
-        } else {
-            throw new ProjectException("Invalid scope '" + scopeValue + "' is defined with the " +
-                    "platform-specific library path: " + dependency.get(JarLibrary.KEY_PATH));
+        // Replace FilenameUtils.removeExtension with simple string manipulation
+        String pathStr = executableFilePath.toString();
+        int lastDotIndex = pathStr.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            pathStr = pathStr.substring(0, lastDotIndex);
         }
-        return scope;
-    }
-
-    /**
-     * Get platform lib path for platform libs with provided scope in dependencies.
-     *
-     * @param platform java platform of the dependency
-     * @param groupId group id
-     * @param artifactId artifact id
-     * @param version version
-     * @return platform lib path provided by user
-     */
-    private String getPlatformLibPathFromProvided(String platform, String groupId, String artifactId, String version) {
-        PackageManifest.Platform currentPlatform = this.packageContext().packageManifest().platform(platform);
-        if (currentPlatform != null) {
-            for (Map<String, Object> platformDep :
-                    currentPlatform.dependencies()) {
-                String depArtifactId = (String) platformDep.get(JarLibrary.KEY_ARTIFACT_ID);
-                String depVersion = (String) platformDep.get(JarLibrary.KEY_VERSION);
-                String depGroupId = (String) platformDep.get(JarLibrary.KEY_GROUP_ID);
-                String depFilepath = (String) platformDep.get(JarLibrary.KEY_PATH);
-                if (artifactId.equals(depArtifactId) && groupId.equals(depGroupId)
-                        && version.equals(depVersion) && depFilepath != null && !depFilepath.isEmpty()) {
-                    return depFilepath;
-                }
-            }
-        }
-        throw new ProjectException(String.format("cannot resolve '%s:%s:%s'. Dependencies with " +
-                "'%s' scope need to be manually added to Ballerina.toml.", groupId, artifactId, version,
-                PlatformLibraryScope.PROVIDED.getStringValue()));
+        return Path.of(pathStr);
     }
 
     /**
@@ -713,213 +408,8 @@ public class JBallerinaBackend extends CompilerBackend {
         }
     }
 
-    JvmTarget jdkVersion() {
-        return jdkVersion;
-    }
-
-    /**
-     * Inner class to represent jar conflict.
-     */
-    public static class JarConflict {
-        JarLibrary firstJarLibrary;
-        JarLibrary secondJarLibrary;
-        List<String> classes;
-
-        JarConflict(JarLibrary firstJarLibrary, JarLibrary secondJarLibrary, List<String> classes) {
-            this.firstJarLibrary = firstJarLibrary;
-            this.secondJarLibrary = secondJarLibrary;
-            this.classes = classes;
-        }
-
-        JarLibrary firstJarLibrary() {
-            return firstJarLibrary;
-        }
-
-        void addClasses(String entry) {
-            classes.add(entry);
-        }
-
-        public String getWarning(boolean listClasses) {
-            String conflictedJarPkg1 = "";
-            String conflictedJarPkg2 = "";
-            if (firstJarLibrary.packageName().isPresent()) {
-                conflictedJarPkg1 = " dependency of '" + firstJarLibrary.packageName().get() + "'";
-            }
-            if (secondJarLibrary.packageName().isPresent()) {
-                conflictedJarPkg2 = " dependency of '" + secondJarLibrary.packageName().get() + "'";
-            }
-
-            StringBuilder warning = new StringBuilder(
-                    "\t\t'" + firstJarLibrary.path().getFileName() + "'" + conflictedJarPkg1 + " conflict with '"
-                            + secondJarLibrary.path().getFileName() + "'" + conflictedJarPkg2);
-
-            if (listClasses) {
-                for (String conflictedClass : classes) {
-                    warning.append("\n\t\t\t").append(conflictedClass);
-                }
-            }
-            return String.valueOf(warning);
-        }
-    }
-
-    private void addConflictedJars(JarLibrary jarLibrary, HashMap<String, JarLibrary> copiedEntries, String entryName) {
-        throw new RuntimeException();
-    }
-
-    private JarConflict getJarConflict(JarLibrary conflictingJar) {
-        for (JarConflict jarConflict: this.conflictedJars) {
-            if (jarConflict.firstJarLibrary().path() == conflictingJar.path()) {
-                return jarConflict;
-            }
-        }
-        return null;
-    }
-
-    private void addProvidedDependencyWarning(List<Diagnostic> emitResultDiagnostics) {
-        if (!jarResolver.providedPlatformLibs().isEmpty()) {
-            DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
-                    ProjectDiagnosticErrorCode.PROVIDED_PLATFORM_JAR_IN_EXECUTABLE.diagnosticId(),
-                    String.format("Detected platform dependencies with '%s' scope. Redistribution is discouraged" +
-                            " due to potential license restrictions%n", PlatformLibraryScope.PROVIDED.getStringValue()),
-                    DiagnosticSeverity.WARNING);
-            emitResultDiagnostics.add(new PackageDiagnostic(diagnosticInfo,
-                    this.packageContext().descriptor().name().toString()));
-        }
-    }
-
     private PlatformLibrary codeGeneratedResourcesLibrary(PackageId packageId, PlatformLibraryScope scope) {
                 throw new RuntimeException();
-    }
-
-    private Map<String, byte[]> getPackageResources(PackageContext packageContext) {
-        Map<String, byte[]> resourceMap = new HashMap<>();
-        for (DocumentId documentId : packageContext.resourceIds()) {
-            String resourceName = RESOURCE_DIR_NAME + "/"
-                    + packageContext.resourceContext(documentId).name();
-            resourceMap.put(resourceName, packageContext.resourceContext(documentId).content());
-        }
-        return resourceMap;
-    }
-
-    private Map<String, byte[]> getPackageAndTestResources(PackageContext packageContext) {
-        Map<String, byte[]> resourceMap = getPackageResources(packageContext);
-        for (DocumentId documentId : packageContext.testResourceIds()) {
-            String resourceName = RESOURCE_DIR_NAME + "/"
-                    + packageContext.resourceContext(documentId).name();
-            if (resourceMap.containsKey(resourceName)) {
-                addConflictingTestResourceDiag(packageContext.descriptor().toString(), resourceName);
-            }
-            resourceMap.put(resourceName, packageContext.resourceContext(documentId).content());
-        }
-        return resourceMap;
-    }
-
-    private void cacheResources(CompilationCache compilationCache, boolean skipTests) {
-        Map<String, byte[]> resources = new HashMap<>();
-        Map<String, String> resourceToPkgMap = new HashMap<>();
-        List<String> conflictingResourceFiles = new ArrayList<>();
-
-        // Add resources from dependencies in order
-        pkgResolution.allDependencies()
-                .stream()
-                .filter(pkgDep -> pkgDep.scope() != PackageDependencyScope.TEST_ONLY)
-                .filter(pkgDep -> !pkgDep.packageInstance().descriptor().isLangLibPackage())
-                .map(pkgDep -> pkgDep.packageInstance().packageContext())
-                .forEach(pkgContext -> {
-                    Map<String, byte[]> depResources = getPackageResources(pkgContext);
-                    for (Map.Entry<String, byte[]> entry : depResources.entrySet()) {
-                        if (resources.containsKey(entry.getKey())) {
-                            addConflictingDepResourceDiag(pkgContext.descriptor().toString(),
-                                    resourceToPkgMap.get(entry.getKey()), entry.getKey());
-                        }
-                        resources.put(entry.getKey(), entry.getValue());
-                        resourceToPkgMap.put(entry.getKey(), pkgContext.descriptor().toString());
-                    }
-                });
-        // Add resources from the package
-        Map<String, byte[]> packageResources = skipTests ? getPackageResources(packageContext) :
-                getPackageAndTestResources(packageContext);
-        for (Map.Entry<String, byte[]> entry : packageResources.entrySet()) {
-            if (resources.containsKey(entry.getKey())) {
-                addConflictingDepResourceDiag(packageContext.descriptor().toString(),
-                        resourceToPkgMap.get(entry.getKey()), entry.getKey());
-            }
-            resources.put(entry.getKey(), entry.getValue());
-            resourceToPkgMap.put(entry.getKey(), packageContext.descriptor().toString());
-        }
-
-        // Add generated resources and check for conflicts for build projects
-        if (!this.packageContext().project().kind().equals(ProjectKind.BALA_PROJECT)) {
-            Map<String, byte[]> generatedResources = ProjectUtils.getAllGeneratedResources(
-                    packageContext.project().generatedResourcesDir());
-            for (Map.Entry<String, byte[]> entry : generatedResources.entrySet()) {
-                if (resources.containsKey(entry.getKey())) {
-                    if (packageResources.containsKey(entry.getKey())) {
-                        conflictingResourceFiles.add(entry.getKey());
-                        continue;
-                    }
-                    // Issue a warning for conflicts with dependency resources
-                    addConflictingGenResourceDiag(resourceToPkgMap.get(entry.getKey()),
-                            packageContext.descriptor().toString(), entry.getKey());
-                }
-                resources.put(entry.getKey(), entry.getValue());
-            }
-            // Handle conflicting resources
-            if (!conflictingResourceFiles.isEmpty()) {
-                throw new ProjectException(getConflictingResourcesMsg(packageContext.descriptor().toString(),
-                        conflictingResourceFiles));
-            }
-        }
-
-        // Cache the resources if there are any
-        if (!resources.isEmpty()) {
-            try {
-                String resourceJarName = RESOURCE_DIR_NAME + JAR_FILE_NAME_SUFFIX;
-                CompiledJarFile resourceJar = new CompiledJarFile("");
-                resourceJar.jarEntries.putResourceEntries(resources);
-                try (ByteArrayOutputStream byteStream = resourceJar.toByteArrayStream()) {
-                    compilationCache.cachePlatformSpecificLibrary(this, resourceJarName, byteStream);
-                }
-            } catch (IOException e) {
-                throw new ProjectException("Failed to cache resources jar, package: " +
-                        packageContext.packageName(), e);
-            }
-        }
-    }
-
-    private void addConflictingDepResourceDiag(String packageDesc, String existingPackageDesc, String resourceName) {
-        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
-                ProjectDiagnosticErrorCode.CONFLICTING_RESOURCE_FILE.diagnosticId(),
-                String.format("detected conflicting resource files. The packages '" +
-                        existingPackageDesc + "' and '" + packageDesc +
-                        "' both export a resource with the same name '" + resourceName +
-                        "'. Picking the resource exported by '" + packageDesc + "'."),
-                DiagnosticSeverity.WARNING);
-        conflictedResourcesDiagnostics.add(new PackageDiagnostic(diagnosticInfo,
-                this.packageContext.descriptor().name().toString()));
-    }
-
-    private void addConflictingGenResourceDiag(String existingPackageDesc, String packageDesc, String resourceName) {
-        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
-                ProjectDiagnosticErrorCode.CONFLICTING_RESOURCE_FILE.diagnosticId(),
-                String.format("detected conflicting resource files. The package " + existingPackageDesc +
-                        "  and the generated resources for the current package '" + packageDesc +
-                        "' both export a resource with the same name '" + resourceName + "'. " +
-                        "Picking the generated resource file."),
-                DiagnosticSeverity.WARNING);
-        conflictedResourcesDiagnostics.add(new PackageDiagnostic(
-                diagnosticInfo, this.packageContext.descriptor().name().toString()));
-    }
-
-    private void addConflictingTestResourceDiag(String packageDesc, String resourceName) {
-        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
-                ProjectDiagnosticErrorCode.CONFLICTING_RESOURCE_FILE.diagnosticId(),
-                String.format("detected conflicting resource files. The test specific resources and package " +
-                        "resources for '" + packageDesc + "' both export a resource with the same name '" +
-                        resourceName + "'. Picking the test specific resource."),
-                DiagnosticSeverity.WARNING);
-        conflictedResourcesDiagnostics.add(new PackageDiagnostic(diagnosticInfo,
-                this.packageContext.descriptor().name().toString()));
     }
 
 }

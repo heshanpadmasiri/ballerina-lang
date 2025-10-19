@@ -11,8 +11,6 @@ module io.ballerina.lang {
     requires io.netty.buffer;
     requires io.ballerina.parser;
     requires io.ballerina.tools.api;
-    requires org.apache.commons.compress;
-    requires org.apache.commons.io;
     requires io.ballerina.toml;
     requires io.ballerina.central.client;
     requires io.ballerina.semtype;

@@ -23,10 +23,6 @@ import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageManifest;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.util.ProjectConstants;
-import org.apache.commons.io.FileUtils;
-
-import java.io.IOException;
-import java.nio.file.Files;
 
 import static io.ballerina.projects.util.ProjectConstants.CACHES_DIR_NAME;
 
@@ -50,16 +46,7 @@ public class BuildProjectCompilationCache extends FileSystemCache {
 
     @Override
     public byte[] getBir(ModuleName moduleName) {
-        Path birFilePath = getBirPath().resolve(moduleName.toString()
-                + ProjectConstants.BLANG_COMPILED_PKG_BIR_EXT);
-        if (birFilePath.exists()) {
-            try {
-                return FileUtils.readFileToByteArray(birFilePath.toFile());
-            } catch (IOException e) {
-                return EMPTY_BYTE_ARRAY;
-            }
-        }
-        return new byte[0];
+        throw new RuntimeException("getBir is not supported in web compiler");
     }
 
     private Path getBirPath() {
