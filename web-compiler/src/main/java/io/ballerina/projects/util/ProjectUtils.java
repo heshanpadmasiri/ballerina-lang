@@ -17,8 +17,6 @@
  */
 package io.ballerina.projects.util;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -945,13 +943,10 @@ public final class ProjectUtils {
      *
      * @param buildJsonPath build file path
      * @return build json object
-     * @throws JsonSyntaxException incorrect json syntax
      * @throws IOException if json read fails
      */
-    public static BuildJson readBuildJson(Path buildJsonPath) throws JsonSyntaxException, IOException {
-        try (BufferedReader bufferedReader = buildJsonPath.bufferedReader()) {
-            return new Gson().fromJson(bufferedReader, BuildJson.class);
-        }
+    public static BuildJson readBuildJson(Path buildJsonPath) throws IOException {
+        throw new RuntimeException();
     }
 
     /**
@@ -1164,7 +1159,7 @@ public final class ProjectUtils {
                             !buildJson.isExpiredLastUpdateTime()) {
                         return true;
                     }
-                } catch (IOException | JsonSyntaxException e) {
+                } catch (IOException e) {
                     // ignore
                 }
             }

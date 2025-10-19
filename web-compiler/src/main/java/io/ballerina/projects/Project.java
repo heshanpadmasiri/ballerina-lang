@@ -17,7 +17,6 @@
  */
 package io.ballerina.projects;
 
-import io.ballerina.fs.NativePath;
 import io.ballerina.fs.Path;
 import io.ballerina.projects.buildtools.ToolContext;
 import io.ballerina.projects.environment.ProjectEnvironment;
@@ -151,8 +150,6 @@ public abstract class Project {
     public abstract DocumentId documentId(Path file);
 
     public abstract Optional<Path> documentPath(DocumentId documentId);
-
-    public abstract void save();
 
     List<CompilerPluginContextIml> compilerPluginContexts() {
         return this.compilerPluginContexts;

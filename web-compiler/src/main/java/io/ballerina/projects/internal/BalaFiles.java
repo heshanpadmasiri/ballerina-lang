@@ -18,7 +18,6 @@
 
 package io.ballerina.projects.internal;
 
-import com.google.gson.Gson;
 
 import io.ballerina.fs.Path;
 import io.ballerina.projects.DependencyGraph;
@@ -75,7 +74,6 @@ import static io.ballerina.projects.util.ProjectConstants.PACKAGE_JSON;
  */
 public final class BalaFiles {
 
-    private static final Gson gson = new Gson();
 
     // TODO change class name to utils
     private BalaFiles() {
@@ -339,22 +337,7 @@ public final class BalaFiles {
     }
 
     private static Map<String, PackageManifest.Platform> getPlatforms(PackageJson packageJson) {
-        List<Map<String, Object>> platformDependencies = new ArrayList<>();
-        Boolean graalvmCompatible = null;
-        Map<String, PackageManifest.Platform> platforms = new HashMap<>();
-        if (packageJson.getPlatformDependencies() != null) {
-            packageJson.getPlatformDependencies().forEach(dependency -> {
-                String jsonStr = gson.toJson(dependency);
-                platformDependencies.add(gson.fromJson(jsonStr, Map.class));
-            });
-        }
-        if (packageJson.getGraalvmCompatible() != null) {
-            graalvmCompatible = packageJson.getGraalvmCompatible();
-        }
-        PackageManifest.Platform platform = new PackageManifest.Platform(platformDependencies, Collections.emptyList(),
-                graalvmCompatible);
-        platforms.put(packageJson.getPlatform(), platform);
-        return platforms;
+        throw new RuntimeException();
     }
 
     private static DependencyManifest getDependencyManifest(DependencyGraphJson dependencyGraphJson) {

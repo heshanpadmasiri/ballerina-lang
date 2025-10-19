@@ -18,7 +18,6 @@
 
 package io.ballerina.projects.internal.bala;
 
-import com.google.gson.annotations.SerializedName;
 import io.ballerina.projects.internal.model.Dependency;
 
 import java.util.List;
@@ -29,11 +28,8 @@ import java.util.List;
  * @since 2.0.0
  */
 public class DependencyGraphJson {
-    private static final String PACKAGE_DEPENDENCY_GRAPH = "packages";
-    @SerializedName(PACKAGE_DEPENDENCY_GRAPH) private List<Dependency> packageDependencyGraph;
-
-    private static final String MODULE_DEPENDENCY_GRAPH = "modules";
-    @SerializedName(MODULE_DEPENDENCY_GRAPH) private List<ModuleDependency> moduleDependencies;
+    private List<Dependency> packageDependencyGraph;
+    private List<ModuleDependency> moduleDependencies;
 
     public DependencyGraphJson(List<Dependency> packageDependencyGraph, List<ModuleDependency> moduleDependencies) {
         this.packageDependencyGraph = packageDependencyGraph;

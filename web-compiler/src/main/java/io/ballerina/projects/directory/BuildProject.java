@@ -17,55 +17,28 @@
  */
 package io.ballerina.projects.directory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import io.ballerina.projects.BuildOptions;
-import io.ballerina.projects.BuildTool;
-import io.ballerina.projects.BuildToolResolution;
 import io.ballerina.projects.DependencyGraph;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
-import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.ModuleId;
-import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageConfig;
-import io.ballerina.projects.PackageDependencyScope;
-import io.ballerina.projects.PackageResolution;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.ProjectLoadResult;
 import io.ballerina.projects.ResolvedPackageDependency;
-import io.ballerina.projects.internal.BalaFiles;
 import io.ballerina.projects.internal.PackageConfigCreator;
 import io.ballerina.projects.internal.ProjectFiles;
-import io.ballerina.projects.internal.model.BuildJson;
-import io.ballerina.projects.internal.model.Dependency;
-import io.ballerina.projects.internal.model.ToolDependency;
-import io.ballerina.projects.util.FileUtils;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
-import org.wso2.ballerinalang.util.RepoUtils;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import io.ballerina.fs.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
-import static io.ballerina.projects.util.ProjectConstants.BUILD_FILE;
-import static io.ballerina.projects.util.ProjectConstants.DEPENDENCIES_TOML;
+import java.util.Optional;
+
 import static io.ballerina.projects.util.ProjectUtils.getDependenciesTomlContent;
-import static io.ballerina.projects.util.ProjectUtils.readBuildJson;
 
 /**
  * {@code BuildProject} represents Ballerina project instance created from the project directory.
@@ -73,6 +46,8 @@ import static io.ballerina.projects.util.ProjectUtils.readBuildJson;
  * @since 2.0.0
  */
 public class BuildProject extends Project implements Comparable<Project> {
+
+    private DependencyGraph<ResolvedPackageDependency> dependencyGraph;
 
     static ProjectLoadResult loadProject(Path projectPath, ProjectEnvironmentBuilder environmentBuilder,
                                          BuildOptions buildOptions, String org) {
@@ -284,236 +259,6 @@ public class BuildProject extends Project implements Comparable<Project> {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public void save() {
-        Path buildFilePath = this.targetDir().resolve(BUILD_FILE);
-        boolean shouldUpdate = this.currentPackage().getResolution().autoUpdate();
-
-        // if build file does not exists
-        if (!buildFilePath.toFile().exists()) {
-            createBuildFile(buildFilePath);
-            writeBuildFile(buildFilePath);
-            writeDependencies();
-        } else {
-            BuildJson buildJson = null;
-            try {
-                buildJson = readBuildJson(buildFilePath);
-            } catch (JsonSyntaxException | IOException e) {
-                // ignore
-            }
-
-            // need to update Dependencies toml
-            writeDependencies();
-
-            // check whether buildJson is null and last updated time has expired
-            if (buildJson != null && !shouldUpdate) {
-                buildJson.setLastBuildTime(System.currentTimeMillis());
-
-                Path projectPath = this.currentPackage().project().sourceRoot();
-                Map<String, Long> lastModifiedTime = new HashMap<>();
-                lastModifiedTime.put(this.currentPackage().packageName().value(),
-                        FileUtils.lastModifiedTimeOfBalProject(projectPath));
-                buildJson.setLastModifiedTime(lastModifiedTime);
-
-                writeBuildFile(buildFilePath, buildJson);
-            } else {
-                writeBuildFile(buildFilePath);
-            }
-        }
-    }
-
-    private void writeDependencies() {
-        Package currentPackage = this.currentPackage();
-        if (currentPackage != null) {
-            Comparator<Dependency> comparator = (o1, o2) -> {
-                if (o1.getOrg().equals(o2.getOrg())) {
-                    return o1.getName().compareTo(o2.getName());
-                }
-                return o1.getOrg().compareTo(o2.getOrg());
-            };
-            Comparator<ToolDependency> toolComparator = Comparator.comparing(ToolDependency::getId);
-
-            // Fetch and sort package dependencies
-            List<Dependency> pkgDependencies = getPackageDependencies();
-            pkgDependencies.sort(comparator);
-
-            // Fetch and sort tool dependencies
-            List<ToolDependency> toolDependencies = getToolDependencies();
-            toolDependencies.sort(toolComparator);
-
-            Path dependenciesTomlFile = currentPackage.project().sourceRoot().resolve(DEPENDENCIES_TOML);
-            String dependenciesContent = getDependenciesTomlContent(pkgDependencies, toolDependencies);
-            if (!pkgDependencies.isEmpty()) {
-                // write content to Dependencies.toml file
-                createIfNotExists(dependenciesTomlFile);
-                writeContent(dependenciesTomlFile, dependenciesContent);
-            } else {
-                // when there are no package dependencies to write
-                // if Dependencies.toml does not exists ---> Dependencies.toml will not be created
-                // if Dependencies.toml exists          ---> content will be written to existing Dependencies.toml
-                if (dependenciesTomlFile.toFile().exists()) {
-                    writeContent(dependenciesTomlFile, dependenciesContent);
-                }
-            }
-        }
-    }
-
-    private List<Dependency> getPackageDependencies() {
-        PackageResolution packageResolution = this.currentPackage().getResolution();
-        ResolvedPackageDependency rootPkgNode = new ResolvedPackageDependency(this.currentPackage(),
-                                                                              PackageDependencyScope.DEFAULT);
-        DependencyGraph<ResolvedPackageDependency> dependencyGraph = packageResolution.dependencyGraph();
-        Collection<ResolvedPackageDependency> directDependencies = dependencyGraph.getDirectDependencies(rootPkgNode);
-
-        List<Dependency> dependencies = new ArrayList<>();
-
-        // 1. set root package as a dependency
-        Package rootPackage = rootPkgNode.packageInstance();
-        Dependency rootPkgDependency = new Dependency(rootPackage.packageOrg().value(),
-                                                      rootPackage.packageName().value(),
-                                                      rootPackage.packageVersion().value().toString());
-        // get modules of the root package
-        List<Dependency.Module> rootPkgModules = new ArrayList<>();
-        for (ModuleId moduleId : rootPackage.moduleIds()) {
-            Module module = rootPackage.module(moduleId);
-            Dependency.Module depsModule = new Dependency.Module(module.descriptor().org().value(),
-                                                                 module.descriptor().packageName().value(),
-                                                                 module.descriptor().name().toString());
-            rootPkgModules.add(depsModule);
-        }
-        // sort modules
-        rootPkgModules.sort(Comparator.comparing(Dependency.Module::moduleName));
-        rootPkgDependency.setModules(rootPkgModules);
-        // get transitive dependencies of the root package
-        rootPkgDependency.setDependencies(getTransitiveDependencies(dependencyGraph, rootPkgNode));
-        // set transitive and scope
-        rootPkgDependency.setTransitive(false);
-        rootPkgDependency.setScope(rootPkgNode.scope());
-        dependencies.add(rootPkgDependency);
-
-        // 2. set direct dependencies
-        for (ResolvedPackageDependency directDependency : directDependencies) {
-            Package aPackage = directDependency.packageInstance();
-            Dependency dependency = new Dependency(aPackage.packageOrg().toString(), aPackage.packageName().value(),
-                                                   aPackage.packageVersion().toString());
-
-            if (aPackage.project().kind().equals(ProjectKind.BUILD_PROJECT)) { //TODO
-                // if the direct dependency is a build project, skip it
-                continue;
-            }
-            // get modules of the direct dependency package
-            BalaFiles.DependencyGraphResult packageDependencyGraph = BalaFiles
-                    .createPackageDependencyGraph(directDependency.packageInstance().project().sourceRoot());
-            Set<ModuleDescriptor> moduleDescriptors = packageDependencyGraph.moduleDependencies().keySet();
-
-            List<Dependency.Module> modules = new ArrayList<>();
-            for (ModuleDescriptor moduleDescriptor : moduleDescriptors) {
-                Dependency.Module module = new Dependency.Module(moduleDescriptor.org().value(),
-                                                                 moduleDescriptor.packageName().value(),
-                                                                 moduleDescriptor.name().toString());
-                modules.add(module);
-            }
-            // sort modules
-            modules.sort(Comparator.comparing(Dependency.Module::moduleName));
-            dependency.setModules(modules);
-            // get transitive dependencies of the direct dependency package
-            dependency.setDependencies(getTransitiveDependencies(dependencyGraph, directDependency));
-            // set transitive and scope
-            dependency.setScope(directDependency.scope());
-            dependency.setTransitive(false);
-            dependencies.add(dependency);
-        }
-
-        // 3. set transitive dependencies
-        Collection<ResolvedPackageDependency> allDependencies = dependencyGraph.getNodes();
-        for (ResolvedPackageDependency transDependency : allDependencies) {
-            // check whether it's a direct dependency, skip it since it is already added
-            if (directDependencies.contains(transDependency)) {
-                continue;
-            }
-            if (transDependency.packageInstance() != this.currentPackage()) {
-                Package aPackage = transDependency.packageInstance();
-                Dependency dependency = new Dependency(aPackage.packageOrg().toString(),
-                                                       aPackage.packageName().value(),
-                                                       aPackage.packageVersion().toString());
-                // get transitive dependencies of the transitive dependency package
-                dependency.setDependencies(getTransitiveDependencies(dependencyGraph, transDependency));
-                // set transitive and scope
-                dependency.setScope(transDependency.scope());
-                dependency.setTransitive(true);
-                dependencies.add(dependency);
-            }
-        }
-
-        return dependencies;
-    }
-
-    private List<ToolDependency> getToolDependencies() {
-        List<ToolDependency> toolDependencies = new ArrayList<>();
-        BuildToolResolution buildToolResolution = this.currentPackage().getBuildToolResolution();
-        if (buildToolResolution != null) {
-            List<BuildTool> tools = buildToolResolution.getResolvedTools();
-            for (BuildTool tool : tools) {
-                ToolDependency toolDependency = new ToolDependency(
-                        tool.id().value(), tool.org().value(), tool.name().value(), tool.version().toString());
-                toolDependencies.add(toolDependency);
-            }
-        }
-        return toolDependencies;
-    }
-
-    private List<Dependency> getTransitiveDependencies(DependencyGraph<ResolvedPackageDependency> dependencyGraph,
-                                                       ResolvedPackageDependency directDependency) {
-        List<Dependency> dependencyList = new ArrayList<>();
-        Collection<ResolvedPackageDependency> pkgDependencies = dependencyGraph
-                .getDirectDependencies(directDependency);
-        for (ResolvedPackageDependency resolvedTransitiveDep : pkgDependencies) {
-            Package dependencyPkgContext = resolvedTransitiveDep.packageInstance();
-            Dependency dep = new Dependency(dependencyPkgContext.packageOrg().toString(),
-                                            dependencyPkgContext.packageName().value(),
-                                            dependencyPkgContext.packageVersion().toString());
-            dependencyList.add(dep);
-        }
-        // sort transitive dependencies list
-        Comparator<Dependency> comparator = (o1, o2) -> {
-            if (o1.getOrg().equals(o2.getOrg())) {
-                return o1.getName().compareTo(o2.getName());
-            }
-            return o1.getOrg().compareTo(o2.getOrg());
-        };
-        dependencyList.sort(comparator);
-        return dependencyList;
-    }
-
-    private static void createIfNotExists(Path filePath) {
-        if (!filePath.toFile().exists()) {
-            filePath.createFile();
-        }
-    }
-
-    private static void writeContent(Path filePath, String content) {
-        throw new RuntimeException();
-    }
-
-    private static void createBuildFile(Path buildFilePath) {
-        throw new RuntimeException();
-    }
-
-    private void writeBuildFile(Path buildFilePath) {
-        Path projectPath = this.currentPackage().project().sourceRoot();
-        Map<String, Long> lastModifiedTime = new HashMap<>();
-        lastModifiedTime.put(this.currentPackage().packageName().value(),
-                FileUtils.lastModifiedTimeOfBalProject(projectPath));
-
-        BuildJson buildJson = new BuildJson(System.currentTimeMillis(), System.currentTimeMillis(),
-                RepoUtils.getBallerinaShortVersion(), lastModifiedTime);
-        writeBuildFile(buildFilePath, buildJson);
-    }
-
-    private static void writeBuildFile(Path buildFilePath, BuildJson buildJson) {
-        throw new RuntimeException();
     }
 
     @Override

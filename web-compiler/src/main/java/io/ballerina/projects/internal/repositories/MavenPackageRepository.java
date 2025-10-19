@@ -16,8 +16,6 @@
 
 package io.ballerina.projects.internal.repositories;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import io.ballerina.fs.Path;
 import io.ballerina.projects.DependencyGraph;

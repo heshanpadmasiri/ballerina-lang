@@ -4,8 +4,8 @@ module io.ballerina.lang {
     uses org.ballerinalang.spi.CompilerBackendCodeGenerator;
     uses org.ballerinalang.compiler.plugins.CompilerPlugin;
     uses org.ballerinalang.spi.EmbeddedExecutor;
+
     requires java.compiler;
-    requires com.google.gson;
     requires java.xml;
     requires io.ballerina.runtime;
     requires io.netty.buffer;
@@ -85,8 +85,8 @@ module io.ballerina.lang {
     exports io.ballerina.projects.internal.environment; // TODO Remove these exports
     exports io.ballerina.projects.internal to io.ballerina.cli;
     exports io.ballerina.projects.internal.bala;
-    exports io.ballerina.projects.internal.configschema to org.ballerinalang.config.schema.generator,
-            io.ballerina.language.server.core;
+//    exports io.ballerina.projects.internal.configschema to org.ballerinalang.config.schema.generator,
+//            io.ballerina.language.server.core;
     exports io.ballerina.projects.plugins.completion;
     exports io.ballerina.projects.buildtools;
 }

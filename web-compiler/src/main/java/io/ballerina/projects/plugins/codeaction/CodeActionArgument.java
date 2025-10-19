@@ -15,10 +15,6 @@
  */
 package io.ballerina.projects.plugins.codeaction;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 /**
  * A command argument for the code action. Will be supplied to the code action when it's being executed.
  *
@@ -26,36 +22,27 @@ import com.google.gson.JsonObject;
  */
 public class CodeActionArgument {
 
-    private static final Gson GSON = new Gson();
-
-    private final String key;
-    private final Object value;
-
     private CodeActionArgument(String argumentK, Object value) {
-        this.key = argumentK;
-        this.value = value;
+        throw new RuntimeException();
     }
 
     public static CodeActionArgument from(String argumentK, Object argumentV) {
-        return new CodeActionArgument(argumentK, argumentV);
+        throw new RuntimeException();
     }
 
     public static CodeActionArgument from(Object jsonObj) {
-        // NOTE: we are not hard-coding any field names here
-        CodeActionArgument argument = GSON.fromJson(((JsonObject) jsonObj), CodeActionArgument.class);
-        return new CodeActionArgument(argument.key(),
-                GSON.toJsonTree(argument.value()));
+        throw new RuntimeException();
     }
 
     public String key() {
-        return key;
+        throw new RuntimeException();
     }
 
     public <T> T value() {
-        return (T) value;
+        throw new RuntimeException();
     }
 
     public <T> T valueAs(Class<T> typeClass) {
-        return GSON.fromJson((JsonElement) value, typeClass);
+        throw new RuntimeException();
     }
 }

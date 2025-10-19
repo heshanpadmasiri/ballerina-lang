@@ -95,7 +95,6 @@ public class Main {
 //            if (hasErrors) {
 //                throw createLauncherException("compilation contains errors");
 //            }
-//            project.save();
         } catch (ProjectException e) {
             throw new RuntimeException(e);
         }

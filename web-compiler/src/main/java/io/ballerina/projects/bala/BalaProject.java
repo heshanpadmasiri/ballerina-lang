@@ -140,10 +140,6 @@ public class BalaProject extends Project {
         return Optional.empty();
     }
 
-    @Override
-    public void save() {
-    }
-
     public String platform() {
         return platform;
     }

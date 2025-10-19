@@ -18,7 +18,6 @@
 
 package io.ballerina.projects.internal.bala;
 
-import com.google.gson.annotations.SerializedName;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,14 +28,9 @@ import java.util.List;
  * @since 2.0.0
  */
 public class ModuleDependency {
-    private static final String PACKAGE_NAME_FIELD = "package_name";
-    private static final String MODULE_NAME_FIELD = "module_name";
-
     private final String org;
-    @SerializedName(PACKAGE_NAME_FIELD)
     private final String packageName;
     private final String version;
-    @SerializedName(MODULE_NAME_FIELD)
     private final String moduleName;
     private final List<ModuleDependency> dependencies;
 

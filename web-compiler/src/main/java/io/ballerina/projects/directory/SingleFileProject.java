@@ -155,10 +155,6 @@ public class SingleFileProject extends Project implements Comparable<Project> {
     }
 
     @Override
-    public void save() {
-    }
-
-    @Override
     public Path targetDir() {
         return this.targetDir;
     }
