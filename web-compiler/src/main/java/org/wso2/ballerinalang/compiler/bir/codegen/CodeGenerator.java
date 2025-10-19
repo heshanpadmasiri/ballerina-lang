@@ -18,20 +18,12 @@
 package org.wso2.ballerinalang.compiler.bir.codegen;
 
 import org.wso2.ballerinalang.compiler.PackageCache;
-import org.wso2.ballerinalang.compiler.bir.BIRGenUtils;
 import org.wso2.ballerinalang.compiler.bir.codegen.internal.CompiledJarFile;
-import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
 import org.wso2.ballerinalang.compiler.diagnostic.BLangDiagnosticLog;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.Types;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
-import org.wso2.ballerinalang.compiler.semantics.model.symbols.BPackageSymbol;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
-
-import java.util.HashMap;
-
-import static org.wso2.ballerinalang.compiler.bir.codegen.desugar.IdentifierDesugar.encodeModuleIdentifiers;
-import static org.wso2.ballerinalang.compiler.bir.codegen.desugar.IdentifierDesugar.replaceEncodedModuleIdentifiers;
 
 /**
  * JVM byte code generator from BIR model.
@@ -41,17 +33,9 @@ import static org.wso2.ballerinalang.compiler.bir.codegen.desugar.IdentifierDesu
 public class CodeGenerator {
 
     private static final CompilerContext.Key<CodeGenerator> CODE_GEN = new CompilerContext.Key<>();
-    private final SymbolTable symbolTable;
-    private final PackageCache packageCache;
-    private final BLangDiagnosticLog dlog;
-    private final Types types;
 
     private CodeGenerator(CompilerContext compilerContext) {
         compilerContext.put(CODE_GEN, this);
-        this.symbolTable = SymbolTable.getInstance(compilerContext);
-        this.packageCache = PackageCache.getInstance(compilerContext);
-        this.dlog = BLangDiagnosticLog.getInstance(compilerContext);
-        this.types = Types.getInstance(compilerContext);
     }
 
     public static CodeGenerator getInstance(CompilerContext context) {
@@ -64,66 +48,7 @@ public class CodeGenerator {
 
     public CompiledJarFile generate(BLangPackage bLangPackage, boolean isRemoteMgtEnabled) {
         // generate module
-        return generate(bLangPackage.symbol, isRemoteMgtEnabled);
+        throw new RuntimeException();
     }
 
-    public CompiledJarFile generateTestModule(BLangPackage bLangTestablePackage, boolean isRemoteMgtEnabled) {
-        return generate(bLangTestablePackage.symbol, isRemoteMgtEnabled);
-    }
-
-    private CompiledJarFile generate(BPackageSymbol packageSymbol, boolean isRemoteMgtEnabled) {
-        // Desugar BIR to include the observations
-        JvmObservabilityGen jvmObservabilityGen = new JvmObservabilityGen(packageCache, symbolTable);
-        jvmObservabilityGen.instrumentPackage(packageSymbol.bir);
-
-        // Re-arrange basic blocks and error entries
-        BIRGenUtils.rearrangeBasicBlocks(packageSymbol.bir);
-
-        dlog.setCurrentPackageId(packageSymbol.pkgID);
-        final JvmPackageGen jvmPackageGen = new JvmPackageGen(packageSymbol.bir, symbolTable, packageCache, dlog, types,
-                isRemoteMgtEnabled);
-
-        //Rewrite identifier names with encoding special characters
-        HashMap<String, String> originalIdentifierMap = encodeModuleIdentifiers(packageSymbol.bir);
-
-        // TODO Get-rid of the following assignment
-        CompiledJarFile compiledJarFile = jvmPackageGen.generate();
-        cleanUpBirPackage(packageSymbol);
-        //Revert encoding identifier names
-        replaceEncodedModuleIdentifiers(packageSymbol.bir, originalIdentifierMap);
-        return compiledJarFile;
-    }
-
-    private static void cleanUpBirPackage(BPackageSymbol packageSymbol) {
-        packageSymbol.birPackageFile = null;
-        BIRNode.BIRPackage bir = packageSymbol.bir;
-        for (BIRNode.BIRTypeDefinition typeDef : bir.typeDefs) {
-            for (BIRNode.BIRFunction attachedFunc : typeDef.attachedFuncs) {
-                cleanUpBirFunction(attachedFunc);
-            }
-            typeDef.annotAttachments = null;
-        }
-        bir.importedGlobalVarsDummyVarDcls.clear();
-        for (BIRNode.BIRFunction function : bir.functions) {
-            cleanUpBirFunction(function);
-        }
-        bir.annotations.clear();
-        bir.constants.clear();
-        bir.serviceDecls.clear();
-    }
-
-    private static void cleanUpBirFunction(BIRNode.BIRFunction function) {
-        function.receiver = null;
-        function.localVars = null;
-        function.returnVariable = null;
-        function.parameters = null;
-        function.basicBlocks = null;
-        function.errorTable = null;
-        function.workerChannels = null;
-        function.annotAttachments = null;
-        function.returnTypeAnnots = null;
-        function.dependentGlobalVars = null;
-        function.pathParams = null;
-        function.restPathParam = null;
-    }
 }

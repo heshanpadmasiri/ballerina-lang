@@ -23,7 +23,6 @@ import io.ballerina.projects.environment.PackageResolver;
 import io.ballerina.projects.environment.ProjectEnvironment;
 import io.ballerina.projects.internal.CompilerPhaseRunner;
 import io.ballerina.projects.internal.ModuleContextDataHolder;
-import io.ballerina.projects.util.ProjectUtils;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.Location;
 import org.ballerinalang.model.TreeBuilder;
@@ -31,20 +30,14 @@ import org.ballerinalang.model.elements.Flag;
 import org.ballerinalang.model.elements.PackageID;
 import org.wso2.ballerinalang.compiler.BIRPackageSymbolEnter;
 import org.wso2.ballerinalang.compiler.PackageCache;
-import org.wso2.ballerinalang.compiler.bir.writer.BIRBinaryWriter;
 import org.wso2.ballerinalang.compiler.diagnostic.BLangDiagnosticLocation;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.SymbolEnter;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.Types;
-import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BPackageSymbol;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.compiler.tree.BLangTestablePackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
-import org.wso2.ballerinalang.programfile.BIRPackageFile;
-import org.wso2.ballerinalang.programfile.PackageFileWriter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
@@ -440,43 +433,6 @@ public class ModuleContext {
                 compilerPhaseRunner.addDiagnosticForUnhandledException(moduleContext.bLangPackage, t);
                 return;
             }
-        }
-    }
-
-    private static boolean shouldGenerateBir(ModuleContext moduleContext) {
-        if (moduleContext.project.kind().equals(ProjectKind.BALA_PROJECT)) {
-            return true;
-        }
-        if (ProjectUtils.isBuiltInPackage(
-                moduleContext.descriptor().org(), moduleContext.descriptor().packageName().toString())) {
-            return true;
-        }
-        if (moduleContext.project.buildOptions().compilationOptions().dumpBirFile()) {
-            return true;
-        }
-        return moduleContext.project.kind().equals(ProjectKind.BUILD_PROJECT);
-    }
-
-    private static ByteArrayOutputStream generateBIR(ModuleContext moduleContext, CompilerContext compilerContext) {
-        if (!shouldGenerateBir(moduleContext)) {
-            return null;
-        }
-        // Can we improve this logic
-        ByteArrayOutputStream birContent = new ByteArrayOutputStream();
-        SymbolTable symTable = SymbolTable.getInstance(compilerContext);
-        try {
-            BIRPackageFile birPackageFile = moduleContext.bLangPackage.symbol.birPackageFile;
-            if (birPackageFile == null) {
-                birPackageFile = new BIRPackageFile.EagerBirPackageFile(
-                        new BIRBinaryWriter(moduleContext.bLangPackage.symbol.bir, symTable.typeEnv()).serialize());
-                moduleContext.bLangPackage.symbol.birPackageFile = birPackageFile;
-            }
-            byte[] pkgBirBinaryContent = PackageFileWriter.writePackage(birPackageFile);
-            birContent.writeBytes(pkgBirBinaryContent);
-            return birContent;
-        } catch (IOException e) {
-            // This path may never be executed
-            throw new RuntimeException("Failed to convert BIR model to a byte array", e);
         }
     }
 

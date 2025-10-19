@@ -30,7 +30,6 @@ dependencies {
     implementation project(':central-client')
     implementation project(':identifier-util')
     implementation libs.toml4j
-    implementation libs.netty.buffer
     implementation libs.zafarkhaja.jsemver
     testImplementation(libs.guru.nidi.graphviz) {
         because("We use this library to execute package resolution tests")

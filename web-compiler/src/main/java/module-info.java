@@ -8,7 +8,6 @@ module io.ballerina.lang {
     requires java.compiler;
     requires java.xml;
     requires io.ballerina.runtime;
-    requires io.netty.buffer;
     requires io.ballerina.parser;
     requires io.ballerina.tools.api;
     requires io.ballerina.toml;
