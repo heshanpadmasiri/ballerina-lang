@@ -32,7 +32,7 @@ public interface FunctionTypeSymbol extends TypeSymbol {
      * @return {@link List} of required parameters
      * @deprecated This method will be removed in a later release. Use `params()` instead.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated
     List<ParameterSymbol> parameters();
 
     /**

@@ -190,7 +190,7 @@ class PackageContext {
     }
 
 
-    @Deprecated (forRemoval = true)
+    @Deprecated
     Optional<MdDocumentContext> packageMdContext() {
         return Optional.ofNullable(readmeMdContext);
     }

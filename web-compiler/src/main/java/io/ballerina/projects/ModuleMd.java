@@ -24,7 +24,7 @@ package io.ballerina.projects;
  * @since 2.0.0
  * @deprecated use {@link ModuleReadmeMd} instead
  */
-@Deprecated (forRemoval = true, since = "2.11.0")
+@Deprecated
 public class ModuleMd {
 
     private final MdDocumentContext mdDocumentContext;

@@ -1,15 +1,11 @@
 package org.wso2.ballerinalang.compiler.packaging.converters;
 
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.tools.text.TextDocuments;
-import org.ballerinalang.compiler.BLangCompilerException;
-import org.ballerinalang.repository.CompilerInput;
-
-import io.ballerina.fs.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import io.ballerina.fs.Path;
 import java.util.function.Supplier;
+
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.fs.Path;
+import io.ballerina.tools.text.TextDocuments;
+import org.ballerinalang.repository.CompilerInput;
 
 import static org.wso2.ballerinalang.compiler.util.ProjectDirConstants.BLANG_COMPILED_PKG_BINARY_EXT;
 

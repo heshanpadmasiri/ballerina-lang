@@ -18,6 +18,13 @@
 
 package org.wso2.ballerinalang.compiler.semantics.analyzer;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -101,12 +108,6 @@ import org.wso2.ballerinalang.compiler.util.Name;
 import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
 import org.wso2.ballerinalang.util.Flags;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.stream.Stream;
 
 import static org.wso2.ballerinalang.compiler.util.Constants.WORKER_LAMBDA_VAR_PREFIX;
 
@@ -964,7 +965,7 @@ public class ReachabilityAnalyzer extends SimpleBLangNodeAnalyzer<ReachabilityAn
     private List<BLangExpression> getVarRefs(BLangRecordVarRef varRef) {
         return Stream.concat(
                 varRef.recordRefFields.stream().map(e -> e.variableReference),
-                Stream.of(varRef.restParam)).toList();
+                Stream.of(varRef.restParam)).collect(Collectors.toList());
     }
 
     private List<BLangExpression> getVarRefs(BLangErrorVarRef varRef) {
@@ -975,7 +976,7 @@ public class ReachabilityAnalyzer extends SimpleBLangNodeAnalyzer<ReachabilityAn
         if (varRef.cause != null) {
             varRefs.add(varRef.cause);
         }
-        varRefs.addAll(varRef.detail.stream().map(e -> e.expr).toList());
+        varRefs.addAll(varRef.detail.stream().map(e -> e.expr).collect(Collectors.toList()));
         varRefs.add(varRef.restVar);
         return varRefs;
     }

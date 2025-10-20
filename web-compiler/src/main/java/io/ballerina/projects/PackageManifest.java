@@ -25,6 +25,7 @@ import io.ballerina.tools.diagnostics.Location;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -538,18 +539,96 @@ public class PackageManifest {
             return hasErrorDiagnostic;
         }
 
-        public record Field(String value) {
-        }
+        public static final class Field {
+
+            private final String value;
+
+            public Field(String value) {
+                this.value = value;
+            }
+
+            public String value() {
+                return value;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (obj == this) return true;
+                if (obj == null || obj.getClass() != this.getClass()) return false;
+                var that = (Field) obj;
+                return Objects.equals(this.value, that.value);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(value);
+            }
+
+            @Override
+            public String toString() {
+                return "Field[" +
+                        "value=" + value + ']';
+            }
+
+                }
     }
 
-    public record Module(String name, boolean export, String description, String readme) {
-        public Module(String name, boolean export, String description, String readme) {
-            this.name = name;
-            this.export = export;
-            this.description = description;
-            this.readme = readme != null ? readme : "";
+    public static final class Module {
+
+        private final String name;
+        private final boolean export;
+        private final String description;
+        private final String readme;
+
+            public Module(String name, boolean export, String description, String readme) {
+                this.name = name;
+                this.export = export;
+                this.description = description;
+                this.readme = readme != null ? readme : "";
+            }
+
+        public String name() {
+            return name;
         }
-    }
+
+        public boolean export() {
+            return export;
+        }
+
+        public String description() {
+            return description;
+        }
+
+        public String readme() {
+            return readme;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (Module) obj;
+            return Objects.equals(this.name, that.name) &&
+                    this.export == that.export &&
+                    Objects.equals(this.description, that.description) &&
+                    Objects.equals(this.readme, that.readme);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, export, description, readme);
+        }
+
+        @Override
+        public String toString() {
+            return "Module[" +
+                    "name=" + name + ", " +
+                    "export=" + export + ", " +
+                    "description=" + description + ", " +
+                    "readme=" + readme + ']';
+        }
+
+        }
 
     private List<String> getExport(PackageDescriptor packageDesc, List<String> export) {
         if (export == null || export.isEmpty()) {

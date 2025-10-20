@@ -18,6 +18,8 @@
 
 package io.ballerina.projects.bala;
 
+import java.util.Optional;
+
 import io.ballerina.fs.Path;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.Document;
@@ -34,9 +36,6 @@ import io.ballerina.projects.internal.PackageConfigCreator;
 import io.ballerina.projects.repos.TempDirCompilationCache;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
-
-import java.nio.file.Files;
-import java.util.Optional;
 
 /**
  * @deprecated Use {@link io.ballerina.projects.directory.BalaProject} instead.

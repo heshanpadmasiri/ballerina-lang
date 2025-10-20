@@ -38,12 +38,12 @@ import org.wso2.ballerinalang.util.Flags;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -259,7 +259,7 @@ public class BObjectType extends BStructureType implements ObjectType {
 
         private List<Integer> ids = null;
         private static final Map<Env, Map<BTypeIdSet.BTypeId, Integer>> allocatedIds =
-                Collections.synchronizedMap(new WeakHashMap<>());
+                Collections.synchronizedMap(new HashMap<>());
         private final Env env;
 
         private DistinctIdSupplier(Env env) {

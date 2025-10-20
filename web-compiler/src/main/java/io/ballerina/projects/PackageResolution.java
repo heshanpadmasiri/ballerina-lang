@@ -17,7 +17,17 @@
  */
 package io.ballerina.projects;
 
-import io.ballerina.fs.Path;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import io.ballerina.projects.DependencyGraph.DependencyGraphBuilder;
 import io.ballerina.projects.environment.ModuleLoadRequest;
 import io.ballerina.projects.environment.PackageCache;
@@ -50,24 +60,7 @@ import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
 import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.util.RepoUtils;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static io.ballerina.projects.util.ProjectConstants.BALLERINA_HOME;
 import static io.ballerina.projects.util.ProjectConstants.DOT;
-import static io.ballerina.projects.util.ProjectConstants.EQUAL;
-import static io.ballerina.projects.util.ProjectConstants.OFFLINE_FLAG;
-import static io.ballerina.projects.util.ProjectConstants.REPOSITORY_FLAG;
-import static io.ballerina.projects.util.ProjectConstants.STICKY_FLAG;
 
 /**
  * Resolves dependencies and handles version conflicts in the dependency graph.
@@ -118,60 +111,7 @@ public class PackageResolution {
      * This is typically useful for large packages to avoid OOM issues.
      */
     private void generateCaches() {
-        for (ResolvedPackageDependency resolvedPackageDependency : this.dependencyGraph.toTopologicallySortedList()) {
-            Package packageInstance = resolvedPackageDependency.packageInstance();
-
-            // If the package instance is the current package, we have reached the root of the dependency graph.
-            // We skip the generation of the cache for the current package.
-            PackageDescriptor packageDescriptor = packageInstance.descriptor();
-            if (packageDescriptor == this.rootPackageContext.descriptor()) {
-                break;
-            }
-
-            // If the dependency is not loaded from sources, then we assume that the BIR is already generated.
-            // We skip the cache generation for the particular dependency.
-            if (packageInstance.getDefaultModule().moduleContext()
-                    .currentCompilationState() != ModuleCompilationState.LOADED_FROM_SOURCES) {
-                continue;
-            }
-
-            // We use the pull command to generate the BIR of the dependency.
-            List<String> cmdArgs = new ArrayList<>();
-            String balExecutable = isWindows ? "bal.bat" : "bal";
-            cmdArgs.add(Path.of(System.getProperty(BALLERINA_HOME), "bin", balExecutable).toString());
-            cmdArgs.add("pull");
-            cmdArgs.add(STICKY_FLAG + EQUAL + resolutionOptions.sticky());
-            cmdArgs.add(OFFLINE_FLAG + EQUAL + resolutionOptions.offline());
-
-            // Specify which repository to resolve the dependency from
-            Optional<BlendedManifest.Dependency> dependency =
-                    blendedManifest.userSpecifiedDependency(packageDescriptor.org(), packageDescriptor.name());
-            if (dependency.isPresent() && dependency.get().repository() != null) {
-                cmdArgs.add(REPOSITORY_FLAG + EQUAL + dependency.get().repository());
-            }
-            cmdArgs.add(packageDescriptor.toString());
-
-            ProcessBuilder processBuilder = new ProcessBuilder(cmdArgs);
-            try {
-                Process process = processBuilder.start();
-                int i = process.waitFor();
-                if (i != 0) {
-                    String errMessage = packageDescriptor.toString();
-                    if (dependency.isPresent()) {
-                        errMessage += " [repository=" + dependency.get().repository() + "]";
-                    }
-                    throw new ProjectException("failed to compile " + errMessage);
-                }
-            } catch (IOException | InterruptedException e) {
-                throw new ProjectException(e);
-            }
-
-            // Finally, we set the compilation state of the dependency to LOADED_FROM_CACHE
-            for (ModuleId moduleId : packageInstance.moduleIds()) {
-                packageInstance.module(moduleId).moduleContext()
-                        .setCompilationState(ModuleCompilationState.LOADED_FROM_CACHE);
-            }
-        }
+        throw new RuntimeException();
     }
 
     private PackageResolution(PackageResolution packageResolution, PackageContext rootPackageContext,

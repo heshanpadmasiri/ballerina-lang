@@ -17,6 +17,10 @@
  */
 package org.wso2.ballerinalang.compiler.diagnostic;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import io.ballerina.compiler.api.impl.SymbolFactory;
 import io.ballerina.compiler.api.impl.symbols.TypesFactory;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -42,13 +46,6 @@ import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.Name;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
-
 /**
  * Logger class for logging various compiler diagnostics.
  * 
@@ -61,7 +58,6 @@ public class BLangDiagnosticLog implements DiagnosticLog {
     private static final String WARNING_PREFIX = "warning";
     private static final String NOTE_PREFIX = "note";
     private static final String HINT_PREFIX = "hint";
-    private static final ResourceBundle MESSAGES = ResourceBundle.getBundle("compiler", Locale.getDefault());
 
     private int errorCount = 0;
     private final PackageCache packageCache;
@@ -215,8 +211,7 @@ public class BLangDiagnosticLog implements DiagnosticLog {
     // private helper methods
 
     private String formatMessage(String prefix, DiagnosticCode code, Object[] args) {
-        String msgKey = MESSAGES.getString(prefix + "." + code.messageKey());
-        return MessageFormat.format(msgKey, args);
+        throw new RuntimeException();
     }
 
     private void reportDiagnostic(ModuleDescriptor moduleDescriptor, DiagnosticCode diagnosticCode, Location location,

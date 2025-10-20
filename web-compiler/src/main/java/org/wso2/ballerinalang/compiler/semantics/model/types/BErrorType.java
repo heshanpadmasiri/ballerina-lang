@@ -17,6 +17,14 @@
  */
 package org.wso2.ballerinalang.compiler.semantics.model.types;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import io.ballerina.types.Core;
 import io.ballerina.types.Env;
 import io.ballerina.types.PredefinedType;
@@ -28,14 +36,6 @@ import org.wso2.ballerinalang.compiler.semantics.model.symbols.BTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.Symbols;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
 import org.wso2.ballerinalang.util.Flags;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Represents error type in Ballerina.
@@ -127,7 +127,7 @@ public class BErrorType extends BType implements ErrorType {
 
         private List<Integer> ids = null;
         private static final Map<Env, Map<BTypeIdSet.BTypeId, Integer>> allocatedIds =
-                Collections.synchronizedMap(new WeakHashMap<>());
+                Collections.synchronizedMap(new HashMap<>());
         private final Env env;
 
         private DistinctIdSupplier(Env env) {

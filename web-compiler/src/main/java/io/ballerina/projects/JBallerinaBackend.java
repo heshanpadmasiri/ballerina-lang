@@ -17,6 +17,14 @@
  */
 package io.ballerina.projects;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
 import io.ballerina.fs.Path;
 import io.ballerina.projects.environment.PackageCache;
 import io.ballerina.projects.environment.ProjectEnvironment;
@@ -28,21 +36,6 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import org.wso2.ballerinalang.compiler.bir.codegen.CodeGenerator;
 import org.wso2.ballerinalang.compiler.bir.codegen.interop.InteropValidator;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
-
-import io.ballerina.fs.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-
-import static io.ballerina.projects.util.ProjectConstants.BIN_DIR_NAME;
-import static io.ballerina.projects.util.ProjectConstants.DOT;
 
 /**
  * This class represents the Ballerina compiler backend that produces executables that runs on the JVM.

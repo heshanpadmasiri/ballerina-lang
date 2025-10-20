@@ -201,7 +201,7 @@ public class PackageConfig {
      * @return DocumentConfig optionally.
      * @deprecated use {@link #readmeMd()} instead.
      */
-    @Deprecated (forRemoval = true)
+    @Deprecated
     public Optional<DocumentConfig> packageMd() {
         return Optional.ofNullable(readmeMd);
     }

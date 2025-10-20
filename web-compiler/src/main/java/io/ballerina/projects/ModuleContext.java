@@ -17,6 +17,17 @@
  */
 package io.ballerina.projects;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+
 import io.ballerina.projects.PackageResolution.DependencyResolution;
 import io.ballerina.projects.environment.ModuleLoadRequest;
 import io.ballerina.projects.environment.PackageResolver;
@@ -38,20 +49,6 @@ import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.compiler.tree.BLangTestablePackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Supplier;
-
 import static org.ballerinalang.model.tree.SourceKind.REGULAR_SOURCE;
 import static org.ballerinalang.model.tree.SourceKind.TEST_SOURCE;
 
@@ -64,7 +61,7 @@ import static org.ballerinalang.model.tree.SourceKind.TEST_SOURCE;
  */
 public class ModuleContext {
 
-    private static final WeakReference<byte[]> DEFAULT_BIR_BYTE = new WeakReference<>(new byte[0]);
+    private static final byte[] DEFAULT_BIR_BYTE = new byte[0];
 
     private final ModuleId moduleId;
     private final ModuleDescriptor moduleDescriptor;
@@ -81,7 +78,7 @@ public class ModuleContext {
     private Set<ModuleDependency> moduleDependencies;
     private BLangPackage bLangPackage;
     private BPackageSymbol bPackageSymbol;
-    private WeakReference<byte[]> birBytes = DEFAULT_BIR_BYTE;
+    private byte[] birBytes = DEFAULT_BIR_BYTE;
     private final Bootstrap bootstrap;
     private ModuleCompilationState moduleCompState;
     private Set<ModuleLoadRequest> allModuleLoadRequests = null;
@@ -402,13 +399,7 @@ public class ModuleContext {
             packageCache.putSymbol(pkgNode.packageID, pkgNode.symbol);
             compilerPhaseRunner.performTypeCheckPhases(pkgNode);
         } catch (Throwable t) {
-            assert false : "Compilation failed due to " + ((Supplier<String>) () -> {
-                StringWriter errors = new StringWriter();
-                t.printStackTrace(new PrintWriter(errors));
-                return errors.toString();
-            }).get();
-
-            compilerPhaseRunner.addDiagnosticForUnhandledException(pkgNode, t);
+            throw new RuntimeException(t);
         }
         moduleContext.bLangPackage = pkgNode;
     }
@@ -425,19 +416,13 @@ public class ModuleContext {
             try {
                 compilerPhaseRunner.performBirGenPhases(moduleContext.bLangPackage);
             } catch (Throwable t) {
-                assert false : "Compilation failed due to " + ((Supplier<String>) () -> {
-                    StringWriter errors = new StringWriter();
-                    t.printStackTrace(new PrintWriter(errors));
-                    return errors.toString();
-                }).get();
-                compilerPhaseRunner.addDiagnosticForUnhandledException(moduleContext.bLangPackage, t);
-                return;
+                throw new RuntimeException(t);
             }
         }
     }
 
     static void loadBirBytesInternal(ModuleContext moduleContext) {
-        moduleContext.birBytes = new WeakReference<>(moduleContext.loadBirBytesInternalInner());
+        moduleContext.birBytes = moduleContext.loadBirBytesInternalInner();
     }
 
     private byte[] loadBirBytesInternalInner() {
@@ -526,11 +511,6 @@ public class ModuleContext {
     }
 
     public byte[] getBirBytes() {
-        byte[] birBytes = this.birBytes.get();
-        if (birBytes == null) {
-            birBytes = loadBirBytesInternalInner();
-            this.birBytes = new WeakReference<>(birBytes);
-        }
-        return birBytes;
+        return this.birBytes;
     }
 }

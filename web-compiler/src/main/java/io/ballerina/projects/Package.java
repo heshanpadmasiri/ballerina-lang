@@ -234,7 +234,7 @@ public class Package {
      * @return PackageMd
      * @deprecated use {@link #readmeMd()} instead.
      */
-    @Deprecated (forRemoval = true, since = "2.11.0")
+    @Deprecated
     public Optional<PackageMd> packageMd() {
         if (this.packageMd.isEmpty()) {
             this.packageMd = this.packageContext.packageMdContext().map(c ->

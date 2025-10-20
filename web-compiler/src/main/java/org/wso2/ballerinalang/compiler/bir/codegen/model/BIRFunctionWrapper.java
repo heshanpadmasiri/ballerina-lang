@@ -17,6 +17,8 @@
  */
 package org.wso2.ballerinalang.compiler.bir.codegen.model;
 
+import java.util.Objects;
+
 import org.ballerinalang.model.elements.PackageID;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
 
@@ -25,12 +27,67 @@ import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
  *
  * @since 1.2.0
  *
- * @param packageID Package ID
- * @param func BIR function
- * @param fullQualifiedClassName full qualified class name
- * @param jvmMethodDescription JVM method description
  */
-public record BIRFunctionWrapper(PackageID packageID, BIRNode.BIRFunction func, String fullQualifiedClassName,
-                                 String jvmMethodDescription) {
+public final class BIRFunctionWrapper {
+
+    private final PackageID packageID;
+    private final BIRNode.BIRFunction func;
+    private final String fullQualifiedClassName;
+    private final String jvmMethodDescription;
+
+    /**
+     * @param packageID              Package ID
+     * @param func                   BIR function
+     * @param fullQualifiedClassName full qualified class name
+     * @param jvmMethodDescription   JVM method description
+     */
+    public BIRFunctionWrapper(PackageID packageID, BIRNode.BIRFunction func, String fullQualifiedClassName,
+                              String jvmMethodDescription) {
+        this.packageID = packageID;
+        this.func = func;
+        this.fullQualifiedClassName = fullQualifiedClassName;
+        this.jvmMethodDescription = jvmMethodDescription;
+    }
+
+    public PackageID packageID() {
+        return packageID;
+    }
+
+    public BIRNode.BIRFunction func() {
+        return func;
+    }
+
+    public String fullQualifiedClassName() {
+        return fullQualifiedClassName;
+    }
+
+    public String jvmMethodDescription() {
+        return jvmMethodDescription;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (BIRFunctionWrapper) obj;
+        return Objects.equals(this.packageID, that.packageID) &&
+                Objects.equals(this.func, that.func) &&
+                Objects.equals(this.fullQualifiedClassName, that.fullQualifiedClassName) &&
+                Objects.equals(this.jvmMethodDescription, that.jvmMethodDescription);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(packageID, func, fullQualifiedClassName, jvmMethodDescription);
+    }
+
+    @Override
+    public String toString() {
+        return "BIRFunctionWrapper[" +
+                "packageID=" + packageID + ", " +
+                "func=" + func + ", " +
+                "fullQualifiedClassName=" + fullQualifiedClassName + ", " +
+                "jvmMethodDescription=" + jvmMethodDescription + ']';
+    }
 
 }
