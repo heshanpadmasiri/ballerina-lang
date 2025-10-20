@@ -45,6 +45,7 @@ import io.ballerina.projects.internal.model.Dependency;
 import io.ballerina.projects.internal.model.ToolDependency;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.envutils.EnvConstants;
 import org.ballerinalang.compiler.BLangCompilerException;
 import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.util.RepoUtils;
@@ -168,7 +169,7 @@ public final class ProjectUtils {
      */
     public static Path createAndGetHomeReposPath() {
         Path homeRepoPath;
-        String homeRepoDir = System.getenv(ProjectConstants.HOME_REPO_ENV_KEY);
+        String homeRepoDir = EnvConstants.getEnv(ProjectConstants.HOME_REPO_ENV_KEY);
         if (homeRepoDir == null || homeRepoDir.isEmpty()) {
             String userHomeDir = System.getProperty(USER_HOME);
             if (userHomeDir == null || userHomeDir.isEmpty()) {

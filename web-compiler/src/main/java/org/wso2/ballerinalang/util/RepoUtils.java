@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import io.ballerina.fs.Path;
+import io.ballerina.tools.envutils.EnvConstants;
 import org.ballerinalang.compiler.BLangCompilerException;
 import org.ballerinalang.toml.model.Manifest;
 import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
@@ -53,9 +54,9 @@ public final class RepoUtils {
     public static final String BALLERINA_STAGE_CENTRAL = "BALLERINA_STAGE_CENTRAL";
     public static final String BALLERINA_DEV_CENTRAL = "BALLERINA_DEV_CENTRAL";
     public static final boolean SET_BALLERINA_STAGE_CENTRAL = Boolean.parseBoolean(
-            System.getenv(BALLERINA_STAGE_CENTRAL));
+            EnvConstants.getEnv(BALLERINA_STAGE_CENTRAL));
     public static final boolean SET_BALLERINA_DEV_CENTRAL = Boolean.parseBoolean(
-            System.getenv(BALLERINA_DEV_CENTRAL));
+            EnvConstants.getEnv(BALLERINA_DEV_CENTRAL));
 
     private static final String UNKNOWN = "unknown";
 
@@ -69,7 +70,7 @@ public final class RepoUtils {
      */
     public static Path createAndGetHomeReposPath() {
         Path homeRepoPath;
-        String homeRepoDir = System.getenv(ProjectDirConstants.HOME_REPO_ENV_KEY);
+        String homeRepoDir = EnvConstants.getEnv(ProjectDirConstants.HOME_REPO_ENV_KEY);
         if (homeRepoDir == null || homeRepoDir.isEmpty()) {
             String userHomeDir = System.getProperty(USER_HOME);
             if (userHomeDir == null || userHomeDir.isEmpty()) {
@@ -180,7 +181,7 @@ public final class RepoUtils {
      * @return terminal width as a string
      */
     public static String getTerminalWidth() {
-        Map<String, String> envVariableMap = System.getenv();
+        Map<String, String> envVariableMap = EnvConstants.getEnvMap();
         if (envVariableMap.containsKey(BALLERINA_CLI_WIDTH)) {
             return envVariableMap.get(BALLERINA_CLI_WIDTH);
         }
