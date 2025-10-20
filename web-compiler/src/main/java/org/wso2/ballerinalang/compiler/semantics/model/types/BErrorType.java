@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Represents error type in Ballerina.
@@ -141,7 +142,7 @@ public class BErrorType extends BType implements ErrorType {
             Map<BTypeIdSet.BTypeId, Integer> envAllocatedIds = allocatedIds.get(env);
             ids = typeIdSet.getAll().stream()
                     .map(each -> envAllocatedIds.computeIfAbsent(each, (key) -> env.distinctAtomCountGetAndIncrement()))
-                    .toList();
+                    .collect(Collectors.toList());
             return ids;
         }
     }

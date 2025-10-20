@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.ballerina.fs.Path;
@@ -45,15 +46,15 @@ public class HomeBalaRepo implements Repo<Path> {
     private final Path repoLocation;
     private final ZipConverter zipConverter;
     private final List<String> supportedPlatforms = Stream.concat(
-            Arrays.stream(SUPPORTED_PLATFORMS), Stream.of("any")).toList();
+            Arrays.stream(SUPPORTED_PLATFORMS), Stream.of("any")).collect(Collectors.toList());
     private final Map<PackageID, Manifest> dependencyManifests;
-    
+
     public HomeBalaRepo(Map<PackageID, Manifest> dependencyManifests) {
         this.repoLocation = RepoUtils.createAndGetHomeReposPath().resolve(ProjectDirConstants.BALA_CACHE_DIR_NAME);
         this.dependencyManifests = dependencyManifests;
         this.zipConverter = new ZipConverter(this.repoLocation);
     }
-    
+
     @Override
     public Patten calculate(PackageID moduleID) {
         try {
@@ -61,19 +62,19 @@ public class HomeBalaRepo implements Repo<Path> {
             String orgName = moduleID.getOrgName().getValue();
             String pkgName = moduleID.getName().getValue();
             String versionStr = moduleID.getPackageVersion().getValue();
-            
+
             // if the module doesn't exists at all stop looking for it.
             if (this.repoLocation.resolve(orgName).resolve(pkgName).notExists()) {
                 return Patten.NULL;
             }
-            
+
             for (String platform : supportedPlatforms) {
                 Path balaFilePath;
                 // check if version is empty. If so get the latest bala file directly.
                 if (versionStr.isEmpty()) {
                     Optional<Path> latestVersionPath = getLatestBalaFile(this.repoLocation.resolve(orgName)
                             .resolve(pkgName));
-        
+
                     if (latestVersionPath.isPresent()) {
                         Path latestVersionDirectoryName = latestVersionPath.get().getFileName();
                         if (null != latestVersionDirectoryName) {
@@ -89,29 +90,29 @@ public class HomeBalaRepo implements Repo<Path> {
                     // Get the existing bala file.
                     balaFilePath = findBalaPath(this.repoLocation, orgName, pkgName, platform, versionStr);
                 }
-                
+
                 // return Patten only if bala file exists.
                 Path balaFileName = balaFilePath.getFileName();
                 if (balaFilePath.exists() && null != balaFileName) {
                     moduleID.version = new Name(versionStr);
-    
+
                     // update dependency manifests map for imports of this moduleID.
                     this.dependencyManifests.put(moduleID,
                             RepoUtils.getManifestFromBala(balaFilePath.toAbsolutePath()));
-    
+
                     return new Patten(path(orgName, pkgName),
                             path(versionStr),
                             path(balaFileName.toString(), ProjectDirConstants.SOURCE_DIR_NAME, pkgName),
                             Patten.WILDCARD_SOURCE);
                 }
             }
-        
+
             return Patten.NULL;
         } catch (IOException e) {
             return Patten.NULL;
         }
     }
-    
+
     /**
      * Get the latest bala for a given module name and platform.
      * <p>
@@ -125,12 +126,12 @@ public class HomeBalaRepo implements Repo<Path> {
     private Optional<Path> getLatestBalaFile(Path moduleFolder) throws IOException {
         throw new RuntimeException();
     }
-    
+
     @Override
     public Converter<Path> getConverterInstance() {
         return this.zipConverter;
     }
-    
+
     @Override
     public String toString() {
         return "{t:'HomeBalaRepo', c:'" + this.zipConverter + "'}";

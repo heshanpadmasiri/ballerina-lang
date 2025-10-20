@@ -518,6 +518,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -1147,7 +1148,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
         if (parameterizedTypeDescNode.kind() == SyntaxKind.ERROR_TYPE_DESC) {
             return transformErrorTypeDescriptor(parameterizedTypeDescNode);
         }
-        
+
         BLangBuiltInRefTypeNode refType = (BLangBuiltInRefTypeNode) TreeBuilder.createBuiltInReferenceTypeNode();
         refType.typeKind = getParameterizedTypeKind(parameterizedTypeDescNode.kind());
         refType.pos = getPosition(parameterizedTypeDescNode);
@@ -1160,7 +1161,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
             constrainedType.pos = refType.pos;
             return constrainedType;
         }
-        
+
         return refType;
     }
 
@@ -1171,7 +1172,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
             default -> TypeKind.XML;
         };
     }
-    
+
     private BLangNode transformErrorTypeDescriptor(ParameterizedTypeDescriptorNode parameterizedTypeDescNode) {
         BLangErrorType errorType = (BLangErrorType) TreeBuilder.createErrorTypeNode();
         Optional<TypeParameterNode> typeParam = parameterizedTypeDescNode.typeParamNode();
@@ -4495,7 +4496,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
         matchStatement.pos = getPosition(matchStatementNode);
         return matchStatement;
     }
-    
+
     @Override
     public BLangNode transform(ClientResourceAccessActionNode clientResourceAccessActionNode) {
         BLangInvocation.BLangResourceAccessInvocation resourceInvocation = TreeBuilder.createResourceAccessInvocation();
@@ -4528,13 +4529,13 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
         if (pathSegments.isEmpty()) {
             listConstructorExpr.pos = getPosition(clientResourceAccessActionNode.slashToken());
         } else {
-            listConstructorExpr.pos = 
-                    getPosition(clientResourceAccessActionNode.slashToken(), 
+            listConstructorExpr.pos =
+                    getPosition(clientResourceAccessActionNode.slashToken(),
                             resourceAccessPath.get(pathSegments.size() - 1));
         }
-        
+
         resourceInvocation.resourceAccessPathSegments = listConstructorExpr;
-        
+
         if (clientResourceAccessActionNode.methodName().isPresent()) {
             resourceInvocation.name = createIdentifier(clientResourceAccessActionNode.methodName().get().name());
         } else {
@@ -4544,7 +4545,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
         if (clientResourceAccessActionNode.arguments().isPresent()) {
             resourceInvocation.argExprs = applyAll(clientResourceAccessActionNode.arguments().get().arguments());
         }
-        
+
         if (clientResourceAccessActionNode.expression().kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
             QualifiedNameReferenceNode iNode = (QualifiedNameReferenceNode) clientResourceAccessActionNode.expression();
             Token modulePrefix = iNode.modulePrefix();
@@ -4552,7 +4553,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
         } else {
             resourceInvocation.pkgAlias = this.createIdentifier(symTable.builtinPos, "");
         }
-        
+
         return resourceInvocation;
     }
 
@@ -5571,7 +5572,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
     private BLangNode createRegExpTemplateLiteral(TemplateExpressionNode expressionNode) {
         BLangRegExpTemplateLiteral regExpTemplateLiteral =
                 (BLangRegExpTemplateLiteral) TreeBuilder.createRegExpTemplateLiteralNode();
-        
+
         Location reDisjunctionPos = getPosition(expressionNode.startBacktick(), expressionNode.endBacktick());
         regExpTemplateLiteral.reDisjunction = (BLangReDisjunction) createReDisjunctionNode(expressionNode.content(),
                 reDisjunctionPos);
@@ -6865,7 +6866,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
         userDefinedType.typeName = name;
         return userDefinedType;
     }
-    
+
     private BLangListConstructorSpreadOpExpr createSpreadMemberExpr(Node expr, Location pos) {
         BLangExpression bLangExpr = createExpression(expr);
         BLangListConstructorSpreadOpExpr spreadOpExpr = new BLangListConstructorSpreadOpExpr();
@@ -7096,7 +7097,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
         return argsList.map(
                 parenthesizedArgList -> parenthesizedArgList.arguments()
                         .stream()
-                        .map(this::createExpression).toList()).
+                        .map(this::createExpression).collect(Collectors.toList())).
                 orElseGet(() -> new ArrayList<>(0));
     }
 }

@@ -28,6 +28,7 @@ import io.ballerina.projects.util.ProjectConstants;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.projects.util.ProjectConstants.DOT;
@@ -60,7 +61,7 @@ public final class ProjectFiles {
         ModuleData defaultModule = loadModule(packageDirPath);
         List<ModuleData> otherModules = loadOtherModules(packageDirPath);
         List<ModuleData> newModules = loadNewGeneratedModules(packageDirPath);
-        otherModules = Stream.concat(otherModules.stream(), newModules.stream()).toList();
+        otherModules = Stream.concat(otherModules.stream(), newModules.stream()).collect(Collectors.toList());
 
         DocumentData ballerinaToml = loadDocument(packageDirPath.resolve(ProjectConstants.BALLERINA_TOML));
         DocumentData dependenciesToml = loadDocument(packageDirPath.resolve(ProjectConstants.DEPENDENCIES_TOML));

@@ -57,6 +57,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import static io.ballerina.projects.util.ProjectConstants.BALLERINA_HOME;
 import static io.ballerina.projects.util.ProjectConstants.BLANG_COMPILED_JAR_EXT;
@@ -485,12 +486,12 @@ public final class ProjectUtils {
         }
         if (compatibleRange.equals(CompatibleRange.LOCK_MAJOR)) {
             return versions.stream().filter(version ->
-                    version.major() == minVersion.major() && version.greaterThanOrEqualTo(minVersion)).toList();
+                    version.major() == minVersion.major() && version.greaterThanOrEqualTo(minVersion)).collect(Collectors.toList());
         }
         if (compatibleRange.equals(CompatibleRange.LOCK_MINOR)) {
             return versions.stream().filter(version ->
                             version.major() == minVersion.major() && version.minor() == minVersion.minor()
-                                    && version.greaterThanOrEqualTo(minVersion)).toList();
+                                    && version.greaterThanOrEqualTo(minVersion)).collect(Collectors.toList());
         }
         if (versions.contains(minVersion)) {
             return Collections.singletonList(minVersion);

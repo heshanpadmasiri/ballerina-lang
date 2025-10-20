@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * {@code BObjectType} represents object type in Ballerina.
@@ -273,7 +274,7 @@ public class BObjectType extends BStructureType implements ObjectType {
             Map<BTypeIdSet.BTypeId, Integer> envAllocatedIds = allocatedIds.get(env);
             ids = typeIdSet.getAll().stream()
                     .map(each -> envAllocatedIds.computeIfAbsent(each, (key) -> env.distinctAtomCountGetAndIncrement()))
-                    .toList();
+                    .collect(Collectors.toList());
             return ids;
         }
     }

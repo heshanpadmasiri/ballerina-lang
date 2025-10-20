@@ -132,6 +132,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static io.ballerina.compiler.api.impl.PositionUtil.isPosWithinOpenCloseLineRanges;
 import static io.ballerina.compiler.api.impl.PositionUtil.isPosWithinRange;
@@ -878,7 +879,7 @@ public class ExpectedTypeFinder extends NodeTransformer<Optional<TypeSymbol>> {
             //`params` contains path params and path rest params as well. We need to skip those
             List<BVarSymbol> params = symbol.params.stream().filter(param ->
                     param.getKind() != SymbolKind.PATH_PARAMETER
-                            && param.getKind() != SymbolKind.PATH_REST_PARAMETER).toList();
+                            && param.getKind() != SymbolKind.PATH_REST_PARAMETER).collect(Collectors.toList());
             BVarSymbol restPram = ((BInvokableSymbol) bLangInvocation.symbol).restParam;
             TypeSymbol restParamMemberType = null;
 
@@ -1061,7 +1062,7 @@ public class ExpectedTypeFinder extends NodeTransformer<Optional<TypeSymbol>> {
         Optional<ModuleSymbol> module = searchModuleForAlias(alias);
         return module.map(moduleSymbol -> moduleSymbol.allSymbols().stream()
                         .filter(predicate)
-                        .toList())
+                        .collect(Collectors.toList()))
                 .orElseGet(ArrayList::new);
     }
 
@@ -1134,7 +1135,7 @@ public class ExpectedTypeFinder extends NodeTransformer<Optional<TypeSymbol>> {
         }
 
         return builder.UNION_TYPE
-                .withMemberTypes(unionTypeMembers.toArray(TypeSymbol[]::new)).build();
+                .withMemberTypes(unionTypeMembers.toArray(new TypeSymbol[0])).build();
     }
 
     private static TypeSymbol getRawType(TypeSymbol typeDescriptor) {
@@ -1199,7 +1200,7 @@ public class ExpectedTypeFinder extends NodeTransformer<Optional<TypeSymbol>> {
             return getParamType(bLangInvocation, argumentIndex, namedArgs);
         }
 
-        // As mentioned in issue #41573, since there is an inconsistency in the generated line range, the following 
+        // As mentioned in issue #41573, since there is an inconsistency in the generated line range, the following
         // condition is added in case of an out-of-index error.
         if (argumentIndex >= bLangInvocation.argExprs.size()) {
             return getExpectedType(

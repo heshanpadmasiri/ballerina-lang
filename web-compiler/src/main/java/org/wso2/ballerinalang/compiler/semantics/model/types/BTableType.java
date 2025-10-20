@@ -143,7 +143,7 @@ public class BTableType extends BType implements TableType {
         tableConstraint = SemTypes.intersect(tableConstraint, PredefinedType.MAPPING);
 
         Context cx = Context.from(env); // apis calling with 'cx' here are only accessing the env field internally
-        String[] fieldNames = fieldNameList.toArray(String[]::new);
+        String[] fieldNames = fieldNameList.toArray(new String[0]);
         if (!fieldNameList.isEmpty()) {
             return SemTypes.tableContainingKeySpecifier(cx, tableConstraint, fieldNames);
         }

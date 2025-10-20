@@ -218,6 +218,7 @@ import org.wso2.ballerinalang.compiler.tree.types.BLangUserDefinedType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.ballerinalang.model.symbols.SymbolOrigin.VIRTUAL;
 
@@ -269,10 +270,10 @@ public class ReferenceFinder extends BaseVisitor {
         find(pkgNode.typeDefinitions);
         find(pkgNode.classDefinitions.stream()
                      .filter(c -> !isGeneratedClassDefForService(c))
-                     .toList());
+                     .collect(Collectors.toList()));
         find(pkgNode.functions.stream()
                      .filter(f -> !f.flagSet.contains(Flag.LAMBDA))
-                     .toList());
+                     .collect(Collectors.toList()));
 
         if (!(pkgNode instanceof BLangTestablePackage)) {
             find(pkgNode.getTestablePkg());
@@ -1514,7 +1515,7 @@ public class ReferenceFinder extends BaseVisitor {
             if (!pathSymbol.equals(this.targetSymbol) || expr.getKind() != NodeKind.LITERAL) {
                 continue;
             }
-            
+
             BLangLiteral literal = (BLangLiteral) expr;
             if (literal.value.equals(pathSymbol.name.value) && addIfSameSymbol(pathSymbol, expr.pos)) {
                 return;

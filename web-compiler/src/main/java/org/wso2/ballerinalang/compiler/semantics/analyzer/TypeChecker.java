@@ -1028,7 +1028,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
         List<BFiniteType> finiteTypeMembers = types.getAllTypes(unionType, true).stream()
                 .filter(memType -> Types.getImpliedType(memType).tag == TypeTags.FINITE)
                 .map(memFiniteType -> (BFiniteType) memFiniteType)
-                .toList();
+                .collect(Collectors.toList());
 
         if (finiteTypeMembers.isEmpty()) {
             return symTable.semanticError;
@@ -1047,7 +1047,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
             return symTable.semanticError;
         }
 
-        return new BFiniteType(null, newValueSpace.toArray(SemNamedType[]::new));
+        return new BFiniteType(null, newValueSpace.toArray(new SemNamedType[0]));
     }
 
     private BType getIntLiteralType(BType expType, Object literalValue, AnalyzerData data) {
@@ -1700,7 +1700,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                     Map<String, BField> fieldList = ((BRecordType) referredKeyTypeConstraint).getFields();
                     memberTypes.addAll(fieldList.entrySet().stream()
                             .filter(e -> fieldNameList.contains(e.getKey())).map(entry -> entry.getValue().type)
-                            .toList());
+                            .collect(Collectors.toList()));
                     if (memberTypes.isEmpty()) {
                         memberTypes.add(keyTypeConstraint);
                     }
@@ -4179,7 +4179,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
     public void checkResourceAccessParamAndReturnType(BLangInvocation.BLangResourceAccessInvocation resourceAccessInvoc,
                                                       BResourceFunction targetResourceFunc, AnalyzerData data) {
         // targetResourceFunc symbol params will contain path params and rest path params as well,
-        // hence we need to remove path params from the list before calling to `checkInvocationParamAndReturnType` 
+        // hence we need to remove path params from the list before calling to `checkInvocationParamAndReturnType`
         // method otherwise we get `missing required parameter` error
         BInvokableSymbol targetResourceSym = targetResourceFunc.symbol;
         BInvokableType targetResourceSymType = targetResourceSym.getType();
@@ -9091,7 +9091,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                         newValueSpace.addAll(Arrays.asList(ft.valueSpace));
                     }
 
-                    BFiniteType finiteType = new BFiniteType(null, newValueSpace.toArray(SemNamedType[]::new));
+                    BFiniteType finiteType = new BFiniteType(null, newValueSpace.toArray(new SemNamedType[0]));
                     BType possibleType = checkArrayIndexBasedAccess(indexBasedAccess, finiteType, arrayType);
                     if (possibleType == symTable.semanticError) {
                         return symTable.semanticError;
@@ -9199,7 +9199,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                         newValueSpace.addAll(Arrays.asList(ft.valueSpace));
                     }
 
-                    BFiniteType finiteType = new BFiniteType(null, newValueSpace.toArray(SemNamedType[]::new));
+                    BFiniteType finiteType = new BFiniteType(null, newValueSpace.toArray(new SemNamedType[0]));
                     BType possibleType = checkTupleIndexBasedAccess(accessExpr, tuple, finiteType);
                     if (possibleType.tag == TypeTags.UNION) {
                         possibleTypesByMember.addAll(((BUnionType) possibleType).getMemberTypes());
@@ -9389,7 +9389,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                         newValueSpace.addAll(Arrays.asList(ft.valueSpace));
                     }
 
-                    BFiniteType finiteType = new BFiniteType(null, newValueSpace.toArray(SemNamedType[]::new));
+                    BFiniteType finiteType = new BFiniteType(null, newValueSpace.toArray(new SemNamedType[0]));
                     BType possibleType = checkRecordIndexBasedAccess(accessExpr, record, finiteType, data);
                     if (possibleType.tag == TypeTags.UNION) {
                         possibleTypesByMember.addAll(((BUnionType) possibleType).getMemberTypes());
@@ -9900,7 +9900,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
                 return new LinkedHashSet<>(0);
             }
 
-            BFiniteType ft = new BFiniteType(null, newValueSpace.toArray(SemNamedType[]::new));
+            BFiniteType ft = new BFiniteType(null, newValueSpace.toArray(new SemNamedType[0]));
             return new LinkedHashSet<>(1) {{
                 add(ft);
             }};

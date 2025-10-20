@@ -1610,7 +1610,7 @@ public class DataflowAnalyzer extends BLangNodeVisitor {
                 fieldMap.put(recordVarNameField.getVariableName().value, recordVarNameField);
             }
         }
-        return fieldNames.stream().map(fieldMap::get).toList();
+        return fieldNames.stream().map(fieldMap::get).collect(Collectors.toList());
     }
 
     private List<String> getFieldNames(BLangTableConstructorExpr constructorExpr) {
@@ -1625,7 +1625,7 @@ public class DataflowAnalyzer extends BLangNodeVisitor {
                 !constructorExpr.tableKeySpecifier.fieldNameIdentifierList.isEmpty()) {
             BLangTableKeySpecifier tableKeySpecifier = constructorExpr.tableKeySpecifier;
             return tableKeySpecifier.fieldNameIdentifierList.stream().map(identifier ->
-                    ((BLangIdentifier) identifier).value).toList();
+                    ((BLangIdentifier) identifier).value).collect(Collectors.toList());
         } else {
             return new ArrayList<>();
         }

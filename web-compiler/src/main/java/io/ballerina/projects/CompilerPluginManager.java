@@ -25,6 +25,7 @@ import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Responsible for loading and maintaining engaged compiler plugins.
@@ -169,7 +170,7 @@ class CompilerPluginManager {
         List<Path> jarLibraryPaths = pluginDescriptor.getCompilerPluginDependencies()
                 .stream()
                 .map(Path::of)
-                .toList();
+                .collect(Collectors.toList());
 
         CompilerPlugin compilerPlugin;
         try {
@@ -190,7 +191,7 @@ class CompilerPluginManager {
         return dependencyGraph.getDirectDependencies(rootPkgNode)
                 .stream()
                 .map(ResolvedPackageDependency::packageInstance)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private static List<CompilerPluginContextIml> initializePlugins(List<CompilerPluginInfo> compilerPlugins,

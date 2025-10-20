@@ -49,6 +49,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Optimize BIR.
@@ -274,7 +275,7 @@ public class BIROptimizer {
 
             // Remove unused temp vars
             birFunction.localVars = new ArrayList<>(birFunction.localVars.stream()
-                    .filter(l -> l.kind != VarKind.TEMP || !funcOpEnv.tempVars.containsKey(l)).toList());
+                    .filter(l -> l.kind != VarKind.TEMP || !funcOpEnv.tempVars.containsKey(l)).collect(Collectors.toList()));
             // Reuse lhs temp vars
             Set<BIRVariableDcl> replaceableVarSet = new HashSet<>();
             reuseTempVariables(birFunction.localVars, funcOpEnv.tempVarsList, replaceableVarSet);

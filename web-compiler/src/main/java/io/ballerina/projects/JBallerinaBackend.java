@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static io.ballerina.projects.util.ProjectConstants.BIN_DIR_NAME;
 import static io.ballerina.projects.util.ProjectConstants.DOT;
@@ -247,7 +248,7 @@ public class JBallerinaBackend extends CompilerBackend {
         return getPlatformLibraries(packageId)
                 .stream()
                 .filter(platformLibrary -> platformLibrary.scope() == scope)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private List<PlatformLibrary> getPlatformLibraries(PackageId packageId) {

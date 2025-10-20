@@ -30,6 +30,7 @@ import io.ballerina.fs.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This represents a general file system based {@link PackageRepository}.
@@ -198,7 +199,7 @@ public class GeneralFSPackageRepository implements PackageRepository {
 
         @Override
         public List<FSCompilerInput> getPackageSourceEntries() {
-            return this.getEntryNames().stream().map(e -> new FSCompilerInput(e)).toList();
+            return this.getEntryNames().stream().map(e -> new FSCompilerInput(e)).collect(Collectors.toList());
         }
 
         /**

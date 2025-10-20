@@ -123,6 +123,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1941,7 +1942,7 @@ public class TypeResolver {
         if (resolvingConstants.contains(constant)) { // To identify cycles.
             dlog.error(constant.pos, DiagnosticErrorCode.CONSTANT_CYCLIC_REFERENCE,
                     (this.resolvingConstants).stream().map(constNode -> constNode.symbol)
-                            .toList());
+                            .collect(Collectors.toList()));
             constant.setBType(symTable.semanticError);
             return;
         }

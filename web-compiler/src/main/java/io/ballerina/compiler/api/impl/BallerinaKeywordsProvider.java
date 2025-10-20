@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Provides the set of Ballerina Reserved Keywords to be used at the symbol factory.
@@ -54,7 +55,7 @@ public final class BallerinaKeywordsProvider {
                         }
                     })
                     .filter(Objects::nonNull)
-                    .toList();
+                    .collect(Collectors.toList());
         } catch (ClassNotFoundException e) {
             return Collections.emptyList();
         }

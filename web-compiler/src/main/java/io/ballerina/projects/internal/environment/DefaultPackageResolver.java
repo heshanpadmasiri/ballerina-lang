@@ -174,7 +174,7 @@ public class DefaultPackageResolver implements PackageResolver {
         // Send non built in packages to central
         Collection<ResolutionRequest> centralLoadRequests = requests.stream()
                 .filter(r -> !r.packageDescriptor().isBuiltInPackage())
-                .toList();
+                .collect(Collectors.toList());
 //        Collection<PackageMetadataResponse> latestVersionsInCentral =
 //                centralRepo.getPackageMetadata(centralLoadRequests, options);
         Collection<PackageMetadataResponse> latestVersionsInCentral =
@@ -219,7 +219,7 @@ public class DefaultPackageResolver implements PackageResolver {
 
         return requests.stream()
                 .map(request -> resolvePackage(request, options))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private ResolutionResponse resolvePackage(ResolutionRequest resolutionReq, ResolutionOptions options) {

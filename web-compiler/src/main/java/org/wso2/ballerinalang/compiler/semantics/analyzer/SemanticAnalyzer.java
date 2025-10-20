@@ -1746,7 +1746,7 @@ public class SemanticAnalyzer extends SimpleBLangNodeAnalyzer<SemanticAnalyzer.A
                 List<BErrorType> errorMembers = members.stream()
                         .filter(m -> Types.getImpliedType(m).tag == TypeTags.ERROR)
                         .map(m -> (BErrorType) Types.getImpliedType(m))
-                        .toList();
+                        .collect(Collectors.toList());
 
                 if (errorMembers.isEmpty()) {
                     dlog.error(varNode.pos, DiagnosticErrorCode.INVALID_ERROR_MATCH_PATTERN);
@@ -2453,7 +2453,7 @@ public class SemanticAnalyzer extends SimpleBLangNodeAnalyzer<SemanticAnalyzer.A
         for (BField rhsField : rhsRecordType.fields.values()) {
             List<BLangRecordVarRefKeyValue> expField = lhsVarRef.recordRefFields.stream()
                     .filter(field -> field.variableName.value.equals(rhsField.name.toString()))
-                    .toList();
+                    .collect(Collectors.toList());
 
             if (expField.isEmpty()) {
                 continue;

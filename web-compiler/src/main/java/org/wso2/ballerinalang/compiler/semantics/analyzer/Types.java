@@ -140,6 +140,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.UNDERSCORE;
 import static io.ballerina.types.BasicTypeCode.BT_OBJECT;
@@ -826,7 +827,7 @@ public class Types {
                 BUnionType unionType = (BUnionType) constraintType;
                 Set<BType> memTypes = unionType.getMemberTypes();
                 List<BField> fields = memTypes.stream().map(type -> getTableConstraintField(type, fieldName))
-                        .filter(Objects::nonNull).toList();
+                        .filter(Objects::nonNull).collect(Collectors.toList());
 
                 if (fields.size() != memTypes.size()) {
                     return null;
@@ -1192,7 +1193,7 @@ public class Types {
                 getImpliedType(collectionType).tag == OBJECT) {
             return;
         }
-        
+
         BInvokableSymbol iteratorSymbol = (BInvokableSymbol) symResolver.lookupLangLibMethod(collectionType,
                 Names.fromString(BLangCompilerConstants.ITERABLE_COLLECTION_ITERATOR_FUNC), env);
         BUnionType nextMethodReturnType =
@@ -1267,7 +1268,7 @@ public class Types {
                     bLangInputClause.nillableResultType = symTable.semanticError;
                     break;
                 }
-                
+
                 BUnionType nextMethodReturnType = getVarTypeFromIterableObject((BObjectType) collectionType);
                 if (nextMethodReturnType != null) {
                     bLangInputClause.resultType = getRecordType(nextMethodReturnType);
@@ -2027,7 +2028,7 @@ public class Types {
                 finiteType.tsymbol.pkgID, null,
                 finiteType.tsymbol.owner, finiteType.tsymbol.pos,
                 VIRTUAL);
-        BFiniteType ft = new BFiniteType(finiteTypeSymbol, newValueSpace.toArray(SemNamedType[]::new));
+        BFiniteType ft = new BFiniteType(finiteTypeSymbol, newValueSpace.toArray(new SemNamedType[0]));
         finiteTypeSymbol.type = ft;
         return Optional.of(ft);
     }
@@ -2556,7 +2557,7 @@ public class Types {
                     .filter(t -> getImpliedType(t).tag != TypeTags.READONLY)
                     .map(t -> getIntersection(intersectionContext, t, env, finalType, visitedTypes))
                     .filter(Objects::nonNull)
-                    .toList();
+                    .collect(Collectors.toList());
             if (types.size() == 1) {
                 BType bType = types.get(0);
 
@@ -2920,7 +2921,7 @@ public class Types {
             if (!addedKeys.add(key)) {
                 continue;
             }
-            
+
             BType intersectionFieldType;
 
             long intersectionFlags = lhsRecordField.symbol.flags;
@@ -3182,7 +3183,7 @@ public class Types {
                 originalType.tsymbol.pkgID, null,
                 originalType.tsymbol.owner, originalType.tsymbol.pos,
                 VIRTUAL);
-        BFiniteType ft = new BFiniteType(finiteTypeSymbol, newValueSpace.toArray(SemNamedType[]::new));
+        BFiniteType ft = new BFiniteType(finiteTypeSymbol, newValueSpace.toArray(new SemNamedType[0]));
         finiteTypeSymbol.type = ft;
         return ft;
     }
@@ -3643,8 +3644,8 @@ public class Types {
         ListMemberTypes lmTypes1 = Core.listAllMemberTypesInner(cx, t1);
         ListMemberTypes lmTypes2 = Core.listAllMemberTypesInner(cx, t2);
         CombinedRange[] combinedRanges = combineRanges(
-                lmTypes1.ranges().toArray(Range[]::new),
-                lmTypes2.ranges().toArray(Range[]::new)
+                lmTypes1.ranges().toArray(new Range[0]),
+                lmTypes2.ranges().toArray(new Range[0])
         );
         SemType accum = PredefinedType.NIL;
         for (CombinedRange combinedRange : combinedRanges) {

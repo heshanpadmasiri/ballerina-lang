@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static io.ballerina.projects.PackageVersion.BUILTIN_PACKAGE_VERSION;
 
@@ -189,7 +190,7 @@ public class BlendedManifest {
         return dependency.modules()
                 .stream()
                 .map(DependencyManifest.Module::moduleName)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private static Collection<String> moduleNames(PackageManifest.Dependency dependency,
@@ -198,7 +199,7 @@ public class BlendedManifest {
                 dependency.org(), dependency.name(), dependency.version());
         return moduleDescriptors.stream()
                 .map(moduleDesc -> moduleDesc.name().toString())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public Optional<Dependency> lockedDependency(PackageOrg org, PackageName name) {
@@ -237,7 +238,7 @@ public class BlendedManifest {
     private Collection<Dependency> dependencies(DependencyOrigin origin) {
         return depContainer.getAll().stream()
                 .filter(dep -> dep.origin == origin)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public DiagnosticResult diagnosticResult() {

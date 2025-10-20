@@ -105,7 +105,7 @@ public abstract class AbstractPackageRepository implements PackageRepository {
             minSemVer = SemanticVersion.from(packageVersion.toString());
         }
         List<SemanticVersion> semVers = packageVersions.stream()
-                .map(version -> SemanticVersion.from(version.toString())).toList();
+                .map(version -> SemanticVersion.from(version.toString())).collect(Collectors.toList());
         CompatibleRange compatibilityRange = ProjectUtils.getCompatibleRange(minSemVer, packageLockingMode);
         List<SemanticVersion> compatibleVersions = ProjectUtils.getVersionsInCompatibleRange(
                 minSemVer, semVers, compatibilityRange);
@@ -127,10 +127,10 @@ public abstract class AbstractPackageRepository implements PackageRepository {
         // If the module is not found in the possible packages locked in the Dependencies.toml
         // we continue looking for the module in the remaining possible packages.
         List<PackageName> existing = importModuleRequest.possiblePackages().stream().map(PackageDescriptor::name)
-                .toList();
+                .collect(Collectors.toList());
         List<PackageName> remainingPackageNames = ProjectUtils.getPossiblePackageNames(
                 importModuleRequest.packageOrg(), importModuleRequest.moduleName()).stream()
-                .filter(o -> !existing.contains(o)).toList();
+                .filter(o -> !existing.contains(o)).collect(Collectors.toList());
 
         for (PackageName possiblePackageName : remainingPackageNames) {
             List<PackageVersion> packageVersions = getPackageVersions(importModuleRequest.packageOrg(),

@@ -22,6 +22,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.util.Collection;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * This class contains various static methods that operate on {@code Diagnostic} instances.
@@ -66,12 +67,12 @@ public final class Diagnostics {
                                                             DiagnosticSeverity severity) {
         return filterDiagnostics(diagnostics, diagnostic -> diagnostic.diagnosticInfo().severity() == severity);
     }
-    
+
     private static Collection<Diagnostic> filterDiagnostics(Collection<Diagnostic> diagnostics,
                                                             Predicate<Diagnostic> predicate) {
         return diagnostics.stream()
                 .filter(predicate)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private static boolean hasDiagnosticsWithSeverity(Collection<Diagnostic> diagnostics,

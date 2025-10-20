@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This class is responsible for creating the Package dependency graph with no version conflicts.
@@ -144,7 +145,7 @@ public class PackageDependencyGraphBuilder {
     public Collection<DependencyNode> getAllDependencies() {
         return vertices.values().stream()
                 .filter(vertex -> !vertex.equals(rootDepNode))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public DependencyGraph<DependencyNode> buildGraph() {
@@ -175,7 +176,7 @@ public class PackageDependencyGraphBuilder {
     public Collection<DependencyNode> getUnresolvedNodes() {
         Collection<DependencyNode> unresolvedNodes = unresolvedVertices.stream()
                 .map(vertices::get)
-                .toList();
+                .collect(Collectors.toList());
         this.unresolvedVertices = new HashSet<>();
         return unresolvedNodes;
     }

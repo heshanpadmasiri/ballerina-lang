@@ -271,6 +271,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1899,7 +1900,7 @@ public class CodeAnalyzer extends SimpleBLangNodeAnalyzer<CodeAnalyzer.AnalyzerD
     private List<BLangExpression> getVarRefs(BLangRecordVarRef varRef) {
         return Stream.concat(
                 varRef.recordRefFields.stream().map(e -> e.variableReference),
-                Stream.ofNullable(varRef.restParam)).toList();
+                Stream.ofNullable(varRef.restParam)).collect(Collectors.toList());
     }
 
     private List<BLangExpression> getVarRefs(BLangErrorVarRef varRef) {
@@ -1910,7 +1911,7 @@ public class CodeAnalyzer extends SimpleBLangNodeAnalyzer<CodeAnalyzer.AnalyzerD
         if (varRef.cause != null) {
             varRefs.add(varRef.cause);
         }
-        varRefs.addAll(varRef.detail.stream().map(e -> e.expr).toList());
+        varRefs.addAll(varRef.detail.stream().map(e -> e.expr).collect(Collectors.toList()));
         if (varRef.restVar != null) {
             varRefs.add(varRef.restVar);
         }
@@ -2668,7 +2669,7 @@ public class CodeAnalyzer extends SimpleBLangNodeAnalyzer<CodeAnalyzer.AnalyzerD
             actionInvocation.invokedInsideTransaction = true;
         }
     }
-    
+
     @Override
     public void visit(BLangInvocation.BLangResourceAccessInvocation resourceActionInvocation, AnalyzerData data) {
         validateInvocationInMatchGuard(resourceActionInvocation);
@@ -2677,13 +2678,13 @@ public class CodeAnalyzer extends SimpleBLangNodeAnalyzer<CodeAnalyzer.AnalyzerD
         analyzeExprs(resourceActionInvocation.restArgs, data);
         analyzeExpr(resourceActionInvocation.resourceAccessPathSegments, data);
         resourceActionInvocation.invokedInsideTransaction = data.withinTransactionScope;
-        
+
         if (Symbols.isFlagOn(resourceActionInvocation.symbol.flags, Flags.TRANSACTIONAL) &&
                 !data.withinTransactionScope) {
             dlog.error(resourceActionInvocation.pos, DiagnosticErrorCode.TRANSACTIONAL_FUNC_INVOKE_PROHIBITED);
             return;
         }
-        
+
         if (Symbols.isFlagOn(resourceActionInvocation.symbol.flags, Flags.DEPRECATED)) {
             logDeprecatedWarningForInvocation(resourceActionInvocation);
         }
@@ -2870,7 +2871,7 @@ public class CodeAnalyzer extends SimpleBLangNodeAnalyzer<CodeAnalyzer.AnalyzerD
     public void visit(BLangXMLFilterStepExtend xmlFilterStepExtend, AnalyzerData data) {
         /* ignore */
     }
-   
+
     @Override
     public void visit(BLangXMLMethodCallStepExtend xmlMethodCallStepExtend, AnalyzerData data) {
         analyzeExpr(xmlMethodCallStepExtend.invocation, data);
@@ -2889,7 +2890,7 @@ public class CodeAnalyzer extends SimpleBLangNodeAnalyzer<CodeAnalyzer.AnalyzerD
             List<BLangWorkerAsyncSendExpr> sendsToGivenWrkr = sendStmts.stream()
                                                               .filter(bLangNode -> bLangNode.workerIdentifier.equals
                                                                       (flushWrkIdentifier))
-                                                              .toList();
+                                                              .collect(Collectors.toList());
             if (sendsToGivenWrkr.isEmpty()) {
                 this.dlog.error(workerFlushExpr.pos, DiagnosticErrorCode.INVALID_WORKER_FLUSH_FOR_WORKER,
                                 workerFlushExpr.workerSymbol, currentWrkerAction.currentWorkerId());
@@ -2913,7 +2914,7 @@ public class CodeAnalyzer extends SimpleBLangNodeAnalyzer<CodeAnalyzer.AnalyzerD
         return actions.stream()
                       .filter(CodeAnalyzer::isWorkerSend)
                       .map(bLangNode -> (BLangWorkerAsyncSendExpr) bLangNode)
-                      .toList();
+                      .collect(Collectors.toList());
     }
     @Override
     public void visit(BLangTrapExpr trapExpr, AnalyzerData data) {

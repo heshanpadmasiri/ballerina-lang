@@ -59,7 +59,7 @@ public class Manifest {
                     dependency.setMetadata(convertObjectToDependencyMetadata(entry.getValue()));
                     return dependency;
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private DependencyMetadata convertObjectToDependencyMetadata(Object obj) {
@@ -105,7 +105,7 @@ public class Manifest {
             }
             // Check if module have platform specific libraries
             List<Library> deps = platform.libraries.stream().filter(library -> library.getModules() == null ||
-                Arrays.stream(library.getModules()).anyMatch(moduleName::equals)).toList();
+                Arrays.stream(library.getModules()).anyMatch(moduleName::equals)).collect(Collectors.toList());
             // If not return any
             if (!deps.isEmpty()) {
                 return platform.target;
