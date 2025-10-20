@@ -17,8 +17,9 @@
  */
 package io.ballerina.projects;
 
+import io.ballerina.tools.envutils.Uuid;
+
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * A unique identifier of a {@code Module} instance.
@@ -26,21 +27,21 @@ import java.util.UUID;
  * @since 2.0.0
  */
 public final class ModuleId {
-    private final UUID id;
+    private final Uuid id;
     private final String moduleName;
     private final PackageId packageId;
 
-    private ModuleId(UUID id, String moduleName, PackageId packageId) {
+    private ModuleId(Uuid id, String moduleName, PackageId packageId) {
         this.id = id;
         this.moduleName = moduleName;
         this.packageId = packageId;
     }
 
     public static ModuleId create(String moduleDirPath, PackageId packageId) {
-        return new ModuleId(UUID.randomUUID(), moduleDirPath, packageId);
+        return new ModuleId(Uuid.randomUuid(), moduleDirPath, packageId);
     }
 
-    public UUID id() {
+    public Uuid id() {
         return id;
     }
 

@@ -17,8 +17,9 @@
  */
 package io.ballerina.projects;
 
+import io.ballerina.tools.envutils.Uuid;
+
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * A unique identifier of a {@code Package} instance.
@@ -26,19 +27,19 @@ import java.util.UUID;
  * @since 2.0.0
  */
 public final class PackageId {
-    private final UUID id;
+    private final Uuid id;
     private final String packageName;
 
-    private PackageId(UUID id, String packageName) {
+    private PackageId(Uuid id, String packageName) {
         this.id = id;
         this.packageName = packageName;
     }
 
     public static PackageId create(String packageName) {
-        return new PackageId(UUID.randomUUID(), packageName);
+        return new PackageId(Uuid.randomUuid(), packageName);
     }
 
-    public UUID id() {
+    public Uuid id() {
         return id;
     }
 
