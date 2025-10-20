@@ -69,7 +69,7 @@ public class BuildProject extends Project implements Comparable<Project> {
      * @param projectPath Ballerina project path
      * @return build project
      */
-    @Deprecated(since = "2201.13.0", forRemoval = true)
+    @Deprecated
     public static BuildProject load(ProjectEnvironmentBuilder environmentBuilder, Path projectPath) {
         return load(environmentBuilder, projectPath, BuildOptions.builder().build());
     }
@@ -81,7 +81,7 @@ public class BuildProject extends Project implements Comparable<Project> {
      * @param projectPath Ballerina project path
      * @return BuildProject instance
      */
-    @Deprecated(since = "2201.13.0", forRemoval = true)
+    @Deprecated
     public static BuildProject load(Path projectPath) {
         return load(projectPath, BuildOptions.builder().build());
     }
@@ -94,7 +94,7 @@ public class BuildProject extends Project implements Comparable<Project> {
      * @param buildOptions build options
      * @return BuildProject instance
      */
-    @Deprecated(since = "2201.13.0", forRemoval = true)
+    @Deprecated
     public static BuildProject load(Path projectPath, BuildOptions buildOptions) {
         ProjectEnvironmentBuilder environmentBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         return load(environmentBuilder, projectPath, buildOptions);
@@ -109,7 +109,7 @@ public class BuildProject extends Project implements Comparable<Project> {
      * @param buildOptions build options
      * @return BuildProject instance
      */
-    @Deprecated(since = "2201.13.0", forRemoval = true)
+    @Deprecated
     public static BuildProject load(ProjectEnvironmentBuilder environmentBuilder, Path projectPath,
                                     BuildOptions buildOptions) {
         PackageConfig packageConfig = PackageConfigCreator.createBuildProjectConfig(projectPath,

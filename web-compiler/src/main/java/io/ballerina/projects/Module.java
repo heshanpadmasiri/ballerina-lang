@@ -84,12 +84,12 @@ public class Module {
         return this.moduleContext.testSrcDocumentIds();
     }
 
-    @Deprecated(since = "2201.10.0", forRemoval = true)
+    @Deprecated
     public Collection<DocumentId> resourceIds() {
         return this.moduleContext.project().currentPackage().resourceIds();
     }
 
-    @Deprecated(since = "2201.10.0", forRemoval = true)
+    @Deprecated
     public Collection<DocumentId> testResourceIds() {
         return this.moduleContext.project().currentPackage().getDefaultModule().testResourceIds();
     }
@@ -103,7 +103,7 @@ public class Module {
         }
     }
 
-    @Deprecated(since = "2201.10.0", forRemoval = true)
+    @Deprecated
     public Resource resource(DocumentId documentId) {
         return this.packageInstance.resource(documentId);
         // TODO Should we throw an error if the documentId is not present
@@ -134,7 +134,7 @@ public class Module {
         return new Modifier(this);
     }
 
-    @Deprecated (forRemoval = true)
+    @Deprecated
     ModuleContext moduleContext() {
         return moduleContext;
     }
@@ -145,7 +145,7 @@ public class Module {
      * @return ModuleMd
      * @deprecated use {@link #readmeMd()} instead.
      */
-    @Deprecated (forRemoval = true, since = "2.11.0")
+    @Deprecated
     public Optional<ModuleMd> moduleMd() {
         if (null == this.moduleMd) {
             this.moduleMd = this.moduleContext.moduleMdContext().map(c ->
@@ -223,7 +223,7 @@ public class Module {
          * @param resourceConfig configurations to create the resource
          * @return an instance of the Module.Modifier
          */
-        @Deprecated(since = "2201.10.0", forRemoval = true)
+        @Deprecated
         public Modifier addResource(ResourceConfig resourceConfig) {
             return this;
         }
@@ -234,7 +234,7 @@ public class Module {
          * @param resourceConfig configurations to create the test resource
          * @return an instance of the Module.Modifier
          */
-        @Deprecated(since = "2201.10.0", forRemoval = true)
+        @Deprecated
         public Modifier addTestResource(ResourceConfig resourceConfig) {
             return this;
         }
@@ -245,7 +245,7 @@ public class Module {
          * @param documentId documentId of the resource to remove
          * @return an instance of the Module.Modifier
          */
-        @Deprecated(since = "2201.10.0", forRemoval = true)
+        @Deprecated
         public Modifier removeResource(DocumentId documentId) {
             return this;
         }

@@ -57,7 +57,7 @@ public class SingleFileProject extends Project implements Comparable<Project> {
      * @param filePath ballerina standalone file path
      * @return single file project
      */
-    @Deprecated(forRemoval = true, since = "2201.0.0")
+    @Deprecated
     public static SingleFileProject load(ProjectEnvironmentBuilder environmentBuilder, Path filePath) {
         final BuildOptions.BuildOptionsBuilder buildOptionsBuilder = BuildOptions.builder();
         return load(environmentBuilder, filePath, buildOptionsBuilder.build());
@@ -73,7 +73,7 @@ public class SingleFileProject extends Project implements Comparable<Project> {
      * @param buildOptions build options
      * @return single file project
      */
-    @Deprecated(forRemoval = true, since = "2201.0.0")
+    @Deprecated
     public static SingleFileProject load(ProjectEnvironmentBuilder environmentBuilder, Path filePath,
                                          BuildOptions buildOptions) {
         PackageConfig packageConfig = PackageConfigCreator.createSingleFileProjectConfig(filePath);
@@ -90,7 +90,7 @@ public class SingleFileProject extends Project implements Comparable<Project> {
      * @param filePath ballerina standalone file path
      * @return single file project
      */
-    @Deprecated(forRemoval = true, since = "2201.0.0")
+    @Deprecated
     public static SingleFileProject load(Path filePath) {
         return load(filePath, BuildOptions.builder().build());
     }
@@ -103,7 +103,7 @@ public class SingleFileProject extends Project implements Comparable<Project> {
      * @param buildOptions build options
      * @return single file project
      */
-    @Deprecated(forRemoval = true, since = "2201.0.0")
+    @Deprecated
     public static SingleFileProject load(Path filePath, BuildOptions buildOptions) {
         PackageConfig packageConfig = PackageConfigCreator.createSingleFileProjectConfig(filePath,
                 buildOptions.disableSyntaxTree());

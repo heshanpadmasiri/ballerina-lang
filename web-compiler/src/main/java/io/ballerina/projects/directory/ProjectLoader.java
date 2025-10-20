@@ -73,7 +73,7 @@ public final class ProjectLoader {
      * @return Project instance
      * @throws ProjectException if an invalid path is provided
      */
-    @Deprecated(since = "2201.13.0", forRemoval = true)
+    @Deprecated
     public static Project loadProject(Path path) {
         return loadProject(path, ProjectEnvironmentBuilder.getDefaultBuilder(), BuildOptions.builder().build());
     }
@@ -87,7 +87,7 @@ public final class ProjectLoader {
      * @return Project instance
      * @throws ProjectException if an invalid path is provided
      */
-    @Deprecated(since = "2201.13.0", forRemoval = true)
+    @Deprecated
     public static Project loadProject(Path path, BuildOptions buildOptions) {
         return loadProject(path, ProjectEnvironmentBuilder.getDefaultBuilder(), buildOptions);
     }
@@ -101,7 +101,7 @@ public final class ProjectLoader {
      * @return Project instance
      * @throws ProjectException if an invalid path is provided
      */
-    @Deprecated(since = "2201.13.0", forRemoval = true)
+    @Deprecated
     public static Project loadProject(Path path, ProjectEnvironmentBuilder projectEnvironmentBuilder) {
         return loadProject(path, projectEnvironmentBuilder, BuildOptions.builder().build());
     }
@@ -114,7 +114,7 @@ public final class ProjectLoader {
      * @return Project instance
      * @throws ProjectException if an invalid path is provided
      */
-    @Deprecated(since = "2201.13.0", forRemoval = true)
+    @Deprecated
     public static Project loadProject(Path path, ProjectEnvironmentBuilder projectEnvironmentBuilder,
                                       BuildOptions buildOptions) throws ProjectException {
         throw new RuntimeException();

@@ -44,7 +44,7 @@ import java.util.Optional;
  *
  * @since 2.0.0
  */
-@Deprecated(since = "2201.13.0", forRemoval = true)
+@Deprecated
 public class BalaProject extends Project {
     private final String platform;
     private final String balaVersion;

@@ -49,7 +49,7 @@ public class Resource {
         return resourceContext.content();
     }
 
-    @Deprecated(since = "2201.10.0", forRemoval = true)
+    @Deprecated
     public Module module() {
         return packageInstance.getDefaultModule();
     }

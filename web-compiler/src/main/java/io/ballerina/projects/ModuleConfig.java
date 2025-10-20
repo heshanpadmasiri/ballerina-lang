@@ -93,7 +93,7 @@ public class ModuleConfig {
         return dependencies;
     }
 
-    @Deprecated (forRemoval = true, since = "2.11.0")
+    @Deprecated
     public Optional<DocumentConfig> moduleMd() {
         return Optional.ofNullable(this.readmeMd);
     }
@@ -102,12 +102,12 @@ public class ModuleConfig {
         return Optional.ofNullable(this.readmeMd);
     }
 
-    @Deprecated(since = "2201.10.0", forRemoval = true)
+    @Deprecated
     public List<ResourceConfig> resources() {
         return null;
     }
 
-    @Deprecated(since = "2201.10.0", forRemoval = true)
+    @Deprecated
     public List<ResourceConfig> testResources() {
         return null;
     }

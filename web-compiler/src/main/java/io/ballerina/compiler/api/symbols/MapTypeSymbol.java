@@ -31,7 +31,7 @@ public interface MapTypeSymbol extends TypeSymbol {
      * @return {@link TypeSymbol} of the members
      * @deprecated This method will be removed in a later release. Use `typeParam()` instead.
      */
-    @Deprecated(forRemoval = true, since = "slalpha5")
+    @Deprecated
     Optional<TypeSymbol> typeParameter();
 
     /**
