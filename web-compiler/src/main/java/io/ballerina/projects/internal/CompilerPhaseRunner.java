@@ -25,7 +25,6 @@ import org.wso2.ballerinalang.compiler.desugar.ConstantPropagation;
 import org.wso2.ballerinalang.compiler.desugar.Desugar;
 import org.wso2.ballerinalang.compiler.diagnostic.CompilerBadSadDiagnostic;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.CodeAnalyzer;
-import org.wso2.ballerinalang.compiler.semantics.analyzer.CompilerPluginRunner;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.DataflowAnalyzer;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.DocumentationAnalyzer;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.IsolationAnalyzer;
@@ -55,7 +54,6 @@ public class CompilerPhaseRunner {
     private final CodeAnalyzer codeAnalyzer;
     private final ConstantPropagation constantPropagation;
     private final DocumentationAnalyzer documentationAnalyzer;
-    private final CompilerPluginRunner compilerPluginRunner;
     private final Desugar desugar;
     private final BIRGen birGenerator;
     private final BIREmitter birEmitter;
@@ -82,7 +80,6 @@ public class CompilerPhaseRunner {
         this.codeAnalyzer = CodeAnalyzer.getInstance(context);
         this.documentationAnalyzer = DocumentationAnalyzer.getInstance(context);
         this.constantPropagation = ConstantPropagation.getInstance(context);
-        this.compilerPluginRunner = CompilerPluginRunner.getInstance(context);
         this.desugar = Desugar.getInstance(context);
         this.birGenerator = BIRGen.getInstance(context);
         this.birEmitter = BIREmitter.getInstance(context);
@@ -194,7 +191,7 @@ public class CompilerPhaseRunner {
     }
 
     private BLangPackage annotationProcess(BLangPackage pkgNode) {
-        return this.compilerPluginRunner.runPlugins(pkgNode);
+        return pkgNode;
     }
 
     public BLangPackage desugar(BLangPackage pkgNode) {

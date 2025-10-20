@@ -19,13 +19,54 @@ package org.wso2.ballerinalang.compiler.semantics.model.types;
 
 import io.ballerina.types.SemType;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Represents a sem-type and its user-specified string representation.
  *
- * @param semType Sem-type representation of a type
- * @param optName User-specified string representation for the type, if available
  */
-public record SemNamedType(SemType semType, Optional<String> optName) {
+public final class SemNamedType {
+
+    private final SemType semType;
+    private final Optional<String> optName;
+
+    /**
+     * @param semType Sem-type representation of a type
+     * @param optName User-specified string representation for the type, if available
+     */
+    public SemNamedType(SemType semType, Optional<String> optName) {
+        this.semType = semType;
+        this.optName = optName;
+    }
+
+    public SemType semType() {
+        return semType;
+    }
+
+    public Optional<String> optName() {
+        return optName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (SemNamedType) obj;
+        return Objects.equals(this.semType, that.semType) &&
+                Objects.equals(this.optName, that.optName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(semType, optName);
+    }
+
+    @Override
+    public String toString() {
+        return "SemNamedType[" +
+                "semType=" + semType + ", " +
+                "optName=" + optName + ']';
+    }
+
 }

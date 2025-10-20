@@ -17,21 +17,9 @@
  */
 package org.wso2.ballerinalang.compiler.util;
 
+import io.ballerina.fs.Path;
 import org.ballerinalang.compiler.BLangCompilerException;
 import org.ballerinalang.model.elements.PackageID;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.PathMatcher;
-import java.util.stream.Stream;
-
-import io.ballerina.fs.Path;
-
-import static org.wso2.ballerinalang.compiler.util.ProjectDirConstants.BLANG_SOURCE_EXT;
 
 /**
  * This class contains project directory specific utility methods.
@@ -40,20 +28,8 @@ import static org.wso2.ballerinalang.compiler.util.ProjectDirConstants.BLANG_SOU
  */
 public final class ProjectDirs {
 
-    private static final PathMatcher SOURCE_FILE_MATCHER = FileSystems.getDefault().getPathMatcher(
-            "glob:*" + BLANG_SOURCE_EXT);
-
-    private static final PathMatcher TEST_FILE_MATCHER = FileSystems.getDefault().getPathMatcher(
-            "glob:../src/*/tests/**" + BLANG_SOURCE_EXT);
-
-    private static final PathMatcher TEST_RESOURCE_FILE_MATCHER = FileSystems.getDefault().getPathMatcher(
-            "glob:../src/*/tests/resources/**" + BLANG_SOURCE_EXT);
 
     private ProjectDirs() {
-    }
-
-    public static boolean isSourceFile(Path path) {
-        throw new RuntimeException();
     }
 
     public static Path getLastComp(Path path) {

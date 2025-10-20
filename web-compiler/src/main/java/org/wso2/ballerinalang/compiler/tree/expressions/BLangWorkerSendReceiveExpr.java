@@ -17,6 +17,8 @@
  */
 package org.wso2.ballerinalang.compiler.tree.expressions;
 
+import java.util.Objects;
+
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolEnv;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
@@ -43,18 +45,64 @@ public abstract class BLangWorkerSendReceiveExpr extends BLangExpression {
         this.channel = channel;
     }
 
-    public record Channel(String sender, String receiver, int eventIndex) {
+    public static final class Channel {
 
-        public String workerPairId() {
-            return workerPairId(sender, receiver);
+        private final String sender;
+        private final String receiver;
+        private final int eventIndex;
+
+        public Channel(String sender, String receiver, int eventIndex) {
+            this.sender = sender;
+            this.receiver = receiver;
+            this.eventIndex = eventIndex;
         }
 
-        public static String workerPairId(String sender, String receiver) {
-            return sender + "->" + receiver;
+            public String workerPairId() {
+                return workerPairId(sender, receiver);
+            }
+
+            public static String workerPairId(String sender, String receiver) {
+                return sender + "->" + receiver;
+            }
+
+            public String channelId() {
+                return sender + "->" + receiver + ":" + eventIndex;
+            }
+
+        public String sender() {
+            return sender;
         }
 
-        public String channelId() {
-            return sender + "->" + receiver + ":" + eventIndex;
+        public String receiver() {
+            return receiver;
         }
-    }
+
+        public int eventIndex() {
+            return eventIndex;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (Channel) obj;
+            return Objects.equals(this.sender, that.sender) &&
+                    Objects.equals(this.receiver, that.receiver) &&
+                    this.eventIndex == that.eventIndex;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(sender, receiver, eventIndex);
+        }
+
+        @Override
+        public String toString() {
+            return "Channel[" +
+                    "sender=" + sender + ", " +
+                    "receiver=" + receiver + ", " +
+                    "eventIndex=" + eventIndex + ']';
+        }
+
+        }
 }

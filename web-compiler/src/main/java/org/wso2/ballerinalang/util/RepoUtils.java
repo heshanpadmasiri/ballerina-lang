@@ -17,28 +17,15 @@
  */
 package org.wso2.ballerinalang.util;
 
-import io.ballerina.fs.Path;
-import io.ballerina.projects.Settings;
-import io.ballerina.projects.TomlDocument;
-import io.ballerina.projects.internal.SettingsBuilder;
-import io.ballerina.projects.util.ProjectConstants;
-import org.ballerinalang.compiler.BLangCompilerException;
-import org.ballerinalang.toml.exceptions.TomlException;
-import org.ballerinalang.toml.model.Manifest;
-import org.ballerinalang.toml.parser.ManifestProcessor;
-import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
-import org.wso2.ballerinalang.compiler.util.ProjectDirs;
-
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.regex.Pattern;
+
+import io.ballerina.fs.Path;
+import org.ballerinalang.compiler.BLangCompilerException;
+import org.ballerinalang.toml.model.Manifest;
+import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
+import org.wso2.ballerinalang.compiler.util.ProjectDirs;
 
 /**
  * Home repository util methods.
@@ -62,7 +49,6 @@ public final class RepoUtils {
     private static final String DEV_GRAPHQL_URL = "https://api.dev-central.ballerina.io/2.0/graphql";
 
     private static final String BALLERINA_ORG = "ballerina";
-    private static final String BALLERINAX_ORG = "ballerinax";
 
     public static final String BALLERINA_STAGE_CENTRAL = "BALLERINA_STAGE_CENTRAL";
     public static final String BALLERINA_DEV_CENTRAL = "BALLERINA_DEV_CENTRAL";
@@ -230,16 +216,6 @@ public final class RepoUtils {
         return UNKNOWN;
     }
 
-    public static String getBallerinaPackVersion() {
-        try (InputStream inputStream = RepoUtils.class.getResourceAsStream(ProjectDirConstants.PROPERTIES_FILE)) {
-            Properties properties = new Properties();
-            properties.load(inputStream);
-            return properties.getProperty(ProjectDirConstants.BALLERINA_PACK_VERSION);
-        } catch (Throwable ignore) {
-        }
-        return UNKNOWN;
-    }
-
     public static String getBallerinaShortVersion() {
         try (InputStream inputStream = RepoUtils.class.getResourceAsStream(ProjectDirConstants.PROPERTIES_FILE)) {
             Properties properties = new Properties();
@@ -261,103 +237,13 @@ public final class RepoUtils {
     }
 
     /**
-     * Validates the org-name and package name.
-     *
-     * @param orgName The org-name
-     * @return True if valid org-name or package name, else false.
-     */
-    public static boolean validateOrg(String orgName) {
-        String validRegex = "^[a-z0-9_]*$";
-        return Pattern.matches(validRegex, orgName);
-    }
-
-    /**
-     * Validates the org-name and package name.
-     *
-     * @param pkgName The package name.
-     * @return True if valid package name, else false.
-     */
-    public static boolean validatePkg(String pkgName) {
-        String validRegex = "^[a-zA-Z0-9_.]*$";
-        return Pattern.matches(validRegex, pkgName);
-    }
-
-    /**
-     * Validates the org-name and package name.
-     *
-     * @param pkgName The package name.
-     * @return True if valid package name, else false.
-     */
-    public static boolean validateModuleName(String pkgName) {
-        String validRegex = "^[a-zA-Z0-9_.]*$";
-        return Pattern.matches(validRegex, pkgName);
-    }
-
-    /**
-     * Check if the org-name is a reserved org-name in ballerina.
-     *
-     * @param orgName The org-name
-     * @return True if the org-name is reserved, else false.
-     */
-    public static boolean isReservedOrgName(String orgName) {
-        return orgName.equals(BALLERINA_ORG) || orgName.equals(BALLERINAX_ORG);
-    }
-
-    /**
-     * Check if ballerina version is from a stable release or a nightly build.
-     *
-     * @return True if ballerina version is from a nightly build, else false.
-     */
-    public static boolean isANightlyBuild() {
-        return getBallerinaPackVersion().contains("SNAPSHOT");
-    }
-    
-    /**
      * Get the Ballerina.toml from a bala file.
      *
      * @param balaPath The path to bala file.
      * @return Ballerina.toml contents.
      */
     public static Manifest getManifestFromBala(Path balaPath) {
-        try (JarFile jar = new JarFile(balaPath.toString())) {
-            Enumeration<JarEntry> enumEntries = jar.entries();
-            while (enumEntries.hasMoreElements()) {
-                JarEntry file = enumEntries.nextElement();
-                if (file.getName().contains(ProjectDirConstants.MANIFEST_FILE_NAME)) {
-                    if (file.isDirectory()) { // if its a directory, ignore
-                        continue;
-                    }
-                    // get the input stream
-                    Manifest manifest;
-                    try (InputStream is = jar.getInputStream(file)) {
-                        manifest = ManifestProcessor.parseTomlContentAsStream(is);
-                    }
-                    
-                    return manifest;
-                }
-            }
-        } catch (IOException e) {
-            throw new BLangCompilerException("unable to read bala file: " + balaPath +
-                                             ". bala file seems to be corrupted.");
-        } catch (TomlException e) {
-            throw new BLangCompilerException("unable to read bala file: " + balaPath +
-                                             ". bala file seems to be corrupted: " + e.getMessage());
-        }
-    
-        throw new BLangCompilerException("unable to find '/metadata/Ballerina.toml' file in bala file: " +
-                                         balaPath + "");
+        throw new RuntimeException();
     }
 
-    /**
-     * Read Settings.toml to populate the configurations.
-     *
-     * @return {@link Settings} settings object
-     */
-    public static Settings readSettings() {
-        Path settingsFilePath = RepoUtils.createAndGetHomeReposPath().resolve(ProjectConstants.SETTINGS_FILE_NAME);
-        TomlDocument settingsTomlDocument = TomlDocument
-                .from(String.valueOf(settingsFilePath.getFileName()), settingsFilePath.readString());
-        SettingsBuilder settingsBuilder = SettingsBuilder.from(settingsTomlDocument);
-        return settingsBuilder.settings();
-    }
 }
