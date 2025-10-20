@@ -1,0 +1,25 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@j2cl//build_defs:rules.bzl", "j2cl_library")
+
+j2cl_library(
+    name = "web-compiler-j2cl",
+    srcs = glob([
+        "src/main/java/**/*.java",
+    ], exclude=[
+        "src/main/java/module-info.java",
+        "src/main/java/io/ballerina/projects/SemanticVersion.java",
+    ]),
+    deps = [
+        "//ballerina-envutils:ballerina-envutils-j2cl",
+        "//compiler/ballerina-tools-api:ballerina-tools-api-j2cl",
+        "//compiler/ballerina-parser:ballerina-parser-j2cl",
+        "//bvm/ballerina-runtime:ballerina-runtime-j2cl",
+        "//semtypes:semtypes-j2cl",
+        "//misc/identifier-util:identifier-util-j2cl",
+    ],
+    javacopts = [
+        "-source", "21",
+        "-target", "21",
+    ],
+)

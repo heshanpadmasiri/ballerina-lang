@@ -21,7 +21,6 @@ import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.internal.ProjectDiagnosticErrorCode;
 import io.ballerina.projects.util.ProjectUtils;
 import io.ballerina.tools.diagnostics.Diagnostic;
-import org.ballerinalang.central.client.CentralClientConstants;
 
 
 public class Main {
@@ -39,7 +38,6 @@ public class Main {
                 project.currentPackage().getDefaultModule().documentIds().iterator().next()).name();
         // Print the source
         System.out.println("\t" + sourceName);
-        System.setProperty(CentralClientConstants.ENABLE_OUTPUT_STREAM, "true");
 
         try {
             List<Diagnostic> diagnostics = new ArrayList<>();

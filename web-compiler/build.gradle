@@ -26,7 +26,6 @@ dependencies {
     implementation project(':ballerina-parser')
     implementation project(':ballerina-runtime')
     implementation project(':semtypes')
-    implementation project(':central-client')
     implementation project(':identifier-util')
     implementation libs.zafarkhaja.jsemver
     testImplementation(libs.guru.nidi.graphviz) {

@@ -10,7 +10,6 @@ module io.ballerina.lang {
     requires io.ballerina.runtime;
     requires io.ballerina.parser;
     requires io.ballerina.tools.api;
-    requires io.ballerina.central.client;
     requires io.ballerina.semtype;
     requires io.ballerina.identifier;
     requires java.semver;

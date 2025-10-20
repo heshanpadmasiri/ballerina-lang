@@ -175,8 +175,10 @@ public class DefaultPackageResolver implements PackageResolver {
         Collection<ResolutionRequest> centralLoadRequests = requests.stream()
                 .filter(r -> !r.packageDescriptor().isBuiltInPackage())
                 .toList();
+//        Collection<PackageMetadataResponse> latestVersionsInCentral =
+//                centralRepo.getPackageMetadata(centralLoadRequests, options);
         Collection<PackageMetadataResponse> latestVersionsInCentral =
-                centralRepo.getPackageMetadata(centralLoadRequests, options);
+                List.of();
 
         // TODO Unit test following merge
         List<PackageMetadataResponse> responseDescriptors = new ArrayList<>(
