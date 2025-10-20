@@ -152,7 +152,7 @@ public class BallerinaConstantSymbol extends BallerinaVariableSymbol implements 
 
     private String toStringVal(Object obj, TypeSymbol valType) {
         if (obj instanceof String && valType.typeKind() == TypeDescKind.STRING) {
-            return String.format("\"%s\"", obj);
+            return "\"" + obj + "\"";
         }
 
         return String.valueOf(obj);

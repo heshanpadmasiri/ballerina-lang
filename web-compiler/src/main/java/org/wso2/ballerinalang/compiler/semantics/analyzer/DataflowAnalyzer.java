@@ -1927,7 +1927,7 @@ public class DataflowAnalyzer extends BLangNodeVisitor {
         StringBuilder uninitializedFields =
                 getUninitializedFieldsForSelfKeyword((BObjectType) ((BLangSimpleVarRef)
                         invocationExpr.expr).symbol.type);
-        if (!uninitializedFields.isEmpty()) {
+        if (uninitializedFields.length() != 0) {
             this.dlog.error(invocationExpr.pos, DiagnosticErrorCode.CONTAINS_UNINITIALIZED_FIELDS,
                     uninitializedFields.toString());
             return false;
@@ -1942,7 +1942,7 @@ public class DataflowAnalyzer extends BLangNodeVisitor {
             if (isSelfKeyWordExpr(expr)) {
                 StringBuilder uninitializedFields =
                         getUninitializedFieldsForSelfKeyword((BObjectType) ((BLangSimpleVarRef) expr).symbol.type);
-                if (!uninitializedFields.isEmpty()) {
+                if (uninitializedFields.length() != 0) {
                     this.dlog.error(location, DiagnosticErrorCode.CONTAINS_UNINITIALIZED_FIELDS,
                             uninitializedFields.toString());
                     return false;
@@ -1973,7 +1973,7 @@ public class DataflowAnalyzer extends BLangNodeVisitor {
                     uninitializedFields.append(", ").append(symbol.getName().value);
                 }
             }
-            if (!uninitializedFields.isEmpty()) {
+            if (uninitializedFields.length() != 0) {
                 this.dlog.error(pos, DiagnosticErrorCode.INVALID_FUNCTION_CALL_WITH_UNINITIALIZED_VARIABLES,
                         uninitializedFields.toString());
                 return false;

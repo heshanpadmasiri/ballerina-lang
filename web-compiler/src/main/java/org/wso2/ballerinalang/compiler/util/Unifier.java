@@ -841,7 +841,7 @@ public class Unifier implements BTypeVisitor<BType, BType> {
         }
 
         throw new IllegalStateException(
-                String.format("Param '%s' not found in function '%s'", sym.name, invokableSymbol.name));
+                "Param '" + sym.name + "' not found in function '" + invokableSymbol.name + "'");
     }
 
     private BType getParamConstraintTypeIfInferred(BLangFunction function, BParameterizedType parameterizedType) {

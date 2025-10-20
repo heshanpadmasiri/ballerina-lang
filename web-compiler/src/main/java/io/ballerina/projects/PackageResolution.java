@@ -17,7 +17,6 @@
  */
 package io.ballerina.projects;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -193,15 +192,6 @@ public class PackageResolution {
                 .filter(resolvedPkg -> resolvedPkg.packageId() != rootPackageContext.packageId())
                 .collect(Collectors.toList());
         return dependenciesWithTransitives;
-    }
-
-    /**
-     * Print the final dependency graph to the provided print stream.
-     *
-     * @param printStream print stream
-     */
-    public void dumpGraphs(PrintStream printStream) {
-        printStream.append(this.dependencyGraphDump);
     }
 
     PackageContext packageContext() {

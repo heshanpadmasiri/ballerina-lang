@@ -103,7 +103,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static java.lang.String.format;
+
 
 /**
  * Represents a set of factory methods to generate the {@link Symbol}s.
@@ -782,7 +782,7 @@ public class SymbolFactory {
         }
 
         throw new IllegalStateException(
-                format("Method symbol for '%s' not found in owner symbol '%s'", method.name, owner.name));
+                "Method symbol for '" + method.name + "' not found in owner symbol '" + owner.name + "'");
     }
 
     private boolean isFunctionPointer(BSymbol symbol) {

@@ -1499,7 +1499,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
 
     private Collector<BField, ?, LinkedHashMap<String, BField>> getFieldCollector() {
         BinaryOperator<BField> mergeFunc = (u, v) -> {
-            throw new IllegalStateException(String.format("Duplicate key %s", u));
+            throw new IllegalStateException("Duplicate key " + u);
         };
         return Collectors.toMap(field -> field.name.value, Function.identity(), mergeFunc, LinkedHashMap::new);
     }
@@ -4240,8 +4240,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
     @Override
     public void visit(BLangLetExpression letExpression, AnalyzerData data) {
         BLetSymbol letSymbol = new BLetSymbol(SymTag.LET, Flags.asMask(new HashSet<>(Lists.of())),
-                                              new Name(String.format("$let_symbol_%d$",
-                                                       data.commonAnalyzerData.letCount++)),
+                                              new Name("$let_symbol_" + (data.commonAnalyzerData.letCount++) + "$"),
                 data.env.enclPkg.symbol.pkgID, letExpression.getBType(), data.env.scope.owner,
                                               letExpression.pos);
         letExpression.env = SymbolEnv.createExprEnv(letExpression, data.env, letSymbol);

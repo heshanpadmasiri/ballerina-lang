@@ -77,14 +77,14 @@ public class BObjectType extends BStructureType implements ObjectType {
         super(TypeTags.OBJECT, tSymbol);
         assert env != null;
         this.env = env;
-        this.distinctIdSupplier = new DistinctIdSupplier(env);
+        this.distinctIdSupplier = new DistinctIdSupplier(env, typeIdSet);
     }
 
     public BObjectType(Env env, BTypeSymbol tSymbol, long flags) {
         super(TypeTags.OBJECT, tSymbol, flags);
         assert env != null;
         this.env = env;
-        this.distinctIdSupplier = new DistinctIdSupplier(env);
+        this.distinctIdSupplier = new DistinctIdSupplier(env, typeIdSet);
     }
 
     @Override
@@ -255,15 +255,17 @@ public class BObjectType extends BStructureType implements ObjectType {
         return false;
     }
 
-    private final class DistinctIdSupplier implements Supplier<List<Integer>> {
+    private static final class DistinctIdSupplier implements Supplier<List<Integer>> {
 
         private List<Integer> ids = null;
         private static final Map<Env, Map<BTypeIdSet.BTypeId, Integer>> allocatedIds =
                 Collections.synchronizedMap(new HashMap<>());
         private final Env env;
+        private final BTypeIdSet typeIdSet;
 
-        private DistinctIdSupplier(Env env) {
+        private DistinctIdSupplier(Env env, BTypeIdSet typeIdSet) {
             this.env = env;
+            this.typeIdSet = typeIdSet;
             allocatedIds.putIfAbsent(env, new ConcurrentHashMap<>());
         }
 

@@ -17,6 +17,18 @@
  */
 package org.wso2.ballerinalang.compiler.parser;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import io.ballerina.compiler.syntax.tree.AlternateReceiveNode;
 import io.ballerina.compiler.syntax.tree.AnnotAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.AnnotationAttachPointNode;
@@ -261,7 +273,6 @@ import io.ballerina.compiler.syntax.tree.XMLStepIndexedExtendNode;
 import io.ballerina.compiler.syntax.tree.XMLStepMethodCallExtendNode;
 import io.ballerina.compiler.syntax.tree.XMLTextNode;
 import io.ballerina.identifier.Utils;
-import io.ballerina.runtime.internal.xml.XmlFactory;
 import io.ballerina.tools.diagnostics.DiagnosticCode;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
@@ -506,20 +517,7 @@ import org.wso2.ballerinalang.compiler.util.Constants;
 import org.wso2.ballerinalang.compiler.util.FieldKind;
 import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.compiler.util.NumericLiteralSupport;
-import org.wso2.ballerinalang.compiler.util.QuoteType;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.Set;
 
 import static org.ballerinalang.model.elements.Flag.INCLUDED;
 import static org.ballerinalang.model.elements.Flag.ISOLATED;
@@ -3577,37 +3575,7 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
 
     @Override
     public BLangNode transform(XMLAttributeValue xmlAttributeValue) {
-        BLangXMLQuotedString quotedString = (BLangXMLQuotedString) TreeBuilder.createXMLQuotedStringNode();
-        quotedString.pos = getPosition(xmlAttributeValue);
-        if (xmlAttributeValue.startQuote().kind() == SyntaxKind.SINGLE_QUOTE_TOKEN) {
-            quotedString.quoteType = QuoteType.SINGLE_QUOTE;
-        } else {
-            quotedString.quoteType = QuoteType.DOUBLE_QUOTE;
-        }
-
-        if (xmlAttributeValue.value().isEmpty()) {
-            BLangLiteral emptyLiteral = createEmptyLiteral();
-            emptyLiteral.pos = getPosition(xmlAttributeValue);
-            quotedString.textFragments.add(emptyLiteral);
-        } else if (xmlAttributeValue.value().size() == 1 &&
-                xmlAttributeValue.value().get(0).kind() == SyntaxKind.INTERPOLATION) {
-            quotedString.textFragments.add(createExpression(xmlAttributeValue.value().get(0)));
-            BLangLiteral emptyLiteral = createEmptyLiteral();
-            emptyLiteral.pos = getPosition(xmlAttributeValue);
-            quotedString.textFragments.add(emptyLiteral);
-        } else {
-            for (Node value : xmlAttributeValue.value()) {
-                if (value.kind() == SyntaxKind.XML_TEXT_CONTENT) {
-                    Token token = (Token) value;
-                    String normalizedValue = XmlFactory.XMLTextUnescape.unescape(token.text());
-                    quotedString.textFragments.add(createStringLiteral(normalizedValue, getPosition(value)));
-                } else {
-                    quotedString.textFragments.add(createExpression(value));
-                }
-            }
-        }
-
-        return quotedString;
+        throw new RuntimeException();
     }
 
     @Override

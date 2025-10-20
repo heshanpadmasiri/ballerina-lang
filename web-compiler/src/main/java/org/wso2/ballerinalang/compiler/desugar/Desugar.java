@@ -1619,7 +1619,7 @@ public class Desugar extends BLangNodeVisitor {
                 blockStmt.addStatement((BLangSimpleVariableDef) node);
             }
         }
-        BLangSimpleVariableDef tempVarDef = createVarDef(String.format("$let_var_%d_$", letCount++),
+        BLangSimpleVariableDef tempVarDef = createVarDef("$let_var_" + (letCount++) + "_$",
                                                          expr.getBType(), expr, expr.pos);
         BLangSimpleVarRef tempVarRef = ASTBuilderUtil.createVariableRef(expr.pos, tempVarDef.var.symbol);
         blockStmt.addStatement(tempVarDef);

@@ -374,7 +374,7 @@ public class AnnotationDesugar {
         String serviceName = "service$" + serviceClass.name.getValue();
         PackageID moduleId = serviceClass.symbol.pkgID;
         LineRange lineRange = serviceClass.pos.lineRange();
-        return String.format("%d", Objects.hash(serviceName, moduleId, lineRange));
+        return String.valueOf(Objects.hash(serviceName, moduleId, lineRange));
     }
 
     private BLangLambdaFunction defineAnnotations(BLangClassDefinition classDef, BLangPackage pkgNode,

@@ -142,7 +142,7 @@ public class ToolContext {
      * @param message message to be printed
      */
     public void println(String message) {
-        printStream.printf("\t\t%s%n", message);
+        throw new RuntimeException();
     }
 
     /**

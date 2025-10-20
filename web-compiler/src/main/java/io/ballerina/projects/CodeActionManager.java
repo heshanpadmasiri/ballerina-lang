@@ -138,7 +138,7 @@ public class CodeActionManager {
     private static String getProviderPrefix(String diagnosticCode, CompilerPluginInfo compilerPluginInfo) {
         if (compilerPluginInfo.kind() == CompilerPluginKind.PACKAGE_PROVIDED) {
             PackageDescriptor descriptor = ((PackageProvidedCompilerPluginInfo) compilerPluginInfo).packageDesc();
-            return String.format("%s/%s/%s", diagnosticCode, descriptor.org().value(), descriptor.name().value());
+            return diagnosticCode + "/" + descriptor.org().value() + "/" + descriptor.name().value();
         } else {
             return diagnosticCode;
         }

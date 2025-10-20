@@ -87,6 +87,6 @@ public class CompilerBadSadDiagnostic extends Diagnostic {
 
     @Override
     public String toString() {
-        return String.format("error: %s", message());
+        return "error: " + message();
     }
 }
