@@ -19,12 +19,55 @@
 
 package org.wso2.ballerinalang.compiler.bir.model;
 
+import java.util.Objects;
+
 /**
  * Hold the scope of the instruction w.r.t variable declarations.
  *
- * @param id the BIR scope id
- * @param parent the parent scope
  * @since 2.0.0
  */
-public record BirScope(int id, BirScope parent) {
+public final class BirScope {
+
+    private final int id;
+    private final BirScope parent;
+
+    /**
+     * @param id     the BIR scope id
+     * @param parent the parent scope
+     *
+     */
+    public BirScope(int id, BirScope parent) {
+        this.id = id;
+        this.parent = parent;
+    }
+
+    public int id() {
+        return id;
+    }
+
+    public BirScope parent() {
+        return parent;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (BirScope) obj;
+        return this.id == that.id &&
+                Objects.equals(this.parent, that.parent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, parent);
+    }
+
+    @Override
+    public String toString() {
+        return "BirScope[" +
+                "id=" + id + ", " +
+                "parent=" + parent + ']';
+    }
+
 }

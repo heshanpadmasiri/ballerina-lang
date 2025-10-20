@@ -637,35 +637,7 @@ public class AnnotationDesugar {
     public BLangLambdaFunction defineFieldAnnotations(List<BLangSimpleVariable> fields, Location pos,
                                                       BLangPackage pkgNode, SymbolEnv env, PackageID pkgID,
                                                       BSymbol owner) {
-        BLangFunction function = null;
-        BLangRecordLiteral mapLiteral = null;
-        BLangLambdaFunction lambdaFunction = null;
-
-        boolean annotFunctionDefined = false;
-
-        for (BLangSimpleVariable field : fields) {
-            BLangLambdaFunction fieldAnnotLambda = defineAnnotations(field.annAttachments, pkgNode, env,
-                                                                     pkgID, owner, false);
-            if (fieldAnnotLambda != null) {
-                BInvokableSymbol invokableSymbol =
-                        closureGenerator.createSimpleVariable(fieldAnnotLambda.function, fieldAnnotLambda,
-                                                              owner.getKind() == SymbolKind.PACKAGE);
-                env.scope.define(invokableSymbol.name, invokableSymbol);
-                if (!annotFunctionDefined) {
-                    function = defineFunction(fieldAnnotLambda.pos, pkgID, owner);
-                    mapLiteral = ASTBuilderUtil.createEmptyRecordLiteral(function.pos, symTable.mapType);
-                    annotFunctionDefined = true;
-                }
-                addInvocationToLiteral(mapLiteral, FIELD + DOT + field.name.value,
-                                       field.annAttachments.get(0).pos, invokableSymbol);
-            }
-        }
-
-        if (annotFunctionDefined) {
-            lambdaFunction = addReturnAndDefineLambda(function, mapLiteral, pkgNode, env, pkgID, owner);
-        }
-
-        return lambdaFunction;
+        throw new RuntimeException();
     }
 
     private BLangLambdaFunction defineAnnotations(BLangFunction bLangFunction, BLangPackage pkgNode, SymbolEnv env,
@@ -1111,51 +1083,7 @@ public class AnnotationDesugar {
     }
 
     public BLangAnnotationAttachment createStrandAnnotationWithThreadAny(Location position, SymbolEnv env) {
-        BLangAnnotationAttachment annotAttachment = (BLangAnnotationAttachment) TreeBuilder.createAnnotAttachmentNode();
-        annotAttachment.annotationSymbol = symResolver.getStrandAnnotationSymbol();
-
-        annotAttachment.annotationName = (BLangIdentifier) TreeBuilder.createIdentifierNode();
-        annotAttachment.annotationName.value = STRAND;
-        annotAttachment.pos = position;
-        annotAttachment.annotationName.pos = position;
-
-        BLangIdentifier pkgAlias = (BLangIdentifier) TreeBuilder.createIdentifierNode();
-        pkgAlias.setValue(LANG_ANNOT_PKG_KEY);
-        annotAttachment.pkgAlias = pkgAlias;
-        annotAttachment.attachPoints.add(AttachPoint.Point.WORKER);
-
-        BLangRecordLiteral strandDataRecord = (BLangRecordLiteral) TreeBuilder.createRecordLiteralNode();
-        annotAttachment.expr = strandDataRecord;
-        strandDataRecord.pos = position;
-        final SymbolEnv pkgEnv = symTable.pkgEnvMap.get(symTable.rootPkgSymbol);
-        BSymbol annTypeSymbol = symResolver.lookupSymbolInMainSpace(pkgEnv, Names.fromString(STRAND_DATA));
-        BStructureTypeSymbol bStructSymbol = (BStructureTypeSymbol) annTypeSymbol.type.tsymbol;
-        strandDataRecord.setBType(bStructSymbol.type);
-        strandDataRecord.typeChecked = true;
-
-        BLangRecordLiteral.BLangRecordKeyValueField threadFieldKeyValue =
-                (BLangRecordLiteral.BLangRecordKeyValueField) TreeBuilder.createRecordKeyValue();
-        strandDataRecord.fields.add(threadFieldKeyValue);
-
-        BLangLiteral threadKey = (BLangLiteral) TreeBuilder.createLiteralExpression();
-        threadKey.value = THREAD;
-        threadKey.setBType(symTable.stringType);
-        threadKey.typeChecked = true;
-
-        BLangLiteral threadValue = (BLangLiteral) TreeBuilder.createLiteralExpression();
-        threadValue.setBType(symTable.stringType);
-        threadValue.value = "any";
-        threadValue.pos = position;
-        threadValue.typeChecked = true;
-
-        threadFieldKeyValue.key = new BLangRecordLiteral.BLangRecordKey(threadKey);
-        BSymbol fieldSymbol = symResolver.resolveStructField(position, pkgEnv, Names.fromString(THREAD),
-                bStructSymbol);
-        threadFieldKeyValue.key.fieldSymbol = (BVarSymbol) fieldSymbol;
-        threadFieldKeyValue.valueExpr = threadValue;
-
-        symResolver.populateAnnotationAttachmentSymbol(annotAttachment, env, constantValueResolver);
-        return annotAttachment;
+        throw new RuntimeException();
     }
 
     private static class LocationData {

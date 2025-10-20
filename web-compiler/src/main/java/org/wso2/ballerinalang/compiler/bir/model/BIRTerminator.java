@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -761,13 +762,54 @@ public abstract class BIRTerminator extends BIRAbstractInstruction implements BI
         }
 
         /**
-         *  A worker receive field for multiple receive action.
-         *  @since 2201.9.0
-         * @param key the field name of the result
-         * @param workerReceive the channel name
+         * A worker receive field for multiple receive action.
+         *
+         * @since 2201.9.0
          */
-        public record ReceiveField(String key, String workerReceive) {
-        }
+                public static final class ReceiveField {
+
+            private final String key;
+            private final String workerReceive;
+
+            /**
+             * @param key           the field name of the result
+             * @param workerReceive the channel name
+             */
+            public ReceiveField(String key, String workerReceive) {
+                this.key = key;
+                this.workerReceive = workerReceive;
+            }
+
+            public String key() {
+                return key;
+            }
+
+            public String workerReceive() {
+                return workerReceive;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (obj == this) return true;
+                if (obj == null || obj.getClass() != this.getClass()) return false;
+                var that = (ReceiveField) obj;
+                return Objects.equals(this.key, that.key) &&
+                        Objects.equals(this.workerReceive, that.workerReceive);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(key, workerReceive);
+            }
+
+            @Override
+            public String toString() {
+                return "ReceiveField[" +
+                        "key=" + key + ", " +
+                        "workerReceive=" + workerReceive + ']';
+            }
+
+                }
     }
 
 
