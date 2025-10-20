@@ -46,10 +46,9 @@ public final class ProjectFiles {
     }
 
     public static PackageData loadSingleFileProjectPackageData(Path filePath) {
-        DocumentData documentData = DocumentData.fromHardCode("test.bal", """
-                public function main() {
-                }
-                """);
+        DocumentData documentData = DocumentData.fromHardCode("test.bal",
+                "public function main() {\n" +
+                "}\n");
         ModuleData defaultModule = ModuleData
                 .from(filePath, DOT, Collections.singletonList(documentData), Collections.emptyList(), null);
         return PackageData.from(filePath, defaultModule, Collections.emptyList(),

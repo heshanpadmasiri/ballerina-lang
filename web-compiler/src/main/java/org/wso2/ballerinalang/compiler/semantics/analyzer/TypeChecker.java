@@ -223,6 +223,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BinaryOperator;
@@ -10033,10 +10034,52 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
 
     /**
      * This record is used to hold a snapshot of the global fields of multiple class objects.
-     * @param unknownTypeRefs current unknownTypeRefs set
-     * @param errorCount current errorCount
+     *
      * @since 2201.12.0
      */
-    public record GlobalStateSnapshot(HashSet<TypeResolver.LocationData> unknownTypeRefs, int errorCount) {
-    }
+        public static final class GlobalStateSnapshot {
+
+        private final HashSet<TypeResolver.LocationData> unknownTypeRefs;
+        private final int errorCount;
+
+        /**
+         * @param unknownTypeRefs current unknownTypeRefs set
+         * @param errorCount      current errorCount
+         *
+         */
+        public GlobalStateSnapshot(HashSet<TypeResolver.LocationData> unknownTypeRefs, int errorCount) {
+            this.unknownTypeRefs = unknownTypeRefs;
+            this.errorCount = errorCount;
+        }
+
+        public HashSet<TypeResolver.LocationData> unknownTypeRefs() {
+            return unknownTypeRefs;
+        }
+
+        public int errorCount() {
+            return errorCount;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (GlobalStateSnapshot) obj;
+            return Objects.equals(this.unknownTypeRefs, that.unknownTypeRefs) &&
+                    this.errorCount == that.errorCount;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(unknownTypeRefs, errorCount);
+        }
+
+        @Override
+        public String toString() {
+            return "GlobalStateSnapshot[" +
+                    "unknownTypeRefs=" + unknownTypeRefs + ", " +
+                    "errorCount=" + errorCount + ']';
+        }
+
+        }
 }

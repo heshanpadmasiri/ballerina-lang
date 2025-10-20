@@ -97,8 +97,7 @@ public final class BallerinaUserHome {
      */
     private Settings readSettings() {
         Path settingsFilePath = this.ballerinaUserHomeDirPath.resolve(ProjectConstants.SETTINGS_FILE_NAME);
-        String settings = """
-                """;
+        String settings = "";
 //        if (settingsFilePath.notExists()) {
 //            settingsFilePath.createFile();
 //        }
