@@ -23,18 +23,14 @@ import io.ballerina.projects.DocumentConfig;
 import io.ballerina.projects.PackageConfig;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.TomlDocument;
-import io.ballerina.projects.exceptions.InvalidBalaException;
 import io.ballerina.projects.util.ProjectConstants;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.PathMatcher;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static io.ballerina.projects.util.ProjectConstants.DOT;
@@ -110,18 +106,6 @@ public final class ProjectFiles {
 
     private static ModuleData loadModule(Path moduleDirPath) {
         throw new RuntimeException();
-    }
-
-    private static Path getGeneratedSourcesRoot(Path moduleDirPath) {
-        Path generatedSourcesRoot = moduleDirPath.resolve(ProjectConstants.GENERATED_MODULES_ROOT);
-        if (ProjectConstants.MODULES_ROOT.equals(Optional.of(
-                moduleDirPath.toAbsolutePath().getParent()).get().toFile().getName())) {
-            // generated sources root for non-default modules
-            generatedSourcesRoot = Optional.of(Optional.of(Optional.of(moduleDirPath.toAbsolutePath().getParent()).
-                                    get().getParent()).get().resolve(ProjectConstants.GENERATED_MODULES_ROOT))
-                    .get().resolve(Optional.of(moduleDirPath.toFile()).get().getName());
-        }
-        return generatedSourcesRoot;
     }
 
     private static void verifyDuplicateNames(List<DocumentData> srcDocs, List<DocumentData> generatedDocs,

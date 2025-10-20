@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class NativePath implements io.ballerina.fs.Path {
+class NativePath implements io.ballerina.fs.Path {
     private final Path nativePath;
 
     private NativePath(Path nativePath) {
@@ -28,8 +28,8 @@ public class NativePath implements io.ballerina.fs.Path {
     }
 
     @Override
-    public File toFile() {
-        return nativePath.toFile();
+    public io.ballerina.fs.File toFile() {
+        return new NativeFile(nativePath.toFile());
     }
 
     @Override

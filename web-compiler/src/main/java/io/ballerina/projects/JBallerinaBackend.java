@@ -29,7 +29,7 @@ import org.wso2.ballerinalang.compiler.bir.codegen.CodeGenerator;
 import org.wso2.ballerinalang.compiler.bir.codegen.interop.InteropValidator;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 
-import java.io.File;
+import io.ballerina.fs.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -307,88 +307,7 @@ public class JBallerinaBackend extends CompilerBackend {
     }
 
     private Path emitGraalExecutable(Path executableFilePath, List<Diagnostic> emitResultDiagnostics) {
-        // Run create executable
-        emitExecutable(executableFilePath, emitResultDiagnostics);
-
-        String nativeImageName;
-        String[] command;
-        Project project = this.packageContext().project();
-        String nativeImageCommand = System.getenv("GRAALVM_HOME");
-
-        if (nativeImageCommand == null) {
-            throw new ProjectException("GraalVM installation directory not found. Set GRAALVM_HOME as an " +
-                    "environment variable\nHINT: To install GraalVM, follow the link: " +
-                    "https://ballerina.io/learn/build-the-executable-locally/#configure-graalvm");
-        }
-        nativeImageCommand += File.separator + BIN_DIR_NAME + File.separator
-                + (OS.contains("win") ? "native-image.cmd" : "native-image");
-
-        File commandExecutable = Path.of(nativeImageCommand).toFile();
-        if (!commandExecutable.exists()) {
-            throw new ProjectException("cannot find '" + commandExecutable.getName() + "' in the GRAALVM_HOME/bin " +
-                    "directory. Install it using: gu install native-image");
-        }
-
-        String graalVMBuildOptions = project.buildOptions().graalVMBuildOptions();
-        List<String> nativeArgs = new ArrayList<>();
-        Path nativeConfigPath = packageContext.project().targetDir().resolve("cache");
-
-        if (project.kind().equals(ProjectKind.SINGLE_FILE_PROJECT)) {
-            String fileName = project.sourceRoot().toFile().getName();
-            nativeImageName = fileName.substring(0, fileName.lastIndexOf(DOT));
-            nativeArgs.addAll(Arrays.asList(graalVMBuildOptions, "-jar",
-                    executableFilePath.toString(),
-                    "-o " + executableFilePath.getParent() + "/" + nativeImageName,
-                    "--no-fallback"));
-        } else {
-            nativeImageName = project.currentPackage().packageName().toString();
-            nativeArgs.addAll(Arrays.asList(graalVMBuildOptions, "-jar",
-                    executableFilePath.toString(),
-                    "-o " + executableFilePath.getParent() + "/" + nativeImageName,
-                    "--no-fallback"));
-        }
-
-        if (!nativeConfigPath.exists()) {
-            nativeConfigPath.createDirectories();
-        }
-
-        // There is a command line length limitations in Windows. Therefore, we need to write the arguments to a
-        // file and use it as an argument.
-        try (FileWriter nativeArgumentWriter = new FileWriter(nativeConfigPath.resolve("native-image-args.txt")
-                .toString(), Charset.defaultCharset())) {
-            nativeArgumentWriter.write(String.join(" ", nativeArgs));
-            nativeArgumentWriter.flush();
-        } catch (IOException e) {
-            throw new ProjectException("error while generating the necessary graalvm argument file", e);
-        }
-
-        command = new String[]{
-                nativeImageCommand,
-                "@" + (nativeConfigPath.resolve("native-image-args.txt"))
-        };
-
-        try {
-            ProcessBuilder builder = new ProcessBuilder();
-            builder.command(command);
-            builder.inheritIO();
-            Process process = builder.start();
-
-            if (process.waitFor() != 0) {
-                throw new ProjectException("unable to create native image");
-            }
-        } catch (IOException e) {
-            throw new ProjectException("unable to create native image : " + e.getMessage());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        // Replace FilenameUtils.removeExtension with simple string manipulation
-        String pathStr = executableFilePath.toString();
-        int lastDotIndex = pathStr.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            pathStr = pathStr.substring(0, lastDotIndex);
-        }
-        return Path.of(pathStr);
+        throw new RuntimeException();
     }
 
     /**

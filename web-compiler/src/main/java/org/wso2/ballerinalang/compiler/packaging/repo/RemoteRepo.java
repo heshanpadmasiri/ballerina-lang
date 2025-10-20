@@ -73,7 +73,7 @@ public class RemoteRepo extends NonSysRepo<URI> {
     @Override
     public Patten calculate(PackageID pkgId) {
         if (!COMPILE_BALLERINA_ORG &&
-                systemBirRepoPath.resolve(pkgId.orgName.value).resolve(pkgId.name.value).toFile().exists()) {
+                systemBirRepoPath.resolve(pkgId.orgName.value).resolve(pkgId.name.value).exists()) {
             return Patten.NULL;
         } else {
             return calculateNonSysPkg(pkgId);

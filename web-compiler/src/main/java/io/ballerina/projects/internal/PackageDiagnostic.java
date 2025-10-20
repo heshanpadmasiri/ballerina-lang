@@ -19,10 +19,8 @@ package io.ballerina.projects.internal;
 
 import io.ballerina.fs.Path;
 import io.ballerina.projects.ModuleDescriptor;
-import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectKind;
-import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
@@ -32,12 +30,8 @@ import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
-
-import static io.ballerina.projects.util.ProjectConstants.TEST_DIR_NAME;
 
 /**
  * Decorator for diagnostics exposed via the Project API.
@@ -61,37 +55,7 @@ public class PackageDiagnostic extends Diagnostic {
     }
 
     public PackageDiagnostic(Diagnostic diagnostic, ModuleDescriptor moduleDescriptor, Project project) {
-        String filePath;
-        ModuleName moduleName = moduleDescriptor.name();
-        String diagnosticPath = diagnostic.location().lineRange().filePath();
-        Path modulesRoot = Path.of(ProjectConstants.MODULES_ROOT);
-        if (project.kind().equals(ProjectKind.BALA_PROJECT)) {
-            Path modulePath = modulesRoot.resolve(moduleName.toString());
-            filePath = project.sourceRoot().resolve(modulePath).resolve(
-                    diagnosticPath).toString();
-        } else {
-            Path generatedRoot = Path.of(ProjectConstants.GENERATED_MODULES_ROOT);
-            if (!moduleName.isDefaultModuleName()) {
-                Path generatedPath = generatedRoot.
-                        resolve(moduleName.moduleNamePart());
-                if (project.sourceRoot().resolve(generatedPath).
-                        resolve(diagnosticPath).toAbsolutePath().exists()) {
-                    filePath = generatedPath.resolve(diagnosticPath).toString();
-                } else {
-                    filePath = modulesRoot.resolve(moduleName.moduleNamePart()).
-                            resolve(diagnosticPath).toString();
-                }
-            } else {
-                filePath = project.sourceRoot().resolve(generatedRoot).
-                        resolve(diagnosticPath).toAbsolutePath().exists() ?
-                        generatedRoot.resolve(diagnosticPath).toString() : diagnosticPath;
-
-            }
-        }
-        this.diagnostic = diagnostic;
-        this.project = project;
-        this.moduleDescriptor = moduleDescriptor;
-        this.location = new DiagnosticLocation(filePath, this.diagnostic.location());
+        throw new RuntimeException();
     }
 
     @Override
@@ -136,45 +100,6 @@ public class PackageDiagnostic extends Diagnostic {
 
         return diagnosticInfo().severity().toString() + " ["
                 + filePath + ":" + oneBasedLineRange + "] " + message();
-    }
-
-    /*
-    * Inner class to create the modified Location containing the
-    * filepath relative to the project.
-    */
-    private static class DiagnosticLocation implements Location {
-
-        private final LineRange lineRange;
-        private final TextRange textRange;
-
-        public DiagnosticLocation(String filePath, Location location) {
-            LineRange lineRange = location.lineRange();
-            int startLine = lineRange.startLine().line(),
-                    endLine = lineRange.endLine().line(),
-                    startColumn = lineRange.startLine().offset(),
-                    endColumn = lineRange.endLine().offset();
-
-            // replace hardcoded string "tests/" to match the OS
-            filePath = filePath.replace(TEST_DIR_NAME + "/", TEST_DIR_NAME + File.separator);
-            this.lineRange = LineRange.from(filePath, LinePosition.from(startLine, startColumn),
-                    LinePosition.from(endLine, endColumn));
-            this.textRange = location.textRange();
-        }
-
-        @Override
-        public LineRange lineRange() {
-            return lineRange;
-        }
-
-        @Override
-        public TextRange textRange() {
-            return textRange;
-        }
-
-        @Override
-        public String toString() {
-            return lineRange.toString() + textRange.toString();
-        }
     }
 
     private static class NullLocation implements Location {

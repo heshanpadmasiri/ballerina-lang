@@ -39,7 +39,7 @@ import io.ballerina.projects.util.FileUtils;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectUtils;
 
-import java.io.File;
+import io.ballerina.fs.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -118,11 +118,11 @@ public class FileSystemRepository extends AbstractPackageRepository {
                 descriptor.version().value().toString());
         if (balaPath != null && balaPath.exists()) {
             Path deprecateMsgMetaFile = Path.of(balaPath.toString(), ProjectConstants.DEPRECATED_META_FILE_NAME);
-            if (descriptor.getDeprecated() && !deprecateMsgMetaFile.toFile().exists()) {
+            if (descriptor.getDeprecated() && !deprecateMsgMetaFile.exists()) {
                 FileUtils.addDeprecatedMetaFile(deprecateMsgMetaFile, descriptor.getDeprecationMsg());
             }
 
-            if (!descriptor.getDeprecated() && deprecateMsgMetaFile.toFile().exists()) {
+            if (!descriptor.getDeprecated() && deprecateMsgMetaFile.exists()) {
                 FileUtils.deleteDeprecatedMetaFile(deprecateMsgMetaFile);
             }
         }
@@ -153,52 +153,7 @@ public class FileSystemRepository extends AbstractPackageRepository {
      */
     @Override
     public Map<String, List<String>> getPackages() {
-        Map<String, List<String>> packagesMap = new HashMap<>();
-        File[] orgDirs = this.bala.toFile().listFiles();
-        if (orgDirs == null) {
-            return packagesMap;
-        }
-        for (File file : orgDirs) {
-            if (!file.isDirectory() || file.isHidden()) {
-                continue;
-            }
-            String orgName = file.getName();
-            File[] filesList = this.bala.resolve(orgName).toFile().listFiles();
-            if (filesList == null || filesList.length == 0) {
-                continue;
-            }
-            List<String> pkgList = new ArrayList<>();
-            for (File pkgDir : filesList) {
-                if (!pkgDir.isDirectory()) {
-                    continue;
-                }
-                File[] pkgs = this.bala.resolve(orgName).resolve(pkgDir.getName()).toFile().listFiles();
-                if (pkgs == null) {
-                    continue;
-                }
-                List<String> versions = new ArrayList<>();
-                for (File listFile : pkgs) {
-                    if (listFile.isHidden() || !listFile.isDirectory()) {
-                        continue;
-                    }
-                    versions.add(listFile.getName());
-                }
-                if (versions.isEmpty()) {
-                    continue;
-                }
-                for (String version : versions) {
-                    try {
-                        PackageVersion.from(version);
-                    } catch (ProjectException ignored) {
-                        continue;
-                    }
-                    pkgList.add(pkgDir.getName() + ":" + version);
-                }
-            }
-            packagesMap.put(orgName, pkgList);
-        }
-
-        return packagesMap;
+        throw new RuntimeException();
     }
 
     @Override

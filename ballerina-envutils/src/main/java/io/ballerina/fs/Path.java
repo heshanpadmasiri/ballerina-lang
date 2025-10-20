@@ -1,7 +1,6 @@
 package io.ballerina.fs;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 
 public interface Path extends Comparable<Path> {
@@ -14,7 +13,6 @@ public interface Path extends Comparable<Path> {
 
     Path normalize();
 
-    // FIXME: this also needs to be fixed
     File toFile();
 
     boolean isAbsolute();

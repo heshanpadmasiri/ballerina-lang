@@ -54,21 +54,12 @@ import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.util.Lists;
 import org.wso2.ballerinalang.util.RepoUtils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -79,8 +70,6 @@ import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static io.ballerina.projects.util.FileUtils.getFileNameWithoutExtension;
 import static io.ballerina.projects.util.ProjectConstants.BALLERINA_HOME;
@@ -822,57 +811,6 @@ public final class ProjectUtils {
     }
 
     /**
-     * Extracts a .bala file into the provided destination directory.
-     *
-     * @param balaFilePath .bala file path
-     * @param balaFileDestPath directory into which the .bala should be extracted
-     * @throws IOException if extraction fails
-     */
-    public static void extractBala(Path balaFilePath, Path balaFileDestPath) throws IOException {
-        if (balaFileDestPath.exists() && balaFilePath.isDirectory()) {
-            deleteDirectory(balaFileDestPath);
-        } else {
-            balaFileDestPath.createDirectories();
-        }
-
-        byte[] buffer = new byte[1024 * 4];
-        try (FileInputStream fileInputStream = new FileInputStream(balaFilePath.toString())) {
-            // Get the zip file content.
-            try (ZipInputStream zipInputStream = new ZipInputStream(fileInputStream)) {
-                // Get the zipped file entry.
-                ZipEntry zipEntry = zipInputStream.getNextEntry();
-                while (zipEntry != null) {
-                    // Get the name.
-                    String fileName = zipEntry.getName();
-                    // Construct the output file.
-                    Path outputPath = balaFileDestPath.resolve(fileName);
-                    // If the zip entry is for a directory, we create the directory and continue with the next entry.
-                    if (zipEntry.isDirectory()) {
-                        outputPath.createDirectories();
-                        zipEntry = zipInputStream.getNextEntry();
-                        continue;
-                    }
-
-                    // Create all non-existing directories.
-                    outputPath.getParent().createDirectories();
-                    // Create a new file output stream.
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath.toFile())) {
-                        // Write the content from zip input stream to the file output stream.
-                        int len;
-                        while ((len = zipInputStream.read(buffer)) > 0) {
-                            fileOutputStream.write(buffer, 0, len);
-                        }
-                    }
-                    // Continue with the next entry.
-                    zipEntry = zipInputStream.getNextEntry();
-                }
-                // Close zip input stream.
-                zipInputStream.closeEntry();
-            }
-        }
-    }
-
-    /**
      * Delete the given directory along with all files and sub directories.
      *
      * @param directoryPath Directory to delete.
@@ -910,12 +848,12 @@ public final class ProjectUtils {
                         + project.currentPackage().packageName().value()
                         + "-observability-symbols.jar");
         if (project.buildOptions().observabilityIncluded() &&
-                !observeJarCachePath.toFile().exists()) {
+                !observeJarCachePath.exists()) {
             return true;
         }
 
         Path buildFile = project.sourceRoot().resolve(TARGET_DIR_NAME).resolve(BUILD_FILE);
-        if (buildFile.toFile().exists()) {
+        if (buildFile.exists()) {
             try {
                 BuildJson buildJson = readBuildJson(buildFile);
                 long lastProjectUpdatedTime = FileUtils.lastModifiedTimeOfBalProject(project.sourceRoot());

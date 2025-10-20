@@ -5,7 +5,7 @@ import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.compiler.BLangCompilerException;
 import org.ballerinalang.repository.CompilerInput;
 
-import java.io.File;
+import io.ballerina.fs.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import io.ballerina.fs.Path;
@@ -37,20 +37,7 @@ public class FileSystemSourceInput implements CompilerInput {
 
     @Override
     public String getEntryName() {
-
-        if (entryName != null) {
-            return entryName;
-        }
-        // We need to return the file path relative to the package root.
-        // This is to distinguish files with the same name but in different folders.
-        if (packageRoot != null) {
-            File pkgRoot = new File(packageRoot.toString());
-            File file = new File(path.toString());
-            // Find the file path relative to the package root.
-            return pkgRoot.toURI().relativize(file.toURI()).getPath();
-        }
-        Path fileName = path.getFileName();
-        return this.entryName = (fileName != null ? fileName.toString() : path.toString());
+        throw new RuntimeException();
     }
 
     @Override

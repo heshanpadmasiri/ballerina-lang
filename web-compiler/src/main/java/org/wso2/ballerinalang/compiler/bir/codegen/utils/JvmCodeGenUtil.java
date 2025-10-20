@@ -25,7 +25,6 @@ import org.wso2.ballerinalang.compiler.semantics.model.types.BTypeReferenceType;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
 import org.wso2.ballerinalang.util.Flags;
 
-import java.io.File;
 import java.util.Comparator;
 import java.util.List;
 
@@ -69,14 +68,6 @@ public class JvmCodeGenUtil {
         return (func.flags & Flags.NATIVE) == Flags.NATIVE;
     }
 
-    public static String toNameString(BType t) {
-        return t.toString();
-    }
-
-    public static String cleanupPathSeparators(String name) {
-        return name.replace("\\",  File.separator);
-    }
-
     // Methods below are only called from JvmPackageGen.generate() which now throws exception
     // Keeping signatures for compilation compatibility
 
@@ -88,11 +79,4 @@ public class JvmCodeGenUtil {
         throw new UnsupportedOperationException("JVM bytecode generation is not supported in the web compiler.");
     }
 
-    public static String getMethodSig(List<BType> paramTypes, BType retType, BType attachedType, Env env) {
-        throw new UnsupportedOperationException("JVM bytecode generation is not supported in the web compiler.");
-    }
-
-    public static String getSig(BType bType, Env env) {
-        throw new UnsupportedOperationException("JVM bytecode generation is not supported in the web compiler.");
-    }
 }

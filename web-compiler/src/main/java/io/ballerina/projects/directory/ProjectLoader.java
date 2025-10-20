@@ -117,54 +117,6 @@ public final class ProjectLoader {
     @Deprecated(since = "2201.13.0", forRemoval = true)
     public static Project loadProject(Path path, ProjectEnvironmentBuilder projectEnvironmentBuilder,
                                       BuildOptions buildOptions) throws ProjectException {
-        Path absFilePath = Optional.of(path.toAbsolutePath()).get();
-        Path projectRoot;
-        if (!path.exists()) {
-            throw new ProjectException("provided file path does not exist");
-        }
-        if (absFilePath.toFile().isDirectory()) {
-            if (ProjectConstants.MODULES_ROOT.equals(
-                    Optional.of(absFilePath.getParent()).get().toFile().getName())) {
-                projectRoot = Optional.of(Optional.of(absFilePath.getParent()).get().getParent()).get();
-            } else if (ProjectConstants.GENERATED_MODULES_ROOT.equals(absFilePath.toFile().getName())) {
-                // Generated default module
-                projectRoot = Optional.of(absFilePath.getParent()).get();
-            } else if (ProjectConstants.GENERATED_MODULES_ROOT.
-                    equals(Optional.of(absFilePath.getParent()).get().toFile().getName())) {
-                // Generated non default module
-                projectRoot = Optional.of(Optional.of(absFilePath.getParent()).get().getParent()).get();
-            } else {
-                projectRoot = absFilePath;
-            }
-            if (projectRoot.resolve(ProjectConstants.BALLERINA_TOML).exists()) {
-                return BuildProject.load(projectEnvironmentBuilder, projectRoot, buildOptions);
-            } else if (projectRoot.resolve(ProjectConstants.PACKAGE_JSON).exists()) {
-                projectEnvironmentBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-                return io.ballerina.projects.bala.BalaProject.loadProject(
-                        projectEnvironmentBuilder, projectRoot, buildOptions);
-            } else {
-                throw new ProjectException("provided directory does not belong to any supported project types");
-            }
-        }
-        if (absFilePath.toString().endsWith(ProjectConstants.BLANG_COMPILED_PKG_BINARY_EXT)) {
-            projectEnvironmentBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-            return io.ballerina.projects.bala.BalaProject.loadProject(projectEnvironmentBuilder, absFilePath);
-        }
-
-        if (!ProjectPaths.isBalFile(absFilePath)) {
-            throw new ProjectException("'" + absFilePath + "' is not a valid Ballerina source file");
-        }
-
-        try {
-            projectRoot = ProjectPaths.packageRoot(absFilePath);
-        } catch (ProjectException e) {
-            return SingleFileProject.load(projectEnvironmentBuilder, path, buildOptions);
-        }
-        try {
-            return BuildProject.load(projectEnvironmentBuilder, projectRoot, buildOptions);
-        } catch (ProjectException e) {
-            projectEnvironmentBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-            return io.ballerina.projects.bala.BalaProject.loadProject(projectEnvironmentBuilder, projectRoot);
-        }
+        throw new RuntimeException();
     }
 }

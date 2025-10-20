@@ -23,11 +23,8 @@ import io.ballerina.types.Env;
 import org.ballerinalang.compiler.BLangCompilerException;
 import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.model.symbols.SymbolKind;
-import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
 import org.wso2.ballerinalang.compiler.PackageCache;
-import org.wso2.ballerinalang.compiler.bir.codegen.exceptions.JInteropException;
 import org.wso2.ballerinalang.compiler.bir.codegen.internal.CompiledJarFile;
-import org.wso2.ballerinalang.compiler.bir.codegen.internal.JavaClass;
 import org.wso2.ballerinalang.compiler.bir.codegen.model.BIRFunctionWrapper;
 import org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
@@ -37,7 +34,6 @@ import org.wso2.ballerinalang.compiler.bir.model.BIRNode.BIRTypeDefinition;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNode.BIRVariableDcl;
 import org.wso2.ballerinalang.compiler.bir.model.BIRNonTerminator.NewInstance;
 import org.wso2.ballerinalang.compiler.diagnostic.BLangDiagnosticLog;
-import org.wso2.ballerinalang.compiler.semantics.analyzer.TypeHashVisitor;
 import org.wso2.ballerinalang.compiler.semantics.analyzer.Types;
 import org.wso2.ballerinalang.compiler.semantics.model.Scope;
 import org.wso2.ballerinalang.compiler.semantics.model.SymbolTable;
@@ -54,44 +50,18 @@ import org.wso2.ballerinalang.compiler.util.Unifier;
 import org.wso2.ballerinalang.util.Flags;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
-import static org.ballerinalang.model.symbols.SymbolOrigin.VIRTUAL;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.BALLERINA;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CLASS_FILE_SUFFIX;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.CURRENT_MODULE_VAR_NAME;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.ENCODED_DOT_CHARACTER;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.ENCODED_JAVA_MODULE;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.GLOBAL_VARIABLES_PACKAGE_NAME;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_INIT_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.JVM_STATIC_INIT_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LOCK_STORE;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.LOCK_STORE_VAR_NAME;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAIN_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MAX_GENERATED_METHODS_PER_CLASS;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_EXECUTE_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_GENERATED_FUNCTIONS_CLASS_NAME;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_INIT_CLASS_NAME;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_STARTED;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_START_ATTEMPTED;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.MODULE_STOP_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.NO_OF_DEPENDANT_MODULES;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.OBJECT;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.PARENT_MODULE_START_ATTEMPTED;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.SERVICE_EP_AVAILABLE;
 import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.TEST_EXECUTE_METHOD;
-import static org.wso2.ballerinalang.compiler.bir.codegen.JvmConstants.VALUE_CREATOR;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.isExternFunc;
-import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmCodeGenUtil.toNameString;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.getModuleLevelClassName;
-import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.getPackageName;
-import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.isBallerinaBuiltinModule;
 import static org.wso2.ballerinalang.compiler.bir.codegen.utils.JvmModuleUtils.isSameModule;
 
 /**
@@ -227,140 +197,6 @@ public class JvmPackageGen {
     }
 
     // generateModuleClasses removed - JVM bytecode generation not supported
-
-    /**
-     * Java Class will be generated for each source file. This method add class mappings to globalVar and filters the
-     * functions based on their source file name and then returns map of associated java class contents.
-     *
-     * @param module           bir module
-     * @param initClass        module init class name
-     * @param isEntry          is entry module flag
-     * @return The map of javaClass records on given source file name
-     */
-    private Map<String, JavaClass> generateClassNameLinking(BIRPackage module, String initClass, boolean isEntry) {
-
-        Map<String, JavaClass> jvmClassMap = new HashMap<>();
-
-        // link module functions with class names
-
-        linkModuleFunctions(module, initClass, isEntry, jvmClassMap);
-
-        // link module stop function that will be generated
-        linkModuleFunction(module.packageID, initClass, MODULE_STOP_METHOD);
-
-        // link module execute function that will be generated
-        linkModuleFunction(module.packageID, initClass, MODULE_EXECUTE_METHOD);
-
-        // link typedef - object attached native functions
-        linkTypeDefinitions(module, isEntry);
-        return jvmClassMap;
-    }
-
-    private void linkTypeDefinitions(BIRPackage module, boolean isEntry) {
-        throw new RuntimeException();
-    }
-
-    private void linkModuleFunction(PackageID packageID, String initClass, String funcName) {
-        BInvokableType funcType =
-                new BInvokableType(typeEnv, Collections.emptyList(), null, symbolTable.nilType, null);
-        BIRFunction moduleStopFunction = new BIRFunction(null, new Name(funcName), 0, funcType, new Name(""), 0,
-                VIRTUAL);
-        birFunctionMap.put(getPackageName(packageID) + funcName, getFunctionWrapper(typeEnv, moduleStopFunction,
-                packageID, initClass));
-    }
-
-    private void linkModuleFunctions(BIRPackage birPackage, String initClass, boolean isEntry,
-                                     Map<String, JavaClass> jvmClassMap) {
-        // filter out functions.
-        List<BIRFunction> functions = birPackage.functions;
-        if (functions.isEmpty()) {
-            return;
-        }
-        int funcSize = functions.size();
-        int count = 0;
-        // Generate init class. Init function should be the first function of the package, hence check first
-        // function.
-        BIRFunction initFunc = functions.getFirst();
-        String functionName = Utils.encodeFunctionIdentifier(initFunc.name.value);
-        String fileName = initFunc.pos.lineRange().fileName();
-        JavaClass klass = new JavaClass(fileName, fileName);
-        klass.functions.addFirst(initFunc);
-        PackageID packageID = birPackage.packageID;
-        jvmClassMap.put(initClass, klass);
-        String pkgName = getPackageName(packageID);
-        birFunctionMap.put(pkgName + functionName, getFunctionWrapper(typeEnv, initFunc, packageID, initClass));
-        count += 1;
-
-        // Add start function
-        BIRFunction startFunc = functions.get(1);
-        functionName = Utils.encodeFunctionIdentifier(startFunc.name.value);
-        birFunctionMap.put(pkgName + functionName, getFunctionWrapper(typeEnv, startFunc, packageID, initClass));
-        klass.functions.add(1, startFunc);
-        count += 1;
-
-        // Add stop function
-        BIRFunction stopFunc = functions.get(2);
-        functionName = Utils.encodeFunctionIdentifier(stopFunc.name.value);
-        birFunctionMap.put(pkgName + functionName, getFunctionWrapper(typeEnv, stopFunc, packageID, initClass));
-        klass.functions.add(2, stopFunc);
-        count += 1;
-        int genMethodsCount = 0;
-        int genClassNum = 0;
-
-        // Generate classes for other functions.
-        while (count < funcSize) {
-            BIRFunction birFunc = functions.get(count);
-            count = count + 1;
-            // link the bir function for lookup
-            String birFuncName = birFunc.name.value;
-            String balFileName;
-            if (birFunc.pos == symbolTable.builtinPos) {
-                balFileName = MODULE_INIT_CLASS_NAME;
-            }  else if (birFunc.pos == null) {
-                balFileName = MODULE_GENERATED_FUNCTIONS_CLASS_NAME + genClassNum;
-                if (genMethodsCount > MAX_GENERATED_METHODS_PER_CLASS) {
-                    genMethodsCount = 0;
-                    genClassNum++;
-                } else {
-                    genMethodsCount++;
-                }
-            } else {
-                balFileName = birFunc.pos.lineRange().fileName();
-            }
-
-            String cleanedBalFileName = balFileName;
-            if (!birFunc.name.value.startsWith(".<test")) {
-                // skip removing `.bal` from generated file names. otherwise `.<testinit>` brakes because,
-                // it's "file name" may end in `.bal` due to module. see #27201
-                cleanedBalFileName = JvmCodeGenUtil.cleanupPathSeparators(balFileName);
-            }
-            String birModuleClassName = getModuleLevelClassName(packageID, cleanedBalFileName);
-
-            if (!isBallerinaBuiltinModule(packageID.orgName.value, packageID.name.value)) {
-                JavaClass javaClass = jvmClassMap.get(birModuleClassName);
-                if (javaClass != null) {
-                    javaClass.functions.add(birFunc);
-                } else {
-                    klass = new JavaClass(balFileName, cleanedBalFileName);
-                    klass.functions.addFirst(birFunc);
-                    jvmClassMap.put(birModuleClassName, klass);
-                }
-            }
-            try {
-                BIRFunctionWrapper birFuncWrapperOrError = getBirFunctionWrapper(isEntry, packageID, birFunc,
-                        birModuleClassName);
-                birFunctionMap.put(pkgName + birFuncName, birFuncWrapperOrError);
-            } catch (JInteropException e) {
-                dlog.error(birFunc.pos, e.getCode(), e.getMessage());
-            }
-        }
-    }
-
-    private BIRFunctionWrapper getBirFunctionWrapper(boolean isEntry, PackageID packageID,
-                                                     BIRFunction birFunc, String birModuleClassName) {
-        // Simplified: only non-extern case since generate() throws exception anyway
-        return getFunctionWrapper(typeEnv, birFunc, packageID, birModuleClassName);
-    }
 
     // getBytes removed - JVM bytecode generation not supported
 

@@ -36,7 +36,6 @@ import io.ballerina.projects.PackageVersion;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ResourceConfig;
 import io.ballerina.projects.TomlDocument;
-import io.ballerina.projects.internal.model.PackageJson;
 import io.ballerina.projects.util.ProjectConstants;
 
 import java.util.ArrayList;
@@ -117,16 +116,7 @@ public final class PackageConfigCreator {
     }
 
     public static PackageConfig createBalaProjectConfig(Path balaPath) {
-        ProjectFiles.validateBalaProjectPath(balaPath);
-        PackageManifest packageManifest = BalaFiles.createPackageManifest(balaPath);
-        DependencyManifest dependencyManifest = BalaFiles.createDependencyManifest(balaPath);
-        PackageJson packageJson = BalaFiles.readPackageJson(balaPath);
-        PackageData packageData = BalaFiles.loadPackageData(balaPath, packageJson);
-        BalaFiles.DependencyGraphResult packageDependencyGraph = BalaFiles
-                .createPackageDependencyGraph(balaPath);
-
-        return createPackageConfig(packageData, packageManifest, dependencyManifest,
-                packageDependencyGraph.packageDependencyGraph(), packageDependencyGraph.moduleDependencies());
+                throw new RuntimeException();
     }
 
     public static PackageConfig createPackageConfig(PackageData packageData,
@@ -185,16 +175,6 @@ public final class PackageConfigCreator {
                         dependenciesToml, cloudToml, compilerPluginToml, balToolToml, readmeMd, moduleConfigs,
                         packageDependencyGraph, disableSyntaxTree, resources, testResources);
     }
-    public static PackageConfig createPackageConfig(PackageData packageData,
-                                                    PackageManifest packageManifest,
-                                                    DependencyManifest dependencyManifest,
-                                                    DependencyGraph<PackageDescriptor> packageDependencyGraph,
-                                                    Map<ModuleDescriptor, List<ModuleDescriptor>>
-                                                            moduleDependencyGraph) {
-        return createPackageConfig(packageData, packageManifest, dependencyManifest, packageDependencyGraph,
-                moduleDependencyGraph, true);
-    }
-
 
     private static ModuleConfig createDefaultModuleConfig(PackageDescriptor pkgDesc,
                                                           ModuleData moduleData,
