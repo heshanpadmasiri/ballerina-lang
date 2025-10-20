@@ -5,7 +5,7 @@ import java.io.IOException;
 public interface Path extends Comparable<Path> {
 
     static Path of(String first, String... more) {
-        return new NativePath(first, more);
+        return new WebPath(first, more);
     }
 
     Path toAbsolutePath();
