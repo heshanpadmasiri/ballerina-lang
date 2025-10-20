@@ -75,10 +75,6 @@ public class DependencyManifest {
                                       new DefaultDiagnosticResult(Collections.emptyList()));
     }
 
-    public String dependenciesTomlVersion() {
-        return dependenciesTomlVersion;
-    }
-
     public SemanticVersion distributionVersion() {
         return distributionVersion;
     }
@@ -93,12 +89,6 @@ public class DependencyManifest {
 
     public Optional<Package> dependency(PackageOrg org, PackageName name) {
         return pkgContainer.get(org, name);
-    }
-
-    public Package dependencyOrThrow(PackageOrg org, PackageName name) {
-        return pkgContainer.get(org, name)
-                .orElseThrow(() -> new IllegalStateException("Dependency with org `" +
-                        org + "` and name `" + name + "` must exists."));
     }
 
     public DiagnosticResult diagnostics() {

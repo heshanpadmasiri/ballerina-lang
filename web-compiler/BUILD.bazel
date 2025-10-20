@@ -9,6 +9,8 @@ j2cl_library(
     ], exclude=[
         "src/main/java/module-info.java",
         "src/main/java/io/ballerina/projects/SemanticVersion.java",
+    ]) + glob([
+        "super-j2cl/**/*.java",
     ]),
     deps = [
         "//ballerina-envutils:ballerina-envutils-j2cl",
