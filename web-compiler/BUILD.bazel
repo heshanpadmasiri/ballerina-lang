@@ -23,5 +23,6 @@ j2cl_library(
     javacopts = [
         "-source", "21",
         "-target", "21",
+        "-XepAllErrorsAsWarnings",
     ],
 )
