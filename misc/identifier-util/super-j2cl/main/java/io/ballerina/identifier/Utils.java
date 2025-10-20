@@ -18,286 +18,418 @@
 
 package io.ballerina.identifier;
 
-import jsinterop.annotations.JsMethod;
+import org.apache.commons.text.StringEscapeUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Identifier encoder to encode user defined identifiers with special
- * characters.
+ * Identifier encoder to encode user defined identifiers with special characters.
  *
  * @since 2.0.0
  */
 public final class Utils {
 
-  private static final String CHAR_PREFIX = "&";
-  private static final String ESCAPE_PREFIX = "\\";
-  private static final String GENERATED_METHOD_PREFIX = "$gen$";
+    private static final String CHAR_PREFIX = "&";
+    private static final String ESCAPE_PREFIX = "\\";
+    private static final String SPECIAL_CHARS = "$&+,:;=?@#\\|/' []<>.\"^*{}~`()%!-";
+    private static final String GENERATED_METHOD_PREFIX = "$gen$";
 
-  private Utils() {
-  }
-
-  private static String encodeSpecialCharacters(String identifier) {
-    StringBuilder sb = new StringBuilder();
-    int index = 0;
-    while (index < identifier.length()) {
-      String formattedString;
-      if (identifier.charAt(index) == '\\' && (index + 1 < identifier.length()) &&
-          (formattedString = getFormattedStringForQuotedIdentifiers(identifier.charAt(index + 1))) != null) {
-        String unicodePoint = CHAR_PREFIX + formattedString;
-        sb.append(unicodePoint);
-        index += 2;
-      } else {
-        sb.append(identifier.charAt(index));
-        index++;
-      }
-    }
-    return sb.toString();
-  }
-
-  /**
-   * Escape the special characters in an identifier with a preceding `\`.
-   *
-   * @param identifier encoded identifier string
-   * @return decoded identifier
-   */
-  @JsMethod(namespace = "io.ballerina.identifier.jsutils")
-  public static native String escapeSpecialCharacters(String identifier);
-
-  private static String encodeIdentifier(String identifier) {
-    if (identifier.contains(ESCAPE_PREFIX)) {
-      identifier = encodeSpecialCharacters(identifier);
-      return unescapeJava(identifier);
-    }
-    return identifier;
-  }
-
-  /**
-   * <p>
-   * Unescapes any Java literals found in the {@code String}.
-   * For example, it will turn a sequence of {@code '\'} and
-   * {@code 'n'} into a newline character, unless the {@code '\'}
-   * is preceded by another {@code '\'}.
-   * </p>
-   *
-   * @param str the {@code String} to unescape, may be null
-   * @return a new unescaped {@code String}, {@code null} if null string input
-   */
-  public static String unescapeJava(String str) {
-    if (str == null) {
-      return null;
+    private Utils() {
     }
 
-    StringBuilder sb = new StringBuilder(str.length());
-    int index = 0;
-
-    while (index < str.length()) {
-      char c = str.charAt(index);
-
-      if (c == '\\' && index + 1 < str.length()) {
-        char nextChar = str.charAt(index + 1);
-        char unescapedChar = unescapeChar(nextChar);
-
-        if (unescapedChar != 0) {
-          // Valid escape sequence found
-          sb.append(unescapedChar);
-          index += 2;
-        } else {
-          // Not a valid escape sequence, keep the backslash
-          sb.append(c);
-          index++;
+    private static String encodeSpecialCharacters(String identifier) {
+        StringBuilder sb = new StringBuilder();
+        int index = 0;
+        while (index < identifier.length()) {
+            String formattedString;
+            if (identifier.charAt(index) == '\\' && (index + 1 < identifier.length()) &&
+                    (formattedString = getFormattedStringForQuotedIdentifiers(identifier.charAt(index + 1))) != null)  {
+                String unicodePoint = CHAR_PREFIX + formattedString;
+                sb.append(unicodePoint);
+                index += 2;
+            } else {
+                sb.append(identifier.charAt(index));
+                index++;
+            }
         }
-      } else {
-        sb.append(c);
-        index++;
-      }
+        return sb.toString();
     }
 
-    return sb.toString();
-  }
-
-  private static char unescapeChar(char c) {
-    return switch (c) {
-      case 'n' -> '\n';
-      case 't' -> '\t';
-      case 'r' -> '\r';
-      case 'b' -> '\b';
-      case 'f' -> '\f';
-      case '\\' -> '\\';
-      case '\'' -> '\'';
-      case '\"' -> '\"';
-      case 'u' -> 0; // Unicode escape sequences are handled separately
-      default -> 0; // Not a valid escape sequence
-    };
-  }
-
-  private static Identifier encodeGeneratedName(String identifier) {
-    StringBuilder sb = new StringBuilder();
-    boolean isEncoded = false;
-    int index = 0;
-    while (index < identifier.length()) {
-      String formattedString = getFormattedStringForJvmReservedSet(identifier.charAt(index));
-      if (formattedString != null) {
-        String unicodePoint = CHAR_PREFIX + formattedString;
-        sb.append(unicodePoint);
-        isEncoded = true;
-      } else {
-        sb.append(identifier.charAt(index));
-      }
-      index++;
-    }
-    return new Identifier(sb.toString(), isEncoded);
-  }
-
-  private static String getFormattedStringForQuotedIdentifiers(char c) {
-    if (c == '$') {
-      return "0036";
-    }
-    return getFormattedStringForJvmReservedSet(c);
-  }
-
-  private static String getFormattedStringForJvmReservedSet(char c) {
-    return switch (c) {
-      case '\\' -> "0092";
-      case '.' -> "0046";
-      case ':' -> "0058";
-      case ';' -> "0059";
-      case '[' -> "0091";
-      case ']' -> "0093";
-      case '/' -> "0047";
-      case '<' -> "0060";
-      case '>' -> "0062";
-      default -> null;
-    };
-  }
-
-  /**
-   * Decode the encoded identifiers for runtime calls.
-   *
-   * @param encodedIdentifier encoded identifier string
-   * @return decoded identifier
-   */
-  public static String decodeIdentifier(String encodedIdentifier) {
-    if (encodedIdentifier == null) {
-      return null;
-    }
-    StringBuilder sb = new StringBuilder();
-    int index = 0;
-    while (index < encodedIdentifier.length()) {
-      if (encodedIdentifier.charAt(index) == '&' && index + 4 < encodedIdentifier.length()) {
-        if (isUnicodePoint(encodedIdentifier, index)) {
-          sb.append((char) Integer.parseInt(encodedIdentifier.substring(index + 1, index + 5)));
-          index += 5;
-        } else {
-          sb.append(encodedIdentifier.charAt(index));
-          index++;
+    /**
+     * Escape the special characters in an identifier with a preceding `\`.
+     *
+     * @param identifier encoded identifier string
+     * @return decoded identifier
+     */
+    public static String escapeSpecialCharacters(String identifier) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < identifier.length(); i++) {
+            char c = identifier.charAt(i);
+            if (SPECIAL_CHARS.indexOf(c) != -1) {
+                sb.append('\\');
+            }
+            sb.append(c);
         }
-      } else {
-        sb.append(encodedIdentifier.charAt(index));
-        index++;
-      }
+        return sb.toString();
     }
-    return decodeGeneratedMethodName(sb.toString());
-  }
 
-  private static String decodeGeneratedMethodName(String decodedName) {
-    return decodedName.startsWith(GENERATED_METHOD_PREFIX) ? decodedName.substring(GENERATED_METHOD_PREFIX.length())
-        : decodedName;
-  }
-
-  /**
-   * Unescapes a ballerina string.
-   *
-   * @param text ballerina string to unescape
-   * @return unescaped ballerina string
-   */
-  public static String unescapeBallerina(String text) {
-    return escapeString(text);
-  }
-
-  @JsMethod(namespace = "goog.string")
-  private static native String escapeString(String text);
-
-  /**
-   * Replace the unicode patterns in identifiers into respective unicode
-   * characters.
-   *
-   * @param identifier identifier string
-   * @return modified identifier with unicode character
-   */
-  @JsMethod(namespace = "io.ballerina.identifier.jsutils")
-  public static native String unescapeUnicodeCodepoints(String identifier);
-
-  /**
-   * Returns whether the <a href=
-   * "https://ballerina.io/ballerina-spec/spec.html#NumericEscape">NumericEscape</a>
-   * is escaped, based on no. of leading backslashes.
-   *
-   * @param leadingSlashes preceding backslashes of the numeric escape.
-   *                       e.g. {@code \\u{61}} has 1 leading backslash.
-   * @return {@code true} if numeric escape is escaped, {@code false} otherwise.
-   */
-  public static boolean isEscapedNumericEscape(String leadingSlashes) {
-    return !isEven(leadingSlashes.length());
-  }
-
-  private static boolean isEven(int n) {
-    // (n & 1) is 0 when n is even.
-    return (n & 1) == 0;
-  }
-
-  private static boolean isUnicodePoint(String encodedName, int index) {
-    return (containsOnlyDigits(encodedName.substring(index + 1, index + 5)));
-  }
-
-  private static boolean containsOnlyDigits(String digitString) {
-    for (int i = 0; i < digitString.length(); i++) {
-      if (!Character.isDigit(digitString.charAt(i))) {
-        return false;
-      }
+    private static String encodeIdentifier(String identifier) {
+        if (identifier.contains(ESCAPE_PREFIX)) {
+            identifier = encodeSpecialCharacters(identifier);
+            return unescapeJava(identifier);
+        }
+        return identifier;
     }
-    return true;
-  }
 
-  /**
-   * Encode the function identifiers to avoid using jvm reserved characters.
-   *
-   * @param functionName function identifier string
-   * @return encoded identifier
-   */
-  public static String encodeFunctionIdentifier(String functionName) {
-    functionName = encodeIdentifier(functionName);
-    switch (functionName) {
-      case ".<init>":
-        return "$gen$&0046&0060init&0062";
-      case ".<start>":
-        return "$gen$&0046&0060start&0062";
-      case ".<stop>":
-        return "$gen$&0046&0060stop&0062";
-      case ".<testinit>":
-        return "$gen$&0046&0060testinit&0062";
+    /**
+     * <p>Unescapes any Java literals found in the {@code String}.
+     * For example, it will turn a sequence of {@code '\'} and
+     * {@code 'n'} into a newline character, unless the {@code '\'}
+     * is preceded by another {@code '\'}.</p>
+     *
+     * @param str the {@code String} to unescape, may be null
+     * @return a new unescaped {@code String}, {@code null} if null string input
+     */
+    public static String unescapeJava(String str) {
+        return StringEscapeUtils.unescapeJava(str);
     }
-    Identifier encodedName = encodeGeneratedName(functionName);
-    return encodedName.isEncoded ? GENERATED_METHOD_PREFIX + encodedName.name : functionName;
-  }
 
-  /**
-   * Encode the non-function identifiers to avoid using jvm reserved characters.
-   *
-   * @param identifierString non-function identifier string
-   * @return encoded identifier
-   */
-  public static String encodeNonFunctionIdentifier(String identifierString) {
-    identifierString = encodeIdentifier(identifierString);
-    Identifier encodedName = encodeGeneratedName(identifierString);
-    return encodedName.name;
-  }
-
-  private static class Identifier {
-    boolean isEncoded;
-    String name;
-
-    Identifier(String name, boolean isEncoded) {
-      this.name = name;
-      this.isEncoded = isEncoded;
+    private static Identifier encodeGeneratedName(String identifier) {
+        StringBuilder sb = new StringBuilder();
+        boolean isEncoded = false;
+        int index = 0;
+        while (index < identifier.length()) {
+            String formattedString = getFormattedStringForJvmReservedSet(identifier.charAt(index));
+            if (formattedString != null) {
+                String unicodePoint = CHAR_PREFIX + formattedString;
+                sb.append(unicodePoint);
+                isEncoded = true;
+            } else {
+                sb.append(identifier.charAt(index));
+            }
+            index++;
+        }
+        return new Identifier(sb.toString(), isEncoded);
     }
-  }
+
+    private static String getFormattedStringForQuotedIdentifiers(char c) {
+        if (c == '$') {
+            return "0036";
+        }
+        return getFormattedStringForJvmReservedSet(c);
+    }
+
+    private static String getFormattedStringForJvmReservedSet(char c) {
+        return switch (c) {
+            case '\\' -> "0092";
+            case '.' -> "0046";
+            case ':' -> "0058";
+            case ';' -> "0059";
+            case '[' -> "0091";
+            case ']' -> "0093";
+            case '/' -> "0047";
+            case '<' -> "0060";
+            case '>' -> "0062";
+            default -> null;
+        };
+    }
+
+    /**
+     * Decode the encoded identifiers for runtime calls.
+     *
+     * @param encodedIdentifier encoded identifier string
+     * @return decoded identifier
+     */
+    public static String decodeIdentifier(String encodedIdentifier) {
+        if (encodedIdentifier == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        int index = 0;
+        while (index < encodedIdentifier.length()) {
+            if (encodedIdentifier.charAt(index) == '&' && index + 4 < encodedIdentifier.length()) {
+                if (isUnicodePoint(encodedIdentifier, index)) {
+                    sb.append((char) Integer.parseInt(encodedIdentifier.substring(index + 1, index + 5)));
+                    index += 5;
+                } else {
+                    sb.append(encodedIdentifier.charAt(index));
+                    index++;
+                }
+            } else {
+                sb.append(encodedIdentifier.charAt(index));
+                index++;
+            }
+        }
+        return decodeGeneratedMethodName(sb.toString());
+    }
+
+    private static String decodeGeneratedMethodName(String decodedName) {
+        return decodedName.startsWith(GENERATED_METHOD_PREFIX) ?
+                decodedName.substring(GENERATED_METHOD_PREFIX.length()) : decodedName;
+    }
+
+    /**
+     * Custom matcher for unicode escape patterns:
+     * Replaces regex Pattern/Matcher for J2CL compatibility.
+     */
+    private static class UnicodeMatcher {
+        private final String input;
+        private int currentPos = 0;
+        private int matchStart = -1;
+        private int matchEnd = -1;
+        private String leadingSlashes = "";
+        private String hexDigits = "";
+
+        UnicodeMatcher(String input) {
+            this.input = input;
+        }
+
+        /**
+         * Finds the next unicode escape pattern in the string.
+         * Pattern: \(any backslashes)u{hexdigits}
+         */
+        boolean find() {
+            while (currentPos < input.length()) {
+                if (input.charAt(currentPos) == '\\') {
+                    matchStart = currentPos;
+
+                    // Count leading backslashes
+                    StringBuilder slashes = new StringBuilder();
+                    int pos = currentPos;
+                    while (pos < input.length() && input.charAt(pos) == '\\') {
+                        slashes.append('\\');
+                        pos++;
+                    }
+
+                    // Check for u{
+                    if (pos + 1 < input.length() && input.charAt(pos) == 'u' && input.charAt(pos + 1) == '{') {
+                        pos += 2; // skip "u{"
+
+                        // Extract hex digits
+                        StringBuilder hex = new StringBuilder();
+                        while (pos < input.length() && isHexDigit(input.charAt(pos))) {
+                            hex.append(input.charAt(pos));
+                            pos++;
+                        }
+
+                        // Check for closing }
+                        if (pos < input.length() && input.charAt(pos) == '}' && hex.length() > 0) {
+                            matchEnd = pos + 1;
+                            leadingSlashes = slashes.substring(1); // Remove the first backslash
+                            hexDigits = hex.toString();
+                            currentPos = matchEnd;
+                            return true;
+                        }
+                    }
+                }
+                currentPos++;
+            }
+            return false;
+        }
+
+        /**
+         * Returns the captured group.
+         * Group 1: leading backslashes (after the first one)
+         * Group 2: hex digits
+         */
+        String group(int group) {
+            if (group == 1) {
+                return leadingSlashes;
+            } else if (group == 2) {
+                return hexDigits;
+            }
+            throw new IllegalArgumentException("Invalid group: " + group);
+        }
+
+        /**
+         * Appends replacement text to the buffer.
+         */
+        void appendReplacement(StringBuilder buffer, String replacement, int lastAppendPosition) {
+            // Append text between last match and current match
+            buffer.append(input, lastAppendPosition, matchStart);
+            // Append replacement
+            buffer.append(replacement);
+        }
+
+        /**
+         * Appends the tail (remaining text after last match).
+         */
+        void appendTail(StringBuilder buffer, int lastAppendPosition) {
+            buffer.append(input, lastAppendPosition, input.length());
+        }
+
+        int getMatchEnd() {
+            return matchEnd;
+        }
+
+        private boolean isHexDigit(char c) {
+            return (c >= '0' && c <= '9') ||
+                   (c >= 'a' && c <= 'f') ||
+                   (c >= 'A' && c <= 'F');
+        }
+    }
+
+    /**
+     * Unescapes a ballerina string.
+     *
+     * @param text ballerina string to unescape
+     * @return unescaped ballerina string
+     */
+    public static String unescapeBallerina(String text) {
+        return unescapeJava(Utils.unescapeUnicodeCodepoints(text));
+    }
+
+    /**
+     * Replace the unicode patterns in identifiers into respective unicode characters.
+     *
+     * @param identifier         identifier string
+     * @return modified identifier with unicode character
+     */
+    public static String unescapeUnicodeCodepoints(String identifier) {
+        UnicodeMatcher matcher = new UnicodeMatcher(identifier);
+        StringBuilder buffer = new StringBuilder(identifier.length());
+        int lastAppendPosition = 0;
+
+        while (matcher.find()) {
+            String leadingSlashes = matcher.group(1);
+            if (isEscapedNumericEscape(leadingSlashes)) {
+                // e.g. \\u{61}, \\\\u{61}
+                lastAppendPosition = matcher.getMatchEnd();
+                continue;
+            }
+
+            int codePoint = Integer.parseInt(matcher.group(2), 16);
+            char[] chars = Character.toChars(codePoint);
+            String ch = String.valueOf(chars);
+
+            String replacement;
+            if (ch.equals("\\")) {
+                // Ballerina string unescaping is done in two stages.
+                // 1. unicode code point unescaping (doing separately as [2] does not support code points > 0xFFFF)
+                // 2. java unescaping
+                // Replacing unicode code point of backslash at [1] would compromise [2]. Therefore, special case it.
+                replacement = leadingSlashes + "\\u005C";
+            } else {
+                replacement = leadingSlashes + ch;
+            }
+
+            matcher.appendReplacement(buffer, replacement, lastAppendPosition);
+            lastAppendPosition = matcher.getMatchEnd();
+        }
+        matcher.appendTail(buffer, lastAppendPosition);
+        return buffer.toString();
+    }
+
+    /**
+     * Result class for unicode pattern validation.
+     */
+    public static class UnicodeValidationMatch {
+        public final String leadingSlashes;
+        public final String hexCodePoint;
+        public final int end;
+
+        UnicodeValidationMatch(String leadingSlashes, String hexCodePoint, int end) {
+            this.leadingSlashes = leadingSlashes;
+            this.hexCodePoint = hexCodePoint;
+            this.end = end;
+        }
+    }
+
+    /**
+     * Finds all unicode patterns in the text and returns them as a list.
+     * Used for validation purposes.
+     *
+     * @param text text to search for unicode patterns
+     * @return list of unicode pattern matches
+     */
+    public static List<UnicodeValidationMatch> findUnicodePatterns(String text) {
+        List<UnicodeValidationMatch> results = new ArrayList<>();
+        UnicodeMatcher matcher = new UnicodeMatcher(text);
+
+        while (matcher.find()) {
+            int endOfLeadingSlashes = matcher.matchStart + matcher.leadingSlashes.length() + 1;
+            results.add(new UnicodeValidationMatch(
+                    matcher.group(1),
+                    matcher.group(2),
+                    endOfLeadingSlashes
+            ));
+        }
+
+        return results;
+    }
+
+    /**
+     * Returns whether the <a href="https://ballerina.io/ballerina-spec/spec.html#NumericEscape">NumericEscape</a>
+     * is escaped, based on no. of leading backslashes.
+     *
+     * @param leadingSlashes preceding backslashes of the numeric escape.
+     *                       e.g. {@code \\u{61}} has 1 leading backslash.
+     * @return {@code true} if numeric escape is escaped, {@code false} otherwise.
+     */
+    public static boolean isEscapedNumericEscape(String leadingSlashes) {
+        return !isEven(leadingSlashes.length());
+    }
+
+    private static boolean isEven(int n) {
+        // (n & 1) is 0 when n is even.
+        return (n & 1) == 0;
+    }
+
+    private static boolean isUnicodePoint(String encodedName, int index) {
+        return (containsOnlyDigits(encodedName.substring(index + 1, index + 5)));
+    }
+
+    private static boolean containsOnlyDigits(String digitString) {
+        for (int i = 0; i < digitString.length(); i++) {
+            if (!Character.isDigit(digitString.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Encode the function identifiers to avoid using jvm reserved characters.
+     *
+     * @param functionName  function identifier string
+     * @return encoded identifier
+     */
+    public static String encodeFunctionIdentifier(String functionName) {
+        functionName = encodeIdentifier(functionName);
+        switch (functionName) {
+            case ".<init>":
+                return "$gen$&0046&0060init&0062";
+            case ".<start>":
+                return "$gen$&0046&0060start&0062";
+            case ".<stop>":
+                return "$gen$&0046&0060stop&0062";
+            case ".<testinit>":
+                return "$gen$&0046&0060testinit&0062";
+        }
+        Identifier encodedName = encodeGeneratedName(functionName);
+        return encodedName.isEncoded ? GENERATED_METHOD_PREFIX + encodedName.name : functionName;
+    }
+
+    /**
+     * Encode the non-function identifiers to avoid using jvm reserved characters.
+     *
+     * @param identifierString  non-function identifier string
+     * @return encoded identifier
+     */
+    public static String encodeNonFunctionIdentifier(String identifierString) {
+        identifierString = encodeIdentifier(identifierString);
+        Identifier encodedName = encodeGeneratedName(identifierString);
+        return encodedName.name;
+    }
+
+    private static class Identifier {
+        boolean isEncoded;
+        String name;
+
+        Identifier(String name, boolean isEncoded) {
+            this.name = name;
+            this.isEncoded = isEncoded;
+        }
+    }
 }

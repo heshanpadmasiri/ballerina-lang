@@ -20,8 +20,8 @@ package io.ballerina.identifier;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Identifier encoder to encode user defined identifiers with special characters.
@@ -30,13 +30,9 @@ import java.util.regex.Pattern;
  */
 public final class Utils {
 
-    private static final String UNICODE_REGEX = "\\\\(\\\\*)u\\{([a-fA-F0-9]+)\\}";
-    public static final Pattern UNICODE_PATTERN = Pattern.compile(UNICODE_REGEX);
-
     private static final String CHAR_PREFIX = "&";
     private static final String ESCAPE_PREFIX = "\\";
-    private static final Pattern UNESCAPED_SPECIAL_CHAR_SET = Pattern.compile("([$&+,:;=\\?@#\\\\|/'\\ \\[\\}\\]<\\>" +
-            ".\"^*{}~`()%!-])");
+    private static final String SPECIAL_CHARS = "$&+,:;=?@#\\|/' []<>.\"^*{}~`()%!-";
     private static final String GENERATED_METHOD_PREFIX = "$gen$";
 
     private Utils() {
@@ -67,7 +63,15 @@ public final class Utils {
      * @return decoded identifier
      */
     public static String escapeSpecialCharacters(String identifier) {
-        return UNESCAPED_SPECIAL_CHAR_SET.matcher(identifier).replaceAll("\\\\$1");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < identifier.length(); i++) {
+            char c = identifier.charAt(i);
+            if (SPECIAL_CHARS.indexOf(c) != -1) {
+                sb.append('\\');
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
     private static String encodeIdentifier(String identifier) {
@@ -166,6 +170,107 @@ public final class Utils {
     }
 
     /**
+     * Custom matcher for unicode escape patterns:
+     * Replaces regex Pattern/Matcher for J2CL compatibility.
+     */
+    private static class UnicodeMatcher {
+        private final String input;
+        private int currentPos = 0;
+        private int matchStart = -1;
+        private int matchEnd = -1;
+        private String leadingSlashes = "";
+        private String hexDigits = "";
+
+        UnicodeMatcher(String input) {
+            this.input = input;
+        }
+
+        /**
+         * Finds the next unicode escape pattern in the string.
+         * Pattern: \(any backslashes)u{hexdigits}
+         */
+        boolean find() {
+            while (currentPos < input.length()) {
+                if (input.charAt(currentPos) == '\\') {
+                    matchStart = currentPos;
+
+                    // Count leading backslashes
+                    StringBuilder slashes = new StringBuilder();
+                    int pos = currentPos;
+                    while (pos < input.length() && input.charAt(pos) == '\\') {
+                        slashes.append('\\');
+                        pos++;
+                    }
+
+                    // Check for u{
+                    if (pos + 1 < input.length() && input.charAt(pos) == 'u' && input.charAt(pos + 1) == '{') {
+                        pos += 2; // skip "u{"
+
+                        // Extract hex digits
+                        StringBuilder hex = new StringBuilder();
+                        while (pos < input.length() && isHexDigit(input.charAt(pos))) {
+                            hex.append(input.charAt(pos));
+                            pos++;
+                        }
+
+                        // Check for closing }
+                        if (pos < input.length() && input.charAt(pos) == '}' && hex.length() > 0) {
+                            matchEnd = pos + 1;
+                            leadingSlashes = slashes.substring(1); // Remove the first backslash
+                            hexDigits = hex.toString();
+                            currentPos = matchEnd;
+                            return true;
+                        }
+                    }
+                }
+                currentPos++;
+            }
+            return false;
+        }
+
+        /**
+         * Returns the captured group.
+         * Group 1: leading backslashes (after the first one)
+         * Group 2: hex digits
+         */
+        String group(int group) {
+            if (group == 1) {
+                return leadingSlashes;
+            } else if (group == 2) {
+                return hexDigits;
+            }
+            throw new IllegalArgumentException("Invalid group: " + group);
+        }
+
+        /**
+         * Appends replacement text to the buffer.
+         */
+        void appendReplacement(StringBuilder buffer, String replacement, int lastAppendPosition) {
+            // Append text between last match and current match
+            buffer.append(input, lastAppendPosition, matchStart);
+            // Append replacement
+            buffer.append(replacement);
+        }
+
+        /**
+         * Appends the tail (remaining text after last match).
+         */
+        void appendTail(StringBuilder buffer, int lastAppendPosition) {
+            buffer.append(input, lastAppendPosition, input.length());
+        }
+
+        int getMatchEnd() {
+            return matchEnd;
+        }
+
+        private boolean isHexDigit(char c) {
+            return (c >= '0' && c <= '9') ||
+                   (c >= 'a' && c <= 'f') ||
+                   (c >= 'A' && c <= 'F');
+        }
+    }
+
+    /**
      * Unescapes a ballerina string.
      *
      * @param text ballerina string to unescape
@@ -182,12 +287,15 @@ public final class Utils {
      * @return modified identifier with unicode character
      */
     public static String unescapeUnicodeCodepoints(String identifier) {
-        Matcher matcher = UNICODE_PATTERN.matcher(identifier);
+        UnicodeMatcher matcher = new UnicodeMatcher(identifier);
         StringBuilder buffer = new StringBuilder(identifier.length());
+        int lastAppendPosition = 0;
+
         while (matcher.find()) {
             String leadingSlashes = matcher.group(1);
             if (isEscapedNumericEscape(leadingSlashes)) {
                 // e.g. \\u{61}, \\\\u{61}
+                lastAppendPosition = matcher.getMatchEnd();
                 continue;
             }
 
@@ -195,18 +303,60 @@ public final class Utils {
             char[] chars = Character.toChars(codePoint);
             String ch = String.valueOf(chars);
 
+            String replacement;
             if (ch.equals("\\")) {
                 // Ballerina string unescaping is done in two stages.
                 // 1. unicode code point unescaping (doing separately as [2] does not support code points > 0xFFFF)
                 // 2. java unescaping
                 // Replacing unicode code point of backslash at [1] would compromise [2]. Therefore, special case it.
-                matcher.appendReplacement(buffer, Matcher.quoteReplacement(leadingSlashes + "\\u005C"));
+                replacement = leadingSlashes + "\\u005C";
             } else {
-                matcher.appendReplacement(buffer, Matcher.quoteReplacement(leadingSlashes + ch));
+                replacement = leadingSlashes + ch;
             }
+
+            matcher.appendReplacement(buffer, replacement, lastAppendPosition);
+            lastAppendPosition = matcher.getMatchEnd();
         }
-        matcher.appendTail(buffer);
-        return String.valueOf(buffer);
+        matcher.appendTail(buffer, lastAppendPosition);
+        return buffer.toString();
+    }
+
+    /**
+     * Result class for unicode pattern validation.
+     */
+    public static class UnicodeValidationMatch {
+        public final String leadingSlashes;
+        public final String hexCodePoint;
+        public final int end;
+
+        UnicodeValidationMatch(String leadingSlashes, String hexCodePoint, int end) {
+            this.leadingSlashes = leadingSlashes;
+            this.hexCodePoint = hexCodePoint;
+            this.end = end;
+        }
+    }
+
+    /**
+     * Finds all unicode patterns in the text and returns them as a list.
+     * Used for validation purposes.
+     *
+     * @param text text to search for unicode patterns
+     * @return list of unicode pattern matches
+     */
+    public static List<UnicodeValidationMatch> findUnicodePatterns(String text) {
+        List<UnicodeValidationMatch> results = new ArrayList<>();
+        UnicodeMatcher matcher = new UnicodeMatcher(text);
+
+        while (matcher.find()) {
+            int endOfLeadingSlashes = matcher.matchStart + matcher.leadingSlashes.length() + 1;
+            results.add(new UnicodeValidationMatch(
+                    matcher.group(1),
+                    matcher.group(2),
+                    endOfLeadingSlashes
+            ));
+        }
+
+        return results;
     }
 
     /**

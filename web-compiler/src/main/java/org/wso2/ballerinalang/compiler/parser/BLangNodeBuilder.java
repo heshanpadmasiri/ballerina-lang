@@ -520,7 +520,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.Set;
-import java.util.regex.Matcher;
 
 import static org.ballerinalang.model.elements.Flag.INCLUDED;
 import static org.ballerinalang.model.elements.Flag.ISOLATED;
@@ -6232,21 +6231,20 @@ public class BLangNodeBuilder extends NodeTransformer<BLangNode> {
     }
 
     private void validateUnicodePoints(String text, Location pos) {
-        Matcher matcher = Utils.UNICODE_PATTERN.matcher(text);
-        while (matcher.find()) {
-            String leadingBackSlashes = matcher.group(1);
-            if (Utils.isEscapedNumericEscape(leadingBackSlashes)) {
+        List<Utils.UnicodeValidationMatch> matches = Utils.findUnicodePatterns(text);
+        for (Utils.UnicodeValidationMatch match : matches) {
+            if (Utils.isEscapedNumericEscape(match.leadingSlashes)) {
                 // e.g. \\u{61}, \\\\u{61}
                 continue;
             }
 
-            String hexCodePoint = matcher.group(2);
+            String hexCodePoint = match.hexCodePoint;
             int decimalCodePoint = Integer.parseInt(hexCodePoint, 16);
 
             if ((decimalCodePoint >= Constants.MIN_UNICODE && decimalCodePoint <= Constants.MIDDLE_LIMIT_UNICODE)
                     || decimalCodePoint > Constants.MAX_UNICODE) {
 
-                int offset = matcher.end(1);
+                int offset = match.end;
                 offset += "\\u{".length();
                 BLangDiagnosticLocation numericEscapePos = new BLangDiagnosticLocation(currentCompUnitName,
                         pos.lineRange().startLine().line(),

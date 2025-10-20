@@ -35,7 +35,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,8 +57,6 @@ public class BUnionType extends BType implements UnionType {
     private static final String INT_CLONEABLE = "__Cloneable";
     private static final String CLONEABLE = "Cloneable";
     private static final String CLONEABLE_TYPE = "CloneableType";
-    private static final Pattern pCloneable = Pattern.compile(INT_CLONEABLE);
-    private static final Pattern pCloneableType = Pattern.compile(CLONEABLE_TYPE);
     public final Env env;
 
     public BUnionType(Env env, BTypeSymbol tsymbol, LinkedHashSet<BType> memberTypes, boolean readonly) {
@@ -407,8 +404,8 @@ public class BUnionType extends BType implements UnionType {
             String packageId = tsymbol.pkgID.toString();
             boolean isTypeParam = Symbols.isFlagOn(getFlags(), Flags.TYPE_PARAM);
             // improve readability of cyclic union types
-            if (isCyclic && (pCloneable.matcher(typeName).matches() ||
-                    (isTypeParam && pCloneableType.matcher(typeName).matches()))) {
+            if (isCyclic && (typeName.equals(INT_CLONEABLE) ||
+                    (isTypeParam && typeName.equals(CLONEABLE_TYPE)))) {
                 cachedToString = getQualifiedName(packageId, CLONEABLE);
                 return;
             }

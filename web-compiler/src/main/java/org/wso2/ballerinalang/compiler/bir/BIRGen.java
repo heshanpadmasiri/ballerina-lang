@@ -219,7 +219,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.wso2.ballerinalang.compiler.util.XMLConstants;
@@ -888,8 +887,30 @@ public class BIRGen extends BLangNodeVisitor {
         fieldNameFpMap.put(fieldName, funcName);
     }
 
+    /**
+     * Splits a string by a literal delimiter (not a regex pattern).
+     * Similar to String.split() but treats delimiter as literal text.
+     */
+    private static String[] splitByLiteral(String input, String delimiter) {
+        if (delimiter.isEmpty()) {
+            throw new IllegalArgumentException("Delimiter cannot be empty");
+        }
+
+        List<String> result = new ArrayList<>();
+        int startIndex = 0;
+        int index;
+
+        while ((index = input.indexOf(delimiter, startIndex)) != -1) {
+            result.add(input.substring(startIndex, index));
+            startIndex = index + delimiter.length();
+        }
+        result.add(input.substring(startIndex));
+
+        return result.toArray(new String[0]);
+    }
+
     private String getFieldName(String funcName, String typeName) {
-        String[] splitNames = funcName.split(Pattern.quote(typeName + RECORD_DELIMITER));
+        String[] splitNames = splitByLiteral(funcName, typeName + RECORD_DELIMITER);
         return splitNames[splitNames.length - 1];
     }
 
@@ -897,7 +918,7 @@ public class BIRGen extends BLangNodeVisitor {
         if (!funcName.contains(RECORD_DELIMITER)) {
             return null;
         }
-        String[] split = funcName.split(Pattern.quote(RECORD_DELIMITER));
+        String[] split = splitByLiteral(funcName, RECORD_DELIMITER);
         String typeName = split[split.length - 2];
         for (BIRTypeDefinition type : this.env.enclPkg.typeDefs) {
             if (typeName.equals(type.originalName.value)) {

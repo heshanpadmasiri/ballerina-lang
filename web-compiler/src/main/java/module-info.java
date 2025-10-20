@@ -3,7 +3,6 @@ module io.ballerina.lang {
     uses io.ballerina.projects.buildtools.CodeGeneratorTool;
     uses org.ballerinalang.spi.CompilerBackendCodeGenerator;
     uses org.ballerinalang.compiler.plugins.CompilerPlugin;
-    uses org.ballerinalang.spi.EmbeddedExecutor;
 
     requires java.compiler;
     requires java.xml;

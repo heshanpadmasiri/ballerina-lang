@@ -49,7 +49,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
-import java.util.regex.Pattern;
 
 import static io.ballerina.compiler.api.symbols.TypeDescKind.FUNCTION;
 import static io.ballerina.compiler.api.symbols.TypeDescKind.INTERSECTION;
@@ -71,7 +70,6 @@ public class BallerinaUnionTypeSymbol extends AbstractTypeSymbol implements Unio
 
     private static final String CLONEABLE = "Cloneable";
     private static final String CLONEABLE_TYPE = "CloneableType";
-    private static final Pattern pCloneableType = Pattern.compile(CLONEABLE_TYPE);
 
     private List<TypeSymbol> memberTypes;
     private List<TypeSymbol> originalMemberTypes;
@@ -207,7 +205,7 @@ public class BallerinaUnionTypeSymbol extends AbstractTypeSymbol implements Unio
         if (unionType.isCyclic && (unionType.tsymbol != null) && !unionType.tsymbol.getName().getValue().isEmpty()) {
             String typeStr;
             typeStr = unionType.tsymbol.getName().getValue();
-            if (Symbols.isFlagOn(unionType.getFlags(), Flags.TYPE_PARAM) && pCloneableType.matcher(typeStr).matches()) {
+            if (Symbols.isFlagOn(unionType.getFlags(), Flags.TYPE_PARAM) && typeStr.equals(CLONEABLE_TYPE)) {
                 typeStr = CLONEABLE;
             }
             return typeStr;

@@ -9,3 +9,10 @@ alwaysApply: false
 
 # Arrays
 + Replace `T[].clone` with `Arrays.copyof`
+
+# Strings
++ Replace `isBlank` with `trim().isEmpty()`
++ Replace string format with string concatanation
+
+# StringBuilder
++ replace `isEmpty()` with `length() == 0`

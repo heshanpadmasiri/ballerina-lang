@@ -453,7 +453,7 @@ public class ModuleContext {
         moduleContext.srcDocContextMap.values().forEach(DocumentContext::shrink);
     }
 
-    @Deprecated (forRemoval = true)
+    @Deprecated
     Optional<MdDocumentContext> moduleMdContext() {
         return Optional.ofNullable(this.readmeMdContext);
     }

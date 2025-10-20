@@ -462,7 +462,7 @@ public class SymbolFactory {
         if (symbol == null) {
             return null;
         }
-        String name = symbol.getOriginalName().getValue().isBlank() ? null : symbol.getOriginalName().getValue();
+        String name = symbol.getOriginalName().getValue().trim().isEmpty() ? null : symbol.getOriginalName().getValue();
         TypeSymbol typeDescriptor = typesFactory.getTypeDescriptor(symbol.type);
         List<Qualifier> qualifiers = new ArrayList<>();
         if ((symbol.flags & Flags.PUBLIC) == Flags.PUBLIC) {
