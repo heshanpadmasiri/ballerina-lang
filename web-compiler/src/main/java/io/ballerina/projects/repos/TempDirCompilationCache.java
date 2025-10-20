@@ -22,9 +22,6 @@ import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.util.ProjectConstants;
 
-import java.io.IOException;
-import java.nio.file.Files;
-
 /**
  * A {@code CompilationCache} instance that caches artifacts in a temp directory.
  *

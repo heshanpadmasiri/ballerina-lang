@@ -1,5 +1,10 @@
 package io.ballerina.projects.internal.repositories;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import io.ballerina.fs.Path;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageVersion;
@@ -13,15 +18,6 @@ import io.ballerina.projects.environment.ResolutionRequest;
 import io.ballerina.projects.internal.ImportModuleRequest;
 import io.ballerina.projects.internal.ImportModuleResponse;
 import org.wso2.ballerinalang.util.RepoUtils;
-
-import java.net.Proxy;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static io.ballerina.projects.DependencyGraph.DependencyGraphBuilder.getBuilder;
-import static io.ballerina.projects.util.ProjectUtils.initializeProxy;
 
 /**
  * This class represents the remote package repository.
@@ -44,7 +40,6 @@ public class RemotePackageRepository implements PackageRepository {
         String ballerinaShortVersion = RepoUtils.getBallerinaShortVersion();
         FileSystemRepository fileSystemRepository = new FileSystemRepository(
                 environment, cacheDirectory, ballerinaShortVersion);
-        Proxy proxy = initializeProxy(settings.getProxy());
 //        CentralAPIClient client = new CentralAPIClient(repoUrl, proxy, settings.getProxy().username(),
 //                settings.getProxy().password(), getAccessTokenOfCLI(settings),
 //                settings.getCentral().getConnectTimeout(),

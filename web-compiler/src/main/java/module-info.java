@@ -43,7 +43,7 @@ module io.ballerina.lang {
     exports org.ballerinalang.model.tree.statements;
     exports org.wso2.ballerinalang.compiler.tree.statements;
     exports org.ballerinalang.annotation;
-    exports org.ballerinalang.codegen;
+//    exports org.ballerinalang.codegen;
     exports org.ballerinalang.spi;
     exports org.wso2.ballerinalang.compiler;
     exports org.wso2.ballerinalang.programfile;

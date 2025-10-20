@@ -14,13 +14,8 @@ import io.ballerina.projects.internal.repositories.RemotePackageRepository;
 import io.ballerina.projects.util.ProjectConstants;
 import org.wso2.ballerinalang.util.RepoUtils;
 
-import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-
-import static io.ballerina.runtime.api.constants.RuntimeConstants.USER_HOME;
 
 /**
  * Represents the Ballerina user home and responsible for resolving cached packages.
@@ -69,7 +64,7 @@ public final class BallerinaUserHome {
     }
 
     public static BallerinaUserHome from(Environment environment) {
-        String userHomeDir = System.getProperty(USER_HOME);
+        String userHomeDir = System.getProperty("user.home");
         if (userHomeDir == null || userHomeDir.isEmpty()) {
             throw new ProjectException("unable to get user home directory");
         }

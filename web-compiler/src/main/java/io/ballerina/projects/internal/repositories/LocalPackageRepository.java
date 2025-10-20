@@ -17,15 +17,14 @@
  */
 package io.ballerina.projects.internal.repositories;
 
+import java.util.Collections;
+import java.util.List;
+
 import io.ballerina.fs.Path;
 import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageOrg;
 import io.ballerina.projects.PackageVersion;
 import io.ballerina.projects.environment.Environment;
-
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * This class represents the local package repository.

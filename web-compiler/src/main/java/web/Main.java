@@ -13,9 +13,7 @@ import io.ballerina.projects.JBallerinaBackend;
 import io.ballerina.projects.JvmTarget;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageResolution;
-import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
-import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.directory.SingleFileProject;
 import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.internal.ProjectDiagnosticErrorCode;
@@ -72,27 +70,6 @@ public class Main {
             projectLoadingDiagnostic.ifPresent(out::println);
             PackageCompilation packageCompilation = project.currentPackage().getCompilation();
             JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_21);
-
-//            // Report package compilation and backend diagnostics
-//            diagnostics.addAll(jBallerinaBackend.diagnosticResult().diagnostics(false));
-//            diagnostics.forEach(d -> {
-//                if (d.diagnosticInfo().code() == null || (!d.diagnosticInfo().code().equals(
-//                        ProjectDiagnosticErrorCode.BUILT_WITH_OLDER_SL_UPDATE_DISTRIBUTION.diagnosticId()) &&
-//                        !d.diagnosticInfo().code().startsWith(TOOL_DIAGNOSTIC_CODE_PREFIX))) {
-//                    err.println(d);
-//                }
-//            });
-//            // Add tool resolution diagnostics to diagnostics
-//            diagnostics.addAll(project.currentPackage().getBuildToolResolution().getDiagnosticList());
-//            boolean hasErrors = false;
-//            for (Diagnostic d : diagnostics) {
-//                if (d.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)) {
-//                    hasErrors = true;
-//                }
-//            }
-//            if (hasErrors) {
-//                throw createLauncherException("compilation contains errors");
-//            }
         } catch (ProjectException e) {
             throw new RuntimeException(e);
         }

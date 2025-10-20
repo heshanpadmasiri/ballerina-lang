@@ -17,12 +17,9 @@
  */
 package io.ballerina.projects.internal.repositories;
 
-import io.ballerina.projects.ProjectException;
+import io.ballerina.fs.Path;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.util.ProjectConstants;
-
-import java.nio.file.Files;
-import io.ballerina.fs.Path;
 
 /**
  * This class represents the package respository available in the Ballerina distribution.

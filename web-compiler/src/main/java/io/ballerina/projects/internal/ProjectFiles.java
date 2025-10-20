@@ -25,10 +25,7 @@ import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.util.ProjectConstants;
 
-import java.io.PrintStream;
 import java.nio.charset.Charset;
-import java.nio.file.FileSystems;
-import java.nio.file.PathMatcher;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -43,10 +40,6 @@ import static io.ballerina.projects.util.ProjectConstants.TEST_DIR_NAME;
  * @since 2.0.0
  */
 public final class ProjectFiles {
-
-    public static final PathMatcher BALA_EXTENSION_MATCHER =
-            FileSystems.getDefault().getPathMatcher("glob:**.bala");
-    private static final PrintStream outStream = System.out;
 
     private ProjectFiles() {
     }

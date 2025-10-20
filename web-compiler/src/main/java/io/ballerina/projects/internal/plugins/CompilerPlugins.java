@@ -22,12 +22,7 @@ import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.plugins.CompilerPlugin;
-import io.ballerina.projects.util.CustomURLClassLoader;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -59,65 +54,7 @@ public final class CompilerPlugins {
     }
 
     public static CompilerPlugin loadCompilerPlugin(String pluginClassName, List<Path> jarDependencyPaths) {
-        ClassLoader classLoader = createClassLoader(jarDependencyPaths);
-        Class<?> pluginClass = loadPluginClass(pluginClassName, classLoader);
-        Class<CompilerPlugin> compilerPluginAbstractClass = CompilerPlugin.class;
-        if (!compilerPluginAbstractClass.isAssignableFrom(pluginClass)) {
-            throw new ProjectException("Specified class '" + pluginClassName + "' is not a subclass of '" +
-                    compilerPluginAbstractClass.getName() + "'");
-        }
-
-        Constructor<?> defaultConstructor = getDefaultConstructor(pluginClass);
-        try {
-            return (CompilerPlugin) defaultConstructor.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new ProjectException("Cannot create a new instance of the class '" +
-                    pluginClassName + "', reason: " + e.getMessage());
-        } catch (InvocationTargetException e) {
-            throw new ProjectException("Cannot create a new instance of the class '" +
-                    pluginClassName + "', reason: " + e.getTargetException());
-        }
-    }
-
-    private static Constructor<?> getDefaultConstructor(Class<?> pluginClass) {
-        try {
-            return pluginClass.getDeclaredConstructor();
-        } catch (NoSuchMethodException e) {
-            throw new ProjectException("Cannot find the default constructor in class: '" +
-                    pluginClass.getName() + "'");
-        }
-    }
-
-    private static Class<?> loadPluginClass(String pluginClassName, ClassLoader classLoader) {
-        try {
-            return classLoader.loadClass(pluginClassName);
-        } catch (ClassNotFoundException e) {
-            throw new ProjectException("Cannot find class '" + pluginClassName + "'");
-        }
-    }
-
-    private static ClassLoader createClassLoader(List<Path> jarDependencyPaths) {
-        return new CustomURLClassLoader(getJarURLS(jarDependencyPaths), Thread.currentThread().getContextClassLoader());
-    }
-
-    private static URL[] getJarURLS(List<Path> jarDependencyPaths) {
         throw new RuntimeException();
     }
 
-    public static List<String> annotationsAsStr(NodeList<AnnotationNode> supportedAnnotations) {
-        List<String> annotations = new ArrayList<>();
-        StringBuilder id = new StringBuilder();
-        for (AnnotationNode annotation : supportedAnnotations) {
-            String annotationRef = ((STAnnotationNode) annotation.internalNode()).annotReference.toString()
-                    .replaceAll("\\s", "");
-            id.append(annotationRef);
-
-            String annotationVal = ((STAnnotationNode) annotation.internalNode()).annotValue.toString()
-                    .replaceAll("\\s", "");
-            id.append(annotationVal);
-            annotations.add(id.toString());
-        }
-        annotations.sort(Comparator.naturalOrder());
-        return annotations;
-    }
 }
