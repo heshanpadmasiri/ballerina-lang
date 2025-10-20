@@ -46,6 +46,7 @@ import io.ballerina.projects.internal.model.ToolDependency;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.envutils.EnvConstants;
+import io.ballerina.tools.envutils.PropertyConstants;
 import org.ballerinalang.compiler.BLangCompilerException;
 import org.wso2.ballerinalang.compiler.util.Names;
 import org.wso2.ballerinalang.util.RepoUtils;
@@ -159,7 +160,7 @@ public final class ProjectUtils {
     }
 
     public static Path getBalHomePath() {
-        return Path.of(System.getProperty(BALLERINA_HOME));
+        return Path.of(PropertyConstants.getProperty(BALLERINA_HOME));
     }
 
     /**
@@ -171,7 +172,7 @@ public final class ProjectUtils {
         Path homeRepoPath;
         String homeRepoDir = EnvConstants.getEnv(ProjectConstants.HOME_REPO_ENV_KEY);
         if (homeRepoDir == null || homeRepoDir.isEmpty()) {
-            String userHomeDir = System.getProperty(USER_HOME);
+            String userHomeDir = PropertyConstants.getProperty(USER_HOME);
             if (userHomeDir == null || userHomeDir.isEmpty()) {
                 throw new BLangCompilerException("Error creating home repository: unable to get user home directory");
             }

@@ -17,6 +17,8 @@
  */
 package org.ballerinalang.toml.util;
 
+import io.ballerina.tools.envutils.PropertyConstants;
+
 import java.util.Locale;
 
 /**
@@ -25,7 +27,7 @@ import java.util.Locale;
  */
 public final class PathUtils {
 
-    private static final String OS = System.getProperty("os.name").toLowerCase(Locale.getDefault());
+    private static final String OS = PropertyConstants.getProperty("os.name").toLowerCase(Locale.getDefault());
 
     private PathUtils() {
     }

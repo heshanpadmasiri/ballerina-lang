@@ -17,12 +17,11 @@
  */
 package org.wso2.ballerinalang.util;
 
-import java.io.InputStream;
 import java.util.Map;
-import java.util.Properties;
 
 import io.ballerina.fs.Path;
 import io.ballerina.tools.envutils.EnvConstants;
+import io.ballerina.tools.envutils.PropertyConstants;
 import org.ballerinalang.compiler.BLangCompilerException;
 import org.ballerinalang.toml.model.Manifest;
 import org.wso2.ballerinalang.compiler.util.ProjectDirConstants;
@@ -72,7 +71,7 @@ public final class RepoUtils {
         Path homeRepoPath;
         String homeRepoDir = EnvConstants.getEnv(ProjectDirConstants.HOME_REPO_ENV_KEY);
         if (homeRepoDir == null || homeRepoDir.isEmpty()) {
-            String userHomeDir = System.getProperty(USER_HOME);
+            String userHomeDir = PropertyConstants.getProperty(USER_HOME);
             if (userHomeDir == null || userHomeDir.isEmpty()) {
                 throw new BLangCompilerException("Error creating home repository: unable to get user home directory");
             }
@@ -172,7 +171,7 @@ public final class RepoUtils {
     }
 
     public static Path getLibDir() {
-        return Path.of(System.getProperty(BALLERINA_INSTALL_DIR_PROP, ".")).resolve("lib");
+        return Path.of(PropertyConstants.getProperty(BALLERINA_INSTALL_DIR_PROP, ".")).resolve("lib");
     }
 
     /**
@@ -189,7 +188,7 @@ public final class RepoUtils {
     }
 
     public static Path createAndGetLibsRepoPath() {
-        String ballerinaHome = System.getProperty(ProjectDirConstants.BALLERINA_HOME);
+        String ballerinaHome = PropertyConstants.getProperty(ProjectDirConstants.BALLERINA_HOME);
         if (ballerinaHome == null || ballerinaHome.isEmpty()) {
             return null;
         }
@@ -198,7 +197,7 @@ public final class RepoUtils {
     }
 
     private static boolean getBooleanProp(String key) {
-        return Boolean.parseBoolean(System.getProperty(key));
+        return Boolean.parseBoolean(PropertyConstants.getProperty(key));
     }
 
 
@@ -208,33 +207,18 @@ public final class RepoUtils {
      * @return ballerina version
      */
     public static String getBallerinaVersion() {
-        try (InputStream inputStream = RepoUtils.class.getResourceAsStream(ProjectDirConstants.PROPERTIES_FILE)) {
-            Properties properties = new Properties();
-            properties.load(inputStream);
-            return properties.getProperty(ProjectDirConstants.BALLERINA_VERSION);
-        } catch (Throwable ignore) {
-        }
-        return UNKNOWN;
+        String version = PropertyConstants.getToolProperty(ProjectDirConstants.BALLERINA_VERSION);
+        return version != null ? version : UNKNOWN;
     }
 
     public static String getBallerinaShortVersion() {
-        try (InputStream inputStream = RepoUtils.class.getResourceAsStream(ProjectDirConstants.PROPERTIES_FILE)) {
-            Properties properties = new Properties();
-            properties.load(inputStream);
-            return properties.getProperty(ProjectDirConstants.BALLERINA_SHORT_VERSION);
-        } catch (Throwable ignore) {
-        }
-        return UNKNOWN;
+        String version = PropertyConstants.getToolProperty(ProjectDirConstants.BALLERINA_SHORT_VERSION);
+        return version != null ? version : UNKNOWN;
     }
 
     public static String getBallerinaSpecVersion() {
-        try (InputStream inputStream = RepoUtils.class.getResourceAsStream(ProjectDirConstants.PROPERTIES_FILE)) {
-            Properties properties = new Properties();
-            properties.load(inputStream);
-            return properties.getProperty(ProjectDirConstants.BALLERINA_SPEC_VERSION);
-        } catch (Throwable ignore) {
-        }
-        return UNKNOWN;
+        String version = PropertyConstants.getToolProperty(ProjectDirConstants.BALLERINA_SPEC_VERSION);
+        return version != null ? version : UNKNOWN;
     }
 
     /**

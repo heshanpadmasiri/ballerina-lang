@@ -33,6 +33,7 @@ import io.ballerina.projects.internal.PackageDiagnostic;
 import io.ballerina.projects.internal.model.Target;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.envutils.PropertyConstants;
 import org.wso2.ballerinalang.compiler.bir.codegen.CodeGenerator;
 import org.wso2.ballerinalang.compiler.bir.codegen.interop.InteropValidator;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
@@ -49,7 +50,7 @@ public class JBallerinaBackend extends CompilerBackend {
     private static final String JAR_FILE_EXTENSION = ".jar";
     private static final String TEST_JAR_FILE_NAME_SUFFIX = "-testable";
     private static final String JAR_FILE_NAME_SUFFIX = "";
-    private static final String OS = System.getProperty("os.name").toLowerCase(Locale.getDefault());
+    private static final String OS = PropertyConstants.getProperty("os.name").toLowerCase(Locale.getDefault());
     public static final String JAR_NAME_SEPARATOR = "-";
 
     private final PackageResolution pkgResolution;

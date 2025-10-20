@@ -12,6 +12,7 @@ import io.ballerina.projects.internal.repositories.LocalPackageRepository;
 import io.ballerina.projects.internal.repositories.MavenPackageRepository;
 import io.ballerina.projects.internal.repositories.RemotePackageRepository;
 import io.ballerina.projects.util.ProjectConstants;
+import io.ballerina.tools.envutils.PropertyConstants;
 import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public final class BallerinaUserHome {
     }
 
     public static BallerinaUserHome from(Environment environment) {
-        String userHomeDir = System.getProperty("user.home");
+        String userHomeDir = PropertyConstants.getProperty("user.home");
         if (userHomeDir == null || userHomeDir.isEmpty()) {
             throw new ProjectException("unable to get user home directory");
         }

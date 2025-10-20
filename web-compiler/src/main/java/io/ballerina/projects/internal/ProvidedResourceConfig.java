@@ -21,6 +21,7 @@ package io.ballerina.projects.internal;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ResourceConfig;
 import io.ballerina.projects.util.ProjectConstants;
+import io.ballerina.tools.envutils.PropertyConstants;
 
 import io.ballerina.fs.Path;
 import java.util.Locale;
@@ -37,7 +38,7 @@ import java.util.Locale;
  */
 public class ProvidedResourceConfig extends ResourceConfig {
 
-    public static final String OS = System.getProperty("os.name").toLowerCase(Locale.getDefault());
+    public static final String OS = PropertyConstants.getProperty("os.name").toLowerCase(Locale.getDefault());
 
     private ProvidedResourceConfig(DocumentId documentId, Path path, String name, byte[] content) {
         super(documentId, path, name, content);

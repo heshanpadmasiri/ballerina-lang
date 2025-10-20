@@ -17,6 +17,7 @@
 */
 package org.wso2.ballerinalang.compiler.util;
 
+import io.ballerina.tools.envutils.PropertyConstants;
 import org.ballerinalang.compiler.CompilerOptionName;
 import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.model.tree.NodeKind;
@@ -50,7 +51,7 @@ public final class CompilerUtils {
 
     public static boolean isDistributedTransactionsEnabled() {
         boolean distributedTransactionEnabled = true; //TODO:Default will be true. Read from new VMOptions
-        String distributedTxEnabledProp = System.getProperty(DISTRIBUTED_TRANSACTIONS);
+        String distributedTxEnabledProp = PropertyConstants.getProperty(DISTRIBUTED_TRANSACTIONS);
         if (distributedTxEnabledProp != null) {
             distributedTransactionEnabled = Boolean.valueOf(distributedTxEnabledProp);
         }

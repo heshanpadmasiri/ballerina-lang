@@ -4383,11 +4383,7 @@ public class Types {
     }
 
     public byte[] convertToByteArray(String literalExpr) {
-        String[] elements = getLiteralTextValue(literalExpr);
-        if (elements[0].contains(BASE_16)) {
-            return hexStringToByteArray(elements[1]);
-        }
-        return Base64.getDecoder().decode(elements[1].getBytes(StandardCharsets.UTF_8));
+        throw new RuntimeException();
     }
 
     private byte[] hexStringToByteArray(String base16String) {

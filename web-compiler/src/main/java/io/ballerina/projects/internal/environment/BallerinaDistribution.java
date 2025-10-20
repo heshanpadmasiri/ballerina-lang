@@ -23,6 +23,7 @@ import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.PackageResolver;
 import io.ballerina.projects.internal.repositories.BallerinaDistributionRepository;
+import io.ballerina.tools.envutils.PropertyConstants;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 
 /**
@@ -33,7 +34,7 @@ import org.wso2.ballerinalang.compiler.util.CompilerContext;
  */
 public final class BallerinaDistribution {
     private static final String BALLERINA_HOME_KEY = "ballerina.home";
-    private static final String langLibBootstrapPhase = System.getProperty("BOOTSTRAP_LANG_LIB");
+    private static final String langLibBootstrapPhase = PropertyConstants.getProperty("BOOTSTRAP_LANG_LIB");
 
     private final Path ballerinaHomeDirPath;
     private final BallerinaDistributionRepository distributionRepository;
@@ -44,7 +45,7 @@ public final class BallerinaDistribution {
     }
 
     public static BallerinaDistribution from(Environment environment) {
-        String ballerinaHome = System.getProperty(BALLERINA_HOME_KEY);
+        String ballerinaHome = PropertyConstants.getProperty(BALLERINA_HOME_KEY);
         if (ballerinaHome == null) {
             throw new IllegalStateException("ballerina.home property is not set");
         }

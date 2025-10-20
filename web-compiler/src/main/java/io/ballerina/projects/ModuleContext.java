@@ -36,6 +36,7 @@ import io.ballerina.projects.internal.CompilerPhaseRunner;
 import io.ballerina.projects.internal.ModuleContextDataHolder;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.envutils.PropertyConstants;
 import org.ballerinalang.model.TreeBuilder;
 import org.ballerinalang.model.elements.Flag;
 import org.ballerinalang.model.elements.PackageID;
@@ -360,7 +361,7 @@ public class ModuleContext {
 
     static void compileInternal(ModuleContext moduleContext, CompilerContext compilerContext) {
         PackageID moduleCompilationId = moduleContext.descriptor().moduleCompilationId();
-        String bootstrapLangLibName = System.getProperty("BOOTSTRAP_LANG_LIB");
+        String bootstrapLangLibName = PropertyConstants.getProperty("BOOTSTRAP_LANG_LIB");
         if (bootstrapLangLibName != null) {
             moduleContext.bootstrap.loadLangLib(compilerContext, moduleCompilationId);
         }
@@ -408,7 +409,7 @@ public class ModuleContext {
                                      CompilerBackend compilerBackend,
                                      CompilerContext compilerContext) {
         // Perform the rest of the compilation phases before generating platform-specific code
-        String bootstrapLangLibName = System.getProperty("BOOTSTRAP_LANG_LIB");
+        String bootstrapLangLibName = PropertyConstants.getProperty("BOOTSTRAP_LANG_LIB");
         CompilerPhaseRunner compilerPhaseRunner = CompilerPhaseRunner.getInstance(compilerContext);
         if (bootstrapLangLibName != null) {
             compilerPhaseRunner.performLangLibBirGenPhases(moduleContext.bLangPackage);

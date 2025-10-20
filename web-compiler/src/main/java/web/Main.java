@@ -24,7 +24,6 @@ import io.ballerina.tools.diagnostics.Diagnostic;
 public class Main {
     private static final PrintStream out = System.out;
     public static void main(String[] args) {
-        System.setProperty("ballerina.home", "/Users/heshanp/.ballerina");
         SingleFileProject project = SingleFileProject.load(Path.of("/Users/heshanp/Test/jballerina-j2cl-migration-test/test.bal"));
         codeGen(project);
     }
