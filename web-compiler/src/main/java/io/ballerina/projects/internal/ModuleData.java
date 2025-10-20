@@ -87,7 +87,7 @@ public class ModuleData {
      * @return DocumentData optionally.
      * @deprecated use {@link #readmeMd()} instead.
      */
-    @Deprecated (forRemoval = true)
+    @Deprecated
     public Optional<DocumentData> moduleMd() {
         return Optional.ofNullable(this.readmeMd);
     }

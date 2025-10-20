@@ -17,17 +17,11 @@
  */
 package io.ballerina.projects.internal.plugins;
 
-import io.ballerina.compiler.internal.parser.tree.STAnnotationNode;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.projects.ProjectException;
-import io.ballerina.projects.plugins.CompilerPlugin;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.ballerina.fs.Path;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.ServiceLoader;
+import io.ballerina.projects.plugins.CompilerPlugin;
 
 /**
  * This class contains a set of utility method related to compiler plugin implementation.
@@ -39,14 +33,6 @@ public final class CompilerPlugins {
     static List<CompilerPlugin> builtInPlugins = new ArrayList<>();
 
     private CompilerPlugins() {
-    }
-
-    static {
-        ServiceLoader<CompilerPlugin> pluginServiceLoader = ServiceLoader
-                .load(CompilerPlugin.class, CompilerPlugins.class.getClassLoader());
-        for (CompilerPlugin plugin : pluginServiceLoader) {
-            builtInPlugins.add(plugin);
-        }
     }
 
     public static List<CompilerPlugin> getBuiltInPlugins() {

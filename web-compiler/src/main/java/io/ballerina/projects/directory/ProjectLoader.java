@@ -17,19 +17,12 @@
  */
 package io.ballerina.projects.directory;
 
+import io.ballerina.fs.Path;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectLoadResult;
-import io.ballerina.projects.environment.EnvironmentBuilder;
-import io.ballerina.projects.repos.TempDirCompilationCache;
-import io.ballerina.projects.util.ProjectConstants;
-import io.ballerina.projects.util.ProjectPaths;
-
-import java.nio.file.Files;
-import io.ballerina.fs.Path;
-import java.util.Optional;
 
 /**
  * Contains a set of utility methods to create a project.

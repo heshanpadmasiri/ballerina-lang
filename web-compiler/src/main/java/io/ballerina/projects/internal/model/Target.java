@@ -179,7 +179,7 @@ public class Target {
     /**
      * Clean any files that created from the build.
      */
-    @Deprecated (forRemoval = true)
+    @Deprecated
     public void clean(boolean isModified, boolean cacheEnabled) {
         if (isModified || !cacheEnabled) {
             // Remove cache directory

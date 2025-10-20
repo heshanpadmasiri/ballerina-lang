@@ -18,7 +18,10 @@
 
 package org.wso2.ballerinalang.compiler.packaging.converters;
 
-//import com.sun.nio.zipfs.ZipFileSystem;
+
+import java.util.stream.Stream;
+
+import io.ballerina.fs.Path;
 import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.repository.CompilerInput;
 import org.ballerinalang.toml.model.Manifest;
@@ -29,31 +32,15 @@ import org.wso2.ballerinalang.compiler.util.ProjectDirs;
 import org.wso2.ballerinalang.util.RepoUtils;
 import org.wso2.ballerinalang.util.TomlParserUtils;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import io.ballerina.fs.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Stream;
-
 /**
  * Provide functions need to covert a patten to steam of sources.
  */
 public class PathConverter implements Converter<Path> {
 
     private final Path root;
-    private final PathMatcher isResourceFile;
-    private final PathMatcher isTestResourceFile;
 
     public PathConverter(Path root) {
-                        throw new RuntimeException();
-    }
-
-    private boolean isBalWithTest(Path path, BasicFileAttributes attributes) {
-        throw new RuntimeException();
+            throw new RuntimeException();
     }
 
     @Override

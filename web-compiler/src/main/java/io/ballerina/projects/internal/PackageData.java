@@ -154,7 +154,7 @@ public class PackageData {
      * @return DocumentData optionally.
      * @deprecated use {@link #readmeMd()} instead.
      */
-    @Deprecated (forRemoval = true)
+    @Deprecated
     public Optional<DocumentData> packageMd() {
         return Optional.ofNullable(readmeMd);
     }

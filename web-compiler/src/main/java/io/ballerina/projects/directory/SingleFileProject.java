@@ -17,6 +17,8 @@
  */
 package io.ballerina.projects.directory;
 
+import java.util.Optional;
+
 import io.ballerina.fs.Path;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.DocumentId;
@@ -29,10 +31,6 @@ import io.ballerina.projects.ProjectLoadResult;
 import io.ballerina.projects.internal.PackageConfigCreator;
 import io.ballerina.projects.repos.TempDirCompilationCache;
 import io.ballerina.projects.util.ProjectConstants;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Optional;
 
 /**
  * {@code SingleFileProject} represents a Ballerina standalone file.

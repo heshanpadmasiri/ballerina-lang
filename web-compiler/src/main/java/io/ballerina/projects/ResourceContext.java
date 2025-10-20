@@ -17,8 +17,6 @@
  */
 package io.ballerina.projects;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import io.ballerina.fs.Path;
 
 /**
