@@ -4,7 +4,8 @@
       "Bash(find web-compiler/src/main/java/org/wso2/ballerinalang/compiler/bir/codegen -name \"*.java\" -exec grep -l \"ClassWriter\\|MethodVisitor\\|FieldVisitor\\|org.objectweb.asm\" {})",
       "Bash(./gradlew :web-compiler:compileJava)",
       "Bash(./gradlew :web-compiler:dependencies --configuration runtimeClasspath)",
-      "Bash(find web-compiler/src/main/java -name \"*.java\" -type f -exec grep -l \"org.objectweb\" {} ;)"
+      "Bash(find web-compiler/src/main/java -name \"*.java\" -type f -exec grep -l \"org.objectweb\" {} ;)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

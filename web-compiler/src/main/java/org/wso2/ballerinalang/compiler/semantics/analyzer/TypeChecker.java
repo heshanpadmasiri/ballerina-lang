@@ -230,7 +230,7 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import javax.xml.XMLConstants;
+import org.wso2.ballerinalang.compiler.util.XMLConstants;
 
 import static io.ballerina.types.BasicTypeCode.BT_INT;
 import static io.ballerina.types.BasicTypeCode.BT_STRING;
