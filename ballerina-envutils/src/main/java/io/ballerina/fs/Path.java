@@ -41,8 +41,6 @@ public interface Path extends Comparable<Path> {
 
     boolean deleteDirectory();
 
-    BufferedReader bufferedReader();
-
     void deleteIfExists() throws IOException;
 
     boolean notExists();

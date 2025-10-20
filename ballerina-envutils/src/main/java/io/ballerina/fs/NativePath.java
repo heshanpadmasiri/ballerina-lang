@@ -101,11 +101,6 @@ class NativePath implements io.ballerina.fs.Path {
     }
 
     @Override
-    public BufferedReader bufferedReader() {
-        throw new RuntimeException();
-    }
-
-    @Override
     public void deleteIfExists() throws IOException {
        throw new RuntimeException();
     }
