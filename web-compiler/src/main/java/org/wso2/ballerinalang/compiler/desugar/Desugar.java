@@ -9533,7 +9533,7 @@ public class Desugar extends BLangNodeVisitor {
     }
 
     private BLangLiteral createByteLiteral(Location pos, Byte value) {
-        BLangLiteral byteLiteral = new BLangLiteral(Byte.toUnsignedInt(value), symTable.byteType);
+        BLangLiteral byteLiteral = new BLangLiteral(value & 0xFF, symTable.byteType);
         byteLiteral.pos = pos;
         return byteLiteral;
     }
@@ -11060,7 +11060,7 @@ public class Desugar extends BLangNodeVisitor {
         BVarSymbol generatorVarSymbol = new BVarSymbol(0, Names.fromString(varName), env.scope.owner.pkgID,
                 symTable.naturalGeneratorType, this.env.scope.owner, pos, VIRTUAL);
         BLangSimpleVariable generatorVariable = ASTBuilderUtil.createVariable(pos,
-                varName, symTable.naturalGeneratorType, naturalExpression.arguments.getFirst(), generatorVarSymbol);
+                varName, symTable.naturalGeneratorType, naturalExpression.arguments.get(0), generatorVarSymbol);
         return ASTBuilderUtil.createVariableDef(pos, generatorVariable);
     }
 

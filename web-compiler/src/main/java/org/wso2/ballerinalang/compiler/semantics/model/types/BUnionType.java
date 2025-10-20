@@ -392,7 +392,7 @@ public class BUnionType extends BType implements UnionType {
     }
 
     private String getQualifiedName(String pkg, String name) {
-        return (pkg.isBlank() || pkg.equals(".")) ? name : pkg + ":" + name;
+        return (pkg.trim().isEmpty() || pkg.equals(".")) ? name : pkg + ":" + name;
     }
 
     private void computeStringRepresentation() {

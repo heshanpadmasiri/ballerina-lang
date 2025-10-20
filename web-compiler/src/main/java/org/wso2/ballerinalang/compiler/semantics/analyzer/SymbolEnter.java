@@ -3113,7 +3113,7 @@ public class SymbolEnter extends BLangNodeVisitor {
                 BUnionType unionType = ((BUnionType) varType);
                 List<BErrorType> possibleTypes = types.getAllTypes(unionType, true).stream()
                         .filter(type -> TypeTags.ERROR == Types.getImpliedType(type).tag)
-                        .map(BErrorType.class::cast)
+                        .map(type -> (BErrorType) type)
                         .collect(Collectors.toList());
 
                 if (possibleTypes.isEmpty()) {

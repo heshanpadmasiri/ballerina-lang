@@ -178,7 +178,7 @@ public class LargeMethodSplitter {
         }
         rewriteLastSplitFunction(packageNode, env, generatedFunctions);
         initFuncIndex = 0;
-        return generatedFunctions.getFirst();
+        return generatedFunctions.get(0);
     }
 
     private boolean isGlobalOrConstantAssignment(BLangStatement statement, SymbolEnv env) {
@@ -225,7 +225,7 @@ public class LargeMethodSplitter {
         }
 
         // original return statement is added to the start function created last
-        newFuncBody.stmts.add(stmts.getLast());
+        newFuncBody.stmts.add(stmts.get(stmts.size() - 1));
         generatedFunctions.add(newFunc);
 
         // statement is added to each function except the last created function
@@ -256,7 +256,7 @@ public class LargeMethodSplitter {
         // start function created last is also added to the function list
         rewriteLastSplitFunction(packageNode, env, generatedFunctions);
         startFuncIndex = 0;
-        return generatedFunctions.getFirst();
+        return generatedFunctions.get(0);
     }
 
     /**
@@ -286,7 +286,7 @@ public class LargeMethodSplitter {
             newFuncBody.stmts.add(stmts.get(i));
         }
 
-        newFuncBody.stmts.add(stmts.getLast());
+        newFuncBody.stmts.add(stmts.get(stmts.size() - 1));
         generatedFunctions.add(newFunc);
 
         // For the stop function, splitting is done the same as the start function except here.
@@ -314,14 +314,14 @@ public class LargeMethodSplitter {
 
         rewriteLastSplitFunction(packageNode, env, generatedFunctions);
         stopFuncIndex = 0;
-        return generatedFunctions.getFirst();
+        return generatedFunctions.get(0);
     }
 
     private void rewriteLastSplitFunction(BLangPackage packageNode, SymbolEnv env,
                                           List<BLangFunction> generatedFunctions) {
         if (generatedFunctions.size() > 1) {
             // add last func
-            BLangFunction lastFunc = generatedFunctions.getLast();
+            BLangFunction lastFunc = generatedFunctions.get(generatedFunctions.size() - 1);
             lastFunc = desugar.rewrite(lastFunc, env);
             packageNode.functions.add(lastFunc);
             packageNode.topLevelNodes.add(lastFunc);

@@ -6686,7 +6686,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
             if (arguments.isEmpty()) {
                 return;
             }
-            dlog.error(arguments.getFirst().pos, EXPECTED_NO_ARGS_IN_A_CONST_NATURAL_EXPR, size);
+            dlog.error(arguments.get(0).pos, EXPECTED_NO_ARGS_IN_A_CONST_NATURAL_EXPR, size);
             for (BLangExpression argument : arguments) {
                 checkExpr(argument, symTable.anyType, data);
             }
@@ -6698,7 +6698,7 @@ public class TypeChecker extends SimpleBLangNodeAnalyzer<TypeChecker.AnalyzerDat
             return;
         }
 
-        checkExpr(arguments.getFirst(), symTable.naturalGeneratorType, data);
+        checkExpr(arguments.get(0), symTable.naturalGeneratorType, data);
 
         if (size == 1) {
             return;

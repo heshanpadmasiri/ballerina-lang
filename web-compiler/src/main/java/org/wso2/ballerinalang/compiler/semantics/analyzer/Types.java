@@ -1996,7 +1996,7 @@ public class Types {
 
     boolean isCharLiteralValue(String literal) {
 
-        return (literal.codePoints().count() == 1);
+        return (literal.codePointCount(0, literal.length()) == 1);
     }
 
     /**

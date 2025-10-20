@@ -283,7 +283,7 @@ public class ConstantTypeChecker extends SimpleBLangNodeAnalyzer<ConstantTypeChe
 
         List<BType> memberTypes = new ArrayList<>();
         for (byte b : values) {
-            memberTypes.add(getFiniteType(Byte.toUnsignedLong(b), data.constantSymbol, symTable.intType));
+            memberTypes.add(getFiniteType((long)(b & 0xFF), data.constantSymbol, symTable.intType));
         }
 
         BType expType = Types.getImpliedType(data.expType);
