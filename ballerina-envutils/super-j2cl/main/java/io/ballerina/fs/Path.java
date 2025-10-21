@@ -49,4 +49,6 @@ public interface Path extends Comparable<Path> {
     void createFile();
 
     String readString();
+
+    FileSystem fileSystem();
 }

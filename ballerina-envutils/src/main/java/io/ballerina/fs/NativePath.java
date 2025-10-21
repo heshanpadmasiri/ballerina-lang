@@ -8,9 +8,11 @@ import java.nio.file.Path;
 
 class NativePath implements io.ballerina.fs.Path {
     private final Path nativePath;
+    private final FileSystem fs;
 
     private NativePath(Path nativePath) {
         this.nativePath = nativePath;
+        this.fs = FileSystem.getInstance();
     }
 
     public NativePath(String first, String... more) {
@@ -67,22 +69,25 @@ class NativePath implements io.ballerina.fs.Path {
 
     @Override
     public boolean exists() {
+        if (existsInFileSystem()) {
+            return true;
+        }
         return nativePath.toFile().exists();
     }
 
     @Override
     public boolean isRegularFile() {
-        return Files.isRegularFile(nativePath);
+        return existsInFileSystem() || Files.isRegularFile(nativePath);
     }
 
     @Override
     public boolean canWrite() {
-        return nativePath.toFile().canWrite();
+        return existsInFileSystem() || nativePath.toFile().canWrite();
     }
 
     @Override
     public boolean canRead() {
-        return nativePath.toFile().canRead();
+        return existsInFileSystem() || nativePath.toFile().canRead();
     }
 
     @Override
@@ -107,6 +112,9 @@ class NativePath implements io.ballerina.fs.Path {
 
     @Override
     public boolean notExists() {
+        if (existsInFileSystem()) {
+            return false;
+        }
         throw new RuntimeException();
     }
 
@@ -121,24 +129,12 @@ class NativePath implements io.ballerina.fs.Path {
     }
 
     @Override
-    public String readString() {
-        throw new RuntimeException();
+    public FileSystem fileSystem() {
+        return fs;
     }
 
     private  static boolean  deleteDirectory(Path path) {
-        File file = new File(String.valueOf(path));
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            if (files != null) {
-                for (File f : files) {
-                    boolean success = deleteDirectory(f.toPath());
-                    if (!success) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return file.delete();
+        throw new RuntimeException();
     }
 
     @Override
@@ -149,5 +145,19 @@ class NativePath implements io.ballerina.fs.Path {
     @Override
     public int compareTo(io.ballerina.fs.Path o) {
         return this.nativePath.compareTo(((NativePath) o).nativePath);
+    }
+
+    @Override
+    public int hashCode() {
+        return nativePath.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return nativePath.equals(obj);
+    }
+
+    private boolean existsInFileSystem() {
+        return fs.readAsString(this).isPresent();
     }
 }

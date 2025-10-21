@@ -40,28 +40,10 @@ public abstract class DocumentData {
         return new DocumentData.LazyDocumentData(name, content);
     }
 
-    public static DocumentData fromHardCode(String name, String content) {
-        return new HardCodedDocumentData(name, content);
-    }
-
     public abstract String content();
 
     public String name() {
         return name;
-    }
-
-    private static class HardCodedDocumentData extends DocumentData {
-
-        private final String content;
-        public HardCodedDocumentData(String name, String content) {
-            super(name);
-            this.content = content;
-        }
-
-        @Override
-        public String content() {
-            return content;
-        }
     }
 
     private static class EagerDocumentData extends DocumentData {

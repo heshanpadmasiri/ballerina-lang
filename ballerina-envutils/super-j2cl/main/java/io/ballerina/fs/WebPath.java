@@ -4,6 +4,7 @@ import java.io.IOException;
 
 class WebPath implements io.ballerina.fs.Path {
     private final String path;
+    private final FileSystem fs;
 
     public WebPath(String first, String... more) {
         if (first == null) {
@@ -20,6 +21,7 @@ class WebPath implements io.ballerina.fs.Path {
             }
         }
         this.path = pathBuilder.toString();
+        this.fs = FileSystem.getInstance();
     }
 
     @Override
@@ -151,22 +153,22 @@ class WebPath implements io.ballerina.fs.Path {
 
     @Override
     public boolean exists() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        return existsInFileSystem();
     }
 
     @Override
     public boolean isRegularFile() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        return existsInFileSystem();
     }
 
     @Override
     public boolean canWrite() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        return existsInFileSystem();
     }
 
     @Override
     public boolean canRead() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        return existsInFileSystem();
     }
 
     @Override
@@ -191,7 +193,7 @@ class WebPath implements io.ballerina.fs.Path {
 
     @Override
     public boolean notExists() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        return !existsInFileSystem();
     }
 
     @Override
@@ -206,7 +208,8 @@ class WebPath implements io.ballerina.fs.Path {
 
     @Override
     public String readString() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        return fs.readAsString(this).orElseThrow(() ->
+            new RuntimeException("File not found: " + path));
     }
 
     @Override
@@ -237,5 +240,14 @@ class WebPath implements io.ballerina.fs.Path {
     @Override
     public int hashCode() {
         return path.hashCode();
+    }
+
+    @Override
+    public FileSystem fileSystem() {
+        return fs;
+    }
+
+    private boolean existsInFileSystem() {
+        return fs.readAsString(this).isPresent();
     }
 }

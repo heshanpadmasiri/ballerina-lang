@@ -1,6 +1,8 @@
 package web;
 
 import java.io.PrintStream;
+
+import io.ballerina.fs.FileSystem;
 import io.ballerina.fs.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,11 @@ import io.ballerina.tools.envutils.Console;
 public class Main {
 
     public static void main(String[] args) {
-        SingleFileProject project = SingleFileProject.load(Path.of("/Users/heshanp/Test/jballerina-j2cl-migration-test/test.bal"));
+        FileSystem fs = FileSystem.getInstance();
+        Path sourcePath = Path.of("/tmp/test.bal");
+        String sourceContent = "public function main() {}";
+        fs.save(sourcePath, sourceContent);
+        SingleFileProject project = SingleFileProject.load(sourcePath);
         codeGen(project);
     }
 

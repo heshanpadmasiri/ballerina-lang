@@ -17,6 +17,15 @@
  */
 package io.ballerina.projects.internal;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import io.ballerina.fs.FileSystem;
 import io.ballerina.fs.Path;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.DocumentConfig;
@@ -24,12 +33,6 @@ import io.ballerina.projects.PackageConfig;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.util.ProjectConstants;
-
-import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static io.ballerina.projects.util.ProjectConstants.DOT;
 import static io.ballerina.projects.util.ProjectConstants.GENERATED_MODULES_ROOT;
@@ -46,9 +49,7 @@ public final class ProjectFiles {
     }
 
     public static PackageData loadSingleFileProjectPackageData(Path filePath) {
-        DocumentData documentData = DocumentData.fromHardCode("test.bal",
-                "public function main() {\n" +
-                "}\n");
+        DocumentData documentData = loadDocument(filePath);
         ModuleData defaultModule = ModuleData
                 .from(filePath, DOT, Collections.singletonList(documentData), Collections.emptyList(), null);
         return PackageData.from(filePath, defaultModule, Collections.emptyList(),
@@ -129,12 +130,35 @@ public final class ProjectFiles {
     }
 
     public static DocumentData loadDocument(Path documentFilePath) {
-        throw new RuntimeException();
+        if (documentFilePath.notExists()) {
+            return null;
+        }
+        try {
+            checkReadPermission(documentFilePath);
+        } catch (UnsupportedOperationException ignore) {
+            // ignore for zip entries
+        }
+        return getDocumentData(documentFilePath, false);
+    }
+
+    public static void checkReadPermission(Path path) {
+        if (!path.canRead()) {
+            throw new ProjectException("'" + path.normalize() + "' does not have read permissions");
+        }
+    }
+
+
+    private static DocumentData getDocumentData(Path documentFilePath, boolean isTest) {
+        return getDocumentData(documentFilePath, isTest, StandardCharsets.UTF_8);
     }
 
     // Overloaded helper to allow custom Charset
     public static DocumentData getDocumentData(Path documentFilePath, boolean isTest, Charset charset) {
-        throw new RuntimeException();
+        FileSystem fs = documentFilePath.fileSystem();
+        String documentName = Optional.of(documentFilePath.getFileName()).get().toString();
+        String finalName = isTest ? ProjectConstants.TEST_DIR_NAME + "/" + documentName : documentName;
+        String content = fs.readAsString(documentFilePath).orElseThrow();
+        return DocumentData.from(finalName, content);
     }
 
     public static BuildOptions createBuildOptions(PackageConfig packageConfig, BuildOptions theirOptions,
