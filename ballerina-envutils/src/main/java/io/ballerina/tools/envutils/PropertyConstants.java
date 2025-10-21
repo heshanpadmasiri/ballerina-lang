@@ -10,7 +10,7 @@ import java.util.Map;
 public class PropertyConstants {
 
     // Hardcoded system property values (captured from runtime)
-    private static final String BALLERINA_HOME = "/Users/heshanp/.ballerina";
+    private static final String BALLERINA_HOME = "/virtual/.ballerina";
     private static final String BALLERINA_VERSION = "2201.13.0-m3";
     private static final String BALLERINA_SHORT_VERSION = null;
     private static final String SPEC_VERSION = "2024R1";

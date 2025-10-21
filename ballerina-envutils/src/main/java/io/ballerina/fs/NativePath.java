@@ -64,7 +64,7 @@ class NativePath implements io.ballerina.fs.Path {
 
     @Override
     public boolean isDirectory() {
-        return nativePath.toFile().isDirectory();
+        return fs.isDirectory(this);
     }
 
     @Override
@@ -112,10 +112,7 @@ class NativePath implements io.ballerina.fs.Path {
 
     @Override
     public boolean notExists() {
-        if (existsInFileSystem()) {
-            return false;
-        }
-        throw new RuntimeException();
+        return !existsInFileSystem();
     }
 
     @Override
@@ -154,10 +151,13 @@ class NativePath implements io.ballerina.fs.Path {
 
     @Override
     public boolean equals(Object obj) {
-        return nativePath.equals(obj);
+        if (!(obj instanceof NativePath other)) {
+            return false;
+        }
+        return nativePath.equals(other.nativePath);
     }
 
     private boolean existsInFileSystem() {
-        return fs.readAsString(this).isPresent();
+        return fs.exists(this);
     }
 }
