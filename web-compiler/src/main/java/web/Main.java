@@ -19,13 +19,11 @@ import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.internal.ProjectDiagnosticErrorCode;
 import io.ballerina.projects.util.ProjectUtils;
 import io.ballerina.tools.diagnostics.Diagnostic;
-import jsinterop.annotations.JsType;
+import io.ballerina.tools.envutils.Console;
 
-
-@JsType
 public class Main {
-    private static final PrintStream out = System.out;
-    public static void run() {
+
+    public static void main(String[] args) {
         SingleFileProject project = SingleFileProject.load(Path.of("/Users/heshanp/Test/jballerina-j2cl-migration-test/test.bal"));
         codeGen(project);
     }
@@ -36,7 +34,7 @@ public class Main {
         String sourceName = project.currentPackage().getDefaultModule().document(
                 project.currentPackage().getDefaultModule().documentIds().iterator().next()).name();
         // Print the source
-        System.out.println("\t" + sourceName);
+        Console.println("\t" + sourceName);
 
         try {
             List<Diagnostic> diagnostics = new ArrayList<>();
@@ -68,7 +66,7 @@ public class Main {
                     diagnostic -> diagnostic.diagnosticInfo().code().equals(
                             ProjectDiagnosticErrorCode.DEPRECATED_RESOURCES_STRUCTURE.diagnosticId())).findAny();
 
-            projectLoadingDiagnostic.ifPresent(out::println);
+            projectLoadingDiagnostic.ifPresent(Console::error);
             PackageCompilation packageCompilation = project.currentPackage().getCompilation();
             JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_21);
         } catch (ProjectException e) {

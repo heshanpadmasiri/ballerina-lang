@@ -21,9 +21,10 @@ import org.wso2.ballerinalang.compiler.bir.model.BIRNode;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 
-import java.io.PrintStream;
 import java.util.List;
 import java.util.Set;
+
+import io.ballerina.tools.envutils.Console;
 
 import static org.wso2.ballerinalang.compiler.bir.emit.EmitterUtils.emitBasicBlockRef;
 import static org.wso2.ballerinalang.compiler.bir.emit.EmitterUtils.emitFlags;
@@ -46,7 +47,6 @@ import static org.wso2.ballerinalang.compiler.bir.emit.TypeEmitter.emitTypeRef;
 public class BIREmitter {
 
     private static final CompilerContext.Key<BIREmitter> BIR_EMITTER = new CompilerContext.Key<>();
-    private static final PrintStream console = System.out;
 
     public static BIREmitter getInstance(CompilerContext context) {
         BIREmitter birEmitter = context.get(BIR_EMITTER);
@@ -66,7 +66,7 @@ public class BIREmitter {
     }
 
     public void emit(BIRNode.BIRPackage birPackage) {
-        console.println(emitModule(birPackage));
+        Console.println(emitModule(birPackage));
     }
 
     public static String emitModule(BIRNode.BIRPackage mod) {

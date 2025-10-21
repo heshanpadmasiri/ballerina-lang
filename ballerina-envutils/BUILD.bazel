@@ -15,10 +15,12 @@ j2cl_library(
     name = "ballerina-envutils-j2cl",
     srcs = glob([
         "src/main/java/**/*.java",
-    ], exclude=["src/main/java/**/*Native*.java", "src/main/java/**/Env.java", "src/main/java/**/Path.java", "src/main/java/**/module-info.java"]) + glob([
+    ], exclude=["src/main/java/**/*Native*.java", "src/main/java/**/Env.java", "src/main/java/**/Path.java", "src/main/java/**/Console.java", "src/main/java/**/module-info.java"]) + glob([
         "super-j2cl/**/*.java",
     ]),
-    deps = [],
+    deps = [
+        "@j2cl//:jsinterop-annotations-j2cl",
+    ],
     javacopts = [
         "-source", "21",
         "-target", "21",

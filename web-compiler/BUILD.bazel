@@ -9,6 +9,7 @@ j2cl_library(
     ], exclude=[
         "src/main/java/module-info.java",
         "src/main/java/io/ballerina/projects/SemanticVersion.java",
+        "src/main/java/web/Main.java",
     ]) + glob([
         "super-j2cl/**/*.java",
         "super-j2cl/**/*.js",
