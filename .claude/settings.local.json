@@ -10,7 +10,10 @@
       "Read(//Users/heshanp/Projects/**)",
       "Bash(./gradlew :ballerina-envutils:compileJava :web-compiler:compileJava)",
       "Bash(test -f /Users/heshanp/Projects/ballerina-lang/misc/identifier-util/super-j2cl/main/java/io/ballerina/identifier/Utils.java)",
-      "Bash(bazel build //web-compiler:web-compiler-j2cl --jobs=4)"
+      "Bash(bazel build //web-compiler:web-compiler-j2cl --jobs=4)",
+      "Bash(bazel build //web-compiler:web-compiler-j2cl)",
+      "Bash(bazel build //web-compiler:web-compiler-j2cl --verbose_failures)",
+      "Read(///**)"
     ],
     "deny": [],
     "ask": []

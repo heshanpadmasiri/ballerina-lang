@@ -18,7 +18,7 @@
 
 package io.ballerina.identifier;
 
-import org.apache.commons.text.StringEscapeUtils;
+// J2CL-compatible implementation - StringEscapeUtils not available
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +92,46 @@ public final class Utils {
      * @return a new unescaped {@code String}, {@code null} if null string input
      */
     public static String unescapeJava(String str) {
-        return StringEscapeUtils.unescapeJava(str);
+        if (str == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder(str.length());
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (c == '\\' && i + 1 < str.length()) {
+                char next = str.charAt(i + 1);
+                switch (next) {
+                    case 'n': sb.append('\n'); i++; break;
+                    case 't': sb.append('\t'); i++; break;
+                    case 'r': sb.append('\r'); i++; break;
+                    case 'b': sb.append('\b'); i++; break;
+                    case 'f': sb.append('\f'); i++; break;
+                    case '\'': sb.append('\''); i++; break;
+                    case '\"': sb.append('\"'); i++; break;
+                    case '\\': sb.append('\\'); i++; break;
+                    case 'u':
+                        // Handle unicode escape sequences like \u0041
+                        if (i + 5 < str.length()) {
+                            try {
+                                String hex = str.substring(i + 2, i + 6);
+                                int codePoint = Integer.parseInt(hex, 16);
+                                sb.append((char) codePoint);
+                                i += 5;
+                            } catch (NumberFormatException e) {
+                                sb.append(c);
+                            }
+                        } else {
+                            sb.append(c);
+                        }
+                        break;
+                    default: sb.append(c); break;
+                }
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     private static Identifier encodeGeneratedName(String identifier) {

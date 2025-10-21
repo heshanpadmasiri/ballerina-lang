@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ballerina Web Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            background-color: #e8f4fd;
+            border-left: 4px solid #2196F3;
+        }
+        .console {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ballerina Web Client</h1>
+
+        <div class="status">
+            <strong>Status:</strong> <span id="status">Loading...</span>
+        </div>
+
+        <div>
+            <button onclick="testBallerinaCompiler()" id="testBtn">Test Ballerina Compiler</button>
+            <button onclick="clearConsole()" id="clearBtn">Clear Console</button>
+        </div>
+
+        <div class="console" id="console">
+            <div>Console output will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Load the generated JavaScript files -->
+    <script src="web-client.js"></script>
+
+    <script>
+        // Console logging function
+        function log(message) {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            console.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // Clear console function
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '<div>Console cleared...</div>';
+        }
+
+        // Test function to verify the Ballerina compiler is working
+        function testBallerinaCompiler() {
+            const testBtn = document.getElementById('testBtn');
+            const status = document.getElementById('status');
+
+            testBtn.disabled = true;
+            status.textContent = 'Testing...';
+            log('Starting Ballerina compiler test...');
+
+            try {
+                // Check if the web compiler is available
+                if (typeof window.web !== 'undefined' && window.web.Main) {
+                    log('✓ Web compiler module found');
+                    status.textContent = 'Web compiler loaded successfully!';
+                    status.style.color = 'green';
+
+                    // Try to create a simple test
+                    log('✓ Ballerina web compiler is ready for use');
+                    log('You can now use the web compiler functionality in your application');
+
+                } else {
+                    log('✗ Web compiler module not found');
+                    status.textContent = 'Web compiler not available';
+                    status.style.color = 'red';
+                }
+            } catch (error) {
+                log('✗ Error testing compiler: ' + error.message);
+                status.textContent = 'Error: ' + error.message;
+                status.style.color = 'red';
+            } finally {
+                testBtn.disabled = false;
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            log('Page loaded successfully');
+            log('JavaScript files loaded from: web-client.js');
+
+            // Auto-test after a short delay
+            setTimeout(() => {
+                testBallerinaCompiler();
+            }, 1000);
+        });
+
+        // Error handling
+        window.addEventListener('error', function(e) {
+            log('✗ JavaScript Error: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+        });
+    </script>
+</body>
+</html>

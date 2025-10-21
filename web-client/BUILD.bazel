@@ -1,0 +1,17 @@
+load("@j2cl//build_defs:rules.bzl", "j2cl_application")
+load("@rules_closure//closure:defs.bzl", "closure_js_library")
+
+
+closure_js_library(
+    name = "app",
+    srcs = ["app.js"],
+    deps = [
+        "//web-compiler:web-compiler-j2cl",
+    ],
+)
+
+j2cl_application(
+    name = "web-client",
+    entry_points = ["j2cl.samples.app"],
+    deps = [":app"],
+)
