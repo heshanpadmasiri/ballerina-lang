@@ -3,19 +3,68 @@ package io.ballerina.fs;
 import java.io.IOException;
 
 class WebPath implements io.ballerina.fs.Path {
+    private final String path;
 
     public WebPath(String first, String... more) {
-        // Stub constructor - no actual implementation needed
+        if (first == null) {
+            throw new IllegalArgumentException("First path component cannot be null");
+        }
+
+        StringBuilder pathBuilder = new StringBuilder(first);
+        for (String component : more) {
+            if (component != null && !component.isEmpty()) {
+                if (!pathBuilder.toString().endsWith("/") && !component.startsWith("/")) {
+                    pathBuilder.append("/");
+                }
+                pathBuilder.append(component);
+            }
+        }
+        this.path = pathBuilder.toString();
     }
 
     @Override
     public io.ballerina.fs.Path toAbsolutePath() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        if (isAbsolute()) {
+            return this;
+        }
+        throw new RuntimeException("Cannot resolve absolute path in web environment - no working directory");
     }
 
     @Override
     public io.ballerina.fs.Path normalize() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        if (path.isEmpty()) {
+            return new WebPath("");
+        }
+
+        String[] components = path.split("/");
+        java.util.List<String> normalized = new java.util.ArrayList<>();
+
+        for (String component : components) {
+            if (component.isEmpty() || ".".equals(component)) {
+                // Skip empty components and current directory
+                continue;
+            } else if ("..".equals(component)) {
+                // Go up one directory if possible
+                if (!normalized.isEmpty() && !"..".equals(normalized.get(normalized.size() - 1))) {
+                    normalized.remove(normalized.size() - 1);
+                } else if (!isAbsolute()) {
+                    // Keep .. for relative paths when we can't go up further
+                    normalized.add("..");
+                }
+            } else {
+                normalized.add(component);
+            }
+        }
+
+        String result = String.join("/", normalized);
+        if (isAbsolute() && !result.startsWith("/")) {
+            result = "/" + result;
+        }
+        if (result.isEmpty() && !isAbsolute()) {
+            result = ".";
+        }
+
+        return new WebPath(result);
     }
 
     @Override
@@ -25,27 +74,74 @@ class WebPath implements io.ballerina.fs.Path {
 
     @Override
     public boolean isAbsolute() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        return path.startsWith("/");
     }
 
     @Override
     public io.ballerina.fs.Path resolve(io.ballerina.fs.Path relativePath) {
-        throw new RuntimeException("Path operations not supported in web environment");
+        if (relativePath instanceof WebPath webPath) {
+            return resolve(webPath.path);
+        }
+        throw new IllegalArgumentException("Incompatible path type");
     }
 
     @Override
     public io.ballerina.fs.Path getFileName() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        if (path.isEmpty()) {
+            return new WebPath("");
+        }
+
+        int lastSlash = path.lastIndexOf('/');
+        if (lastSlash == -1) {
+            return new WebPath(path);
+        }
+
+        String fileName = path.substring(lastSlash + 1);
+        return new WebPath(fileName);
     }
 
     @Override
     public io.ballerina.fs.Path getParent() {
-        throw new RuntimeException("Path operations not supported in web environment");
+        if (path.isEmpty()) {
+            return null;
+        }
+
+        int lastSlash = path.lastIndexOf('/');
+        if (lastSlash == -1) {
+            return null;
+        }
+
+        if (lastSlash == 0) {
+            return new WebPath("/");
+        }
+
+        String parent = path.substring(0, lastSlash);
+        return new WebPath(parent);
     }
 
     @Override
     public io.ballerina.fs.Path resolve(String other) {
-        throw new RuntimeException("Path operations not supported in web environment");
+        if (other == null) {
+            throw new IllegalArgumentException("Path component cannot be null");
+        }
+
+        if (other.isEmpty()) {
+            return this;
+        }
+
+        if (other.startsWith("/")) {
+            return new WebPath(other);
+        }
+
+        if (path.isEmpty()) {
+            return new WebPath(other);
+        }
+
+        if (path.endsWith("/")) {
+            return new WebPath(path + other);
+        } else {
+            return new WebPath(path + "/" + other);
+        }
     }
 
     @Override
@@ -115,6 +211,31 @@ class WebPath implements io.ballerina.fs.Path {
 
     @Override
     public int compareTo(io.ballerina.fs.Path o) {
-        throw new RuntimeException("Path operations not supported in web environment");
+        if (o instanceof WebPath other) {
+            return this.path.compareTo(other.path);
+        }
+        throw new IllegalArgumentException("Cannot compare with incompatible path type");
+    }
+
+    @Override
+    public String toString() {
+        return path;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        WebPath webPath = (WebPath) obj;
+        return path.equals(webPath.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return path.hashCode();
     }
 }

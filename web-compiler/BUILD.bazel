@@ -11,6 +11,7 @@ j2cl_library(
         "src/main/java/io/ballerina/projects/SemanticVersion.java",
     ]) + glob([
         "super-j2cl/**/*.java",
+        "super-j2cl/**/*.js",
     ]),
     deps = [
         "//ballerina-envutils:ballerina-envutils-j2cl",

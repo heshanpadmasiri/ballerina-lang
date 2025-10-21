@@ -19,11 +19,13 @@ import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.internal.ProjectDiagnosticErrorCode;
 import io.ballerina.projects.util.ProjectUtils;
 import io.ballerina.tools.diagnostics.Diagnostic;
+import jsinterop.annotations.JsType;
 
 
+@JsType
 public class Main {
     private static final PrintStream out = System.out;
-    public static void main(String[] args) {
+    public static void run() {
         SingleFileProject project = SingleFileProject.load(Path.of("/Users/heshanp/Test/jballerina-j2cl-migration-test/test.bal"));
         codeGen(project);
     }
