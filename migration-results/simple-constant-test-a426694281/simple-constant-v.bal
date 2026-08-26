@@ -116,12 +116,30 @@ function testConstInJsonValue() returns json|error {
     return j.key;
 }
 
-function testBooleanConstInUnion() returns any => booleanWithType;
-function testIntConstInUnion() returns any => intWithType;
-function testByteConstInUnion() returns any => byteWithType;
-function testFloatConstInUnion() returns any => floatWithType;
-function testDecimalConstInUnion() returns any => decimalWithType;
-function testStringConstInUnion() returns any => stringWithType;
+function testBooleanConstInUnion() returns any {
+    boolean|int v = booleanWithType;
+    return v;
+}
+function testIntConstInUnion() returns any {
+    int|boolean v = intWithType;
+    return v;
+}
+function testByteConstInUnion() returns any {
+    byte|boolean v = byteWithType;
+    return v;
+}
+function testFloatConstInUnion() returns any {
+    float|boolean v = floatWithType;
+    return v;
+}
+function testDecimalConstInUnion() returns any {
+    decimal|boolean v = decimalWithType;
+    return v;
+}
+function testStringConstInUnion() returns any {
+    string|boolean v = stringWithType;
+    return v;
+}
 function testBooleanConstInTuple() returns boolean {
     [boolean, int] v = [booleanWithType, 1];
     return v[0];
