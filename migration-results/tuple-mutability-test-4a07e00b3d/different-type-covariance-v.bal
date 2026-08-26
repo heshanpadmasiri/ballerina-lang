@@ -26,7 +26,7 @@ public function main() {
     tuple4[0] = 12;
     tuple4[1] = intern1;
     tuple4[2] = intern1;
-    int|string result = tuple4[0];
+    var result = tuple4[0];
     io:println(result is int ? result : 0);
 }
 

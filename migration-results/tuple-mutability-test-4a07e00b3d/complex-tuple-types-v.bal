@@ -13,7 +13,9 @@ public function main() {
     [[[float|boolean, int], float], boolean] var4 = [[[12.0, 2], 3.0], true];
 
     float|boolean x1 = var1[0];
+    float x2 = var1[1];
     json|int x3 = var2[0];
+    [int|boolean, float] x4 = var3[0];
     int|boolean x5 = var3[0][0];
     float|json x6 = var3[1][0];
     float|boolean x7 = var4[0][0][0];
