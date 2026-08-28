@@ -1,0 +1,7 @@
+[package]
+org = "testorg"
+name = "decimal_large_exponent_literal"
+version = "0.1.0"
+
+[build-options]
+observabilityIncluded = false
