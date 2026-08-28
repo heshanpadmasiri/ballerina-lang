@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "checkpanic_generic_multi_union_p"
+version = "0.1.0"

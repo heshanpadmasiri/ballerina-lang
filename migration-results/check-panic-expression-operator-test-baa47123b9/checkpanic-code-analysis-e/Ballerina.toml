@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "checkpanic_code_analysis_e"
+version = "0.1.0"

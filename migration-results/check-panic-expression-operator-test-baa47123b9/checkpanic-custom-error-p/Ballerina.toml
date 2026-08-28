@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "checkpanic_custom_error_p"
+version = "0.1.0"
