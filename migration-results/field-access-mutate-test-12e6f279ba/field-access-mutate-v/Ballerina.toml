@@ -1,0 +1,8 @@
+[package]
+org = "migration"
+name = "field_access_mutate"
+version = "0.1.0"
+distribution = "2201.13.4"
+
+[[platform.java21.dependency]]
+path = "libs/java-field-access-mutate.jar"
