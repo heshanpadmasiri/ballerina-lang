@@ -1,0 +1,4 @@
+[package]
+org = "test_org"
+name = "implicitly_final_negative"
+version = "1.0.0"
