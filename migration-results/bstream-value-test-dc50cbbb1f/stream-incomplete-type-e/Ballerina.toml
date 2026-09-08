@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "stream_incomplete_type_e"
+version = "0.1.0"

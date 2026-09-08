@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "stream_invalid_cast_p"
+version = "0.1.0"

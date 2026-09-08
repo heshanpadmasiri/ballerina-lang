@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "stream_negative_e"
+version = "0.1.0"

@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "stream_value_v"
+version = "0.1.0"

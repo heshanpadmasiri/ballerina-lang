@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "stream_super_stream_cast_p"
+version = "0.1.0"
