@@ -1,0 +1,8 @@
+[package]
+org = "migration"
+name = "constructor_v"
+version = "0.1.0"
+distribution = "2201.13.4"
+
+[[platform.java21.dependency]]
+path = "libs/constructor-fixtures.jar"
