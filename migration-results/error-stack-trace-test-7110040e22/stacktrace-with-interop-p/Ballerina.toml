@@ -1,0 +1,10 @@
+[package]
+org = "test_org"
+name = "stacktrace_with_interop"
+version = "0.1.0"
+
+[[platform.java21.dependency]]
+path = "libs/static-methods.jar"
+groupId = "test_org"
+artifactId = "static-methods"
+version = "0.1.0"
