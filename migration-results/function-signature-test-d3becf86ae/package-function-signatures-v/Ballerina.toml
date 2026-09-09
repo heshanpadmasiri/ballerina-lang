@@ -1,0 +1,10 @@
+[package]
+org = "testorg"
+name = "function_signature_migration"
+version = "1.0.0"
+
+[[platform.java21.dependency]]
+path = "libs/function-signature-native.jar"
+groupId = "testorg"
+artifactId = "function-signature-native"
+version = "1.0.0"
