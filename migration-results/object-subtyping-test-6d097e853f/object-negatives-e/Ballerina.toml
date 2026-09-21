@@ -1,0 +1,4 @@
+[package]
+org = "testorg"
+name = "object_negatives"
+version = "1.0.0"
