@@ -1,0 +1,4 @@
+[package]
+org = "test"
+name = "wildcard_binding_pattern_query"
+version = "0.1.0"

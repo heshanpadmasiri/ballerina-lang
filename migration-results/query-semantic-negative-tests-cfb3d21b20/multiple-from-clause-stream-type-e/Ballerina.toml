@@ -1,0 +1,4 @@
+[package]
+org = "test"
+name = "multiple_from_clause_stream_type"
+version = "0.1.0"
