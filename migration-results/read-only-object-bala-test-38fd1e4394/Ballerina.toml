@@ -1,0 +1,2 @@
+[workspace]
+packages = ["readonly-objects-provider-v", "readonly-objects-v", "readonly-object-initialization-e"]
