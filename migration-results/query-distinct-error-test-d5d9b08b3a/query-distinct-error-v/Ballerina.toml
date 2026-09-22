@@ -1,0 +1,5 @@
+[package]
+org = "ballerina"
+name = "query_distinct_error_v"
+version = "0.1.0"
+distribution = "2201.13.4"
