@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "invalid_async_send_in_fork"
+version = "0.1.0"

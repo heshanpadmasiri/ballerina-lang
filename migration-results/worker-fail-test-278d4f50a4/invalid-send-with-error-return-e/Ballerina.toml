@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "invalid_send_with_error_return"
+version = "0.1.0"

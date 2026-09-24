@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "invalid_send_in_lambda"
+version = "0.1.0"

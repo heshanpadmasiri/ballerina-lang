@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "invalid_receive_in_foreach"
+version = "0.1.0"

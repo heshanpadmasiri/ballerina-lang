@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "invalid_receive_with_workers"
+version = "0.1.0"
