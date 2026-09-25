@@ -1,0 +1,3 @@
+[workspace]
+packages = ["foo-provider-v", "map-constant-equality-v"]
+
