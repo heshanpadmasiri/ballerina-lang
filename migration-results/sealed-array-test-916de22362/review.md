@@ -1,0 +1,1 @@
+1. `sealed-array-code-analysis-e.bal:27` has two `// @error` markers, but `SealedArrayTest.java:306-307` validates only the single diagnostic at source line 27, column 43, and `bal build` emits only `length of the array cannot be inferred from the context` at `(27:43,27:49)`. Remove one marker so this line has exactly one `// @error` expectation.
