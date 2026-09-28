@@ -1,0 +1,8 @@
+[package]
+org = "migration"
+name = "resource_path_arguments"
+version = "0.1.0"
+distribution = "2201.13.4"
+
+[[platform.java21.dependency]]
+path = "platform-libs/static-methods.jar"
