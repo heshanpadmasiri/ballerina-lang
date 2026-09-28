@@ -1,0 +1,4 @@
+[package]
+org = "test"
+name = "object_initializer"
+version = "1.0.0"
