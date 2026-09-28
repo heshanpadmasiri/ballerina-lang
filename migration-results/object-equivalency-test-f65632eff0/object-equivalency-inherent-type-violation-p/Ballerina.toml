@@ -1,0 +1,4 @@
+[package]
+org = "test"
+name = "object_equivalency_inherent_type_violation"
+version = "1.0.0"
