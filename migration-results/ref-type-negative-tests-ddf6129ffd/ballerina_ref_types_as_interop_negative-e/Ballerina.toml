@@ -1,0 +1,7 @@
+[package]
+org = "migration"
+name = "ref_types_interop_negative"
+version = "0.1.0"
+
+[[platform.java21.dependency]]
+path = "libs/ref-type-negative-tests.jar"
