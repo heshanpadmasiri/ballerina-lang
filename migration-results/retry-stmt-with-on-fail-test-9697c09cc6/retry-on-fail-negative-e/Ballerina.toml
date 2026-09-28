@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "retry_on_fail_negative_e"
+version = "0.1.0"
