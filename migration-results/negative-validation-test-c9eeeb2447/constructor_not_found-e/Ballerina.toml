@@ -1,0 +1,7 @@
+[package]
+org = "migration"
+name = "constructor_not_found"
+version = "0.1.0"
+
+[[platform.java21.dependency]]
+path = "../support.jar"

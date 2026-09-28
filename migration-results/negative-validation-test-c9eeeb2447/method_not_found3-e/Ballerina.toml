@@ -1,0 +1,7 @@
+[package]
+org = "migration"
+name = "method_not_found3"
+version = "0.1.0"
+
+[[platform.java21.dependency]]
+path = "../support.jar"

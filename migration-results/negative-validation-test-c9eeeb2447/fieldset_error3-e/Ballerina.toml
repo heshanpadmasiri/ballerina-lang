@@ -1,0 +1,7 @@
+[package]
+org = "migration"
+name = "fieldset_error3"
+version = "0.1.0"
+
+[[platform.java21.dependency]]
+path = "../support.jar"

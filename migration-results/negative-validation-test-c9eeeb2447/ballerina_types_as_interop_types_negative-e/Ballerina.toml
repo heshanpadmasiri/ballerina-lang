@@ -1,0 +1,7 @@
+[package]
+org = "migration"
+name = "ballerina_types_as_interop_types_negative"
+version = "0.1.0"
+
+[[platform.java21.dependency]]
+path = "../support.jar"
