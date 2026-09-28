@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "undeclared_variables"
+version = "0.1.0"

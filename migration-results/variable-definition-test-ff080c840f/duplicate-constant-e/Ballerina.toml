@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "duplicate_constant"
+version = "0.1.0"
