@@ -1,0 +1,11 @@
+[package]
+org = "migration"
+name = "local_annotation"
+version = "0.1.0"
+distribution = "2201.13.4"
+
+[[platform.java21.dependency]]
+path = "./libs/service-value.jar"
+groupId = "migration"
+artifactId = "service-value"
+version = "0.1.0"
