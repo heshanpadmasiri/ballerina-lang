@@ -1,0 +1,7 @@
+[package]
+org = "migration"
+name = "timer"
+version = "0.1.0"
+
+[[platform.java21.dependency]]
+path = "libs/timer-support.jar"
