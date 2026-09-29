@@ -1,0 +1,2 @@
+[workspace]
+packages = ["a-provider-v", "global-var-function-in-bala-v"]
