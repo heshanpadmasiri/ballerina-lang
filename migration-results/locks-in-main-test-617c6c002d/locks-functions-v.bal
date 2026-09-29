@@ -129,6 +129,7 @@ function throwErrorInsideLockInsideTryFinally() returns [int, string] {
         }
     }
     var err = trap errorPanicInsideLock();
+    wait w2;
     if (err is error) {
         sleep(10);
         lock { lockWithinLockInt1 += 1; }
@@ -160,6 +161,7 @@ function throwErrorInsideTryCatchFinallyInsideLock() returns [int, string] {
         }
         lock { lockWithinLockInt1 += 1; }
     }
+    wait w2;
     sleep(10);
     return [lockWithinLockInt1, lockWithinLockString1];
 }
@@ -210,6 +212,7 @@ function throwErrorInsideLockInsideTryCatch() returns [int, string] {
         }
     }
     var err = trap errorPanicInsideLock();
+    wait w2;
     if (err is error) {
         sleep(10);
         lock { lockWithinLockInt1 += 1; }
@@ -239,6 +242,7 @@ function throwErrorInsideTryCatchInsideLock() returns [int, string] {
             lock { lockWithinLockInt1 += 1; }
         }
     }
+    wait w2;
     sleep(10);
     return [lockWithinLockInt1, lockWithinLockString1];
 }

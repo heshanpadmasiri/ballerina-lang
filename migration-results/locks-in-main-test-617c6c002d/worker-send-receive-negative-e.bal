@@ -25,6 +25,7 @@ public function test() {
         lock {
             int num = 10;
             num -> B; // @error
+            // This marker covers both the unused-variable warning and the receive-action error.
             string msg = <- B; // @error
         }
     }
