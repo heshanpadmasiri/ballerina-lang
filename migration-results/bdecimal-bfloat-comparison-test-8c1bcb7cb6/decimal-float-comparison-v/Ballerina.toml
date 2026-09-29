@@ -1,0 +1,4 @@
+[package]
+org = "migration"
+name = "decimal_float_comparison_v"
+version = "0.1.0"
