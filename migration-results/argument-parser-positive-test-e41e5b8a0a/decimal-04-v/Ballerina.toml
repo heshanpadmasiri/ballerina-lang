@@ -1,0 +1,5 @@
+[package]
+org = "migration"
+name = "decimal_04"
+version = "0.1.0"
+distribution = "2201.13.4"
